@@ -1,0 +1,66 @@
+.o_htplus_gantt {
+    font-size: 13px;
+    padding: 16px;
+}
+.o_htplus_gantt_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+}
+.o_htplus_gantt_title {
+    font-weight: 600;
+}
+.o_htplus_gantt_loading {
+    color: #666;
+    padding: 24px;
+}
+.o_htplus_gantt_row {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    min-height: 40px;
+}
+.o_htplus_gantt_side {
+    width: 260px;
+    flex-shrink: 0;
+    padding: 4px 8px;
+    border-right: 1px solid #eee;
+}
+.o_htplus_gantt_side_name {
+    font-weight: 600;
+}
+.o_htplus_gantt_side_sub {
+    color: #888;
+    font-size: 12px;
+}
+.o_htplus_gantt_axis {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    background: repeating-linear-gradient(
+        to right,
+        transparent,
+        transparent 59px,
+        #f3f4f6 59px,
+        #f3f4f6 60px
+    );
+}
+.o_htplus_gantt_axis_label {
+    position: absolute;
+    right: 8px;
+    top: 6px;
+    color: #999;
+}
+.o_htplus_gantt_bar {
+    position: absolute;
+    top: 12px;
+    height: 20px;
+    border-radius: 4px;
+    color: #fff;
+    font-size: 12px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+.o_htplus_gantt_bar_label {
+    padding: 0 6px;
+}

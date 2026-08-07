@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_htplus_schedule" model="ir.actions.report">
+        <field name="name">Schedule Report</field>
+        <field name="model">htplus.schedule.run</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">htplus_aps_core.htplus_schedule_report_template</field>
+        <field name="report_file">htplus_aps_core.htplus_schedule_report_template</field>
+        <field name="binding_model_id" ref="model_htplus_schedule_run"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>

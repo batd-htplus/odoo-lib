@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_dashboard" model="ir.actions.act_window">
+        <field name="name">Dashboard</field>
+        <field name="res_model">htplus.dashboard.kpi</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+    </record>
+
+    <record id="view_htplus_dashboard_kpi_form" model="ir.ui.view">
+        <field name="name">htplus.dashboard.kpi.form</field>
+        <field name="model">htplus.dashboard.kpi</field>
+        <field name="arch" type="xml">
+            <form string="Production Dashboard">
+                <header>
+                    <button name="action_refresh" string="Refresh" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <div class="row">
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="plan_count"/></h3>
+                                    <div>Production Plans</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="demand_qty"/></h3>
+                                    <div>Today's Demand</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="planned_qty"/></h3>
+                                    <div>Planned Production</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="workorder_count"/></h3>
+                                    <div>Work Orders</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="scheduled_wo"/></h3>
+                                    <div>Scheduled</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-danger"><field name="conflict_count"/></h3>
+                                    <div>Schedule Conflicts</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning"><field name="late_wo"/></h3>
+                                    <div>Late Work Orders</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-danger"><field name="machine_down"/></h3>
+                                    <div>Machines Down</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="locked_wo"/></h3>
+                                    <div>Locked Work Orders</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <button name="action_open_schedule" string="Open Schedule Runs"
+                            type="object"/>
+                        <button name="action_open_workorders" string="Open Work Orders"
+                            type="object"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_dashboard"
+        parent="htplus_planning_base.htplus_aps_menu_root"
+        action="action_htplus_dashboard"
+        sequence="10"/>
+</odoo>

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_htplus_production_daily" model="ir.actions.report">
+        <field name="name">Daily Production Report</field>
+        <field name="model">htplus.report.production.daily</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">htplus_mes_shopfloor.htplus_production_daily_report_template</field>
+        <field name="report_file">htplus_mes_shopfloor.htplus_production_daily_report_template</field>
+    </record>
+
+    <record id="action_htplus_report_production_daily" model="ir.actions.act_window">
+        <field name="name">Daily Production Report</field>
+        <field name="res_model">htplus.report.production.daily</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_htplus_report_production_daily_form" model="ir.ui.view">
+        <field name="name">htplus.report.production.daily.form</field>
+        <field name="model">htplus.report.production.daily</field>
+        <field name="arch" type="xml">
+            <form string="Daily Production Report">
+                <group>
+                    <field name="date_from"/>
+                    <field name="date_to"/>
+                </group>
+                <footer>
+                    <button name="action_print_pdf" string="Print PDF" type="object"
+                        class="btn-primary"/>
+                    <button name="action_export_xlsx" string="Export Excel" type="object"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_report_production_daily"
+        parent="htplus_mes_menu_shopfloor"
+        action="action_htplus_report_production_daily"
+        sequence="90"/>
+</odoo>

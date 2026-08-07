@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_htplus_demand_plan" model="ir.sequence">
+        <field name="name">Demand Plan</field>
+        <field name="code">htplus.demand.plan</field>
+        <field name="prefix">DP/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_htplus_production_plan" model="ir.sequence">
+        <field name="name">Production Plan</field>
+        <field name="code">htplus.production.plan</field>
+        <field name="prefix">PP/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+    <record id="seq_htplus_schedule_run" model="ir.sequence">
+        <field name="name">Schedule Run</field>
+        <field name="code">htplus.schedule.run</field>
+        <field name="prefix">SR/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

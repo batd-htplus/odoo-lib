@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_simulation_scenario" model="ir.actions.act_window">
+        <field name="name">Simulation Scenarios</field>
+        <field name="res_model">htplus.simulation.scenario</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_simulation_scenario_tree" model="ir.ui.view">
+        <field name="name">htplus.simulation.scenario.tree</field>
+        <field name="model">htplus.simulation.scenario</field>
+        <field name="arch" type="xml">
+            <tree string="Simulation Scenarios">
+                <field name="name"/>
+                <field name="base_schedule_run_id"/>
+                <field name="scenario_date"/>
+                <field name="total_delay_hours"/>
+                <field name="total_cost"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_simulation_scenario_form" model="ir.ui.view">
+        <field name="name">htplus.simulation.scenario.form</field>
+        <field name="model">htplus.simulation.scenario</field>
+        <field name="arch" type="xml">
+            <form string="Simulation Scenario">
+                <header>
+                    <button name="action_copy_from_base" string="Copy from Base Schedule"
+                        type="object" states="draft"/>
+                    <button name="action_run" string="Run Simulation" type="object"
+                        states="draft" class="btn-primary"/>
+                    <button name="action_apply" string="Apply Scenario" type="object"
+                        states="computed" class="btn-primary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="base_schedule_run_id"/>
+                            <field name="scenario_date"/>
+                        </group>
+                        <group>
+                            <field name="total_delay_hours"/>
+                            <field name="total_cost"/>
+                        </group>
+                    </group>
+                    <group string="Parameters">
+                        <group>
+                            <field name="overtime_hours"/>
+                            <field name="capacity_change_pct"/>
+                            <field name="manpower_change_pct"/>
+                        </group>
+                        <group>
+                            <field name="cost_multiplier"/>
+                            <field name="include_holiday"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Results">
+                            <field name="line_ids">
+                                <tree string="Simulation Lines">
+                                    <field name="workorder_id"/>
+                                    <field name="machine_id"/>
+                                    <field name="original_start"/>
+                                    <field name="original_end"/>
+                                    <field name="simulated_start"/>
+                                    <field name="simulated_end"/>
+                                    <field name="delay_hours"/>
+                                    <field name="cost"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_simulation_scenario"
+        parent="htplus_aps_menu_scheduling"
+        action="action_htplus_simulation_scenario"
+        sequence="30"/>
+</odoo>

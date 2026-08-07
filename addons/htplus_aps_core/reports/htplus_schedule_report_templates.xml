@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="htplus_schedule_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="run">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Schedule Report</h2>
+                        <h4 t-field="run.name"/>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>Production Plan:</strong>
+                                <span t-field="run.production_plan_id"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Algorithm:</strong>
+                                <span t-field="run.algorithm"/>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-6">
+                                <strong>Version:</strong>
+                                <span t-field="run.version"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>Conflicts:</strong>
+                                <span t-field="run.conflict_count"/>
+                            </div>
+                        </div>
+                        <table class="table table-sm mt-4">
+                            <thead>
+                                <tr>
+                                    <th>Work Order</th>
+                                    <th>Work Center</th>
+                                    <th>Machine</th>
+                                    <th>Schedule Start</th>
+                                    <th>Schedule End</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="run.workorder_ids" t-as="wo">
+                                    <tr>
+                                        <td t-field="wo.display_name"/>
+                                        <td t-field="wo.workcenter_id"/>
+                                        <td t-field="wo.machine_id"/>
+                                        <td t-field="wo.schedule_start"/>
+                                        <td t-field="wo.schedule_end"/>
+                                        <td t-field="wo.priority"/>
+                                        <td t-field="wo.schedule_state"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

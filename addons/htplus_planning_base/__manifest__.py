@@ -1,0 +1,27 @@
+{
+    "name": "HTPlus APS Planning Base",
+    "version": "18.0.1.0.0",
+    "summary": "Master data foundation for HTPlus APS/MES.",
+    "author": "Ba.TD",
+    "maintainer": "Ba.TD",
+    "license": "LGPL-3",
+    "category": "HTPlus",
+    "depends": [
+        "mrp",
+        "resource",
+        "hr",
+    ],
+    "data": [
+        "security/htplus_groups.xml",
+        "security/ir.model.access.csv",
+        "views/htplus_planning_base_menus.xml",
+        "views/htplus_factory_views.xml",
+        "views/htplus_machine_views.xml",
+        "views/htplus_shift_views.xml",
+        "views/htplus_rule_views.xml",
+        "views/htplus_skill_views.xml",
+    ],
+    "application": False,
+    "installable": True,
+    "auto_install": False,
+}

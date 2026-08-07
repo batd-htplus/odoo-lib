@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_machine" model="ir.actions.act_window">
+        <field name="name">Machine</field>
+        <field name="res_model">htplus.machine</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_machine_tree" model="ir.ui.view">
+        <field name="name">htplus.machine.tree</field>
+        <field name="model">htplus.machine</field>
+        <field name="arch" type="xml">
+            <tree string="Machine">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="line_id"/>
+                <field name="workcenter_id"/>
+                <field name="status"/>
+                <field name="capacity_per_hour"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_machine_form" model="ir.ui.view">
+        <field name="name">htplus.machine.form</field>
+        <field name="model">htplus.machine</field>
+        <field name="arch" type="xml">
+            <form string="Machine">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="model"/>
+                            <field name="serial_no"/>
+                        </group>
+                        <group>
+                            <field name="workcenter_id"/>
+                            <field name="line_id"/>
+                            <field name="plant_id"/>
+                            <field name="status"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Capacity">
+                        <group>
+                            <field name="capacity_per_hour"/>
+                            <field name="setup_time"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_machine"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_machine"
+        sequence="40"/>
+</odoo>

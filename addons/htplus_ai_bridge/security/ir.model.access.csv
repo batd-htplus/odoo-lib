@@ -1,0 +1,15 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_htplus_ai_config_user,htplus.ai.config,model_htplus_ai_config,htplus_planning_base.group_aps_user,1,0,0,0
+access_htplus_ai_config_manager,htplus.ai.config,model_htplus_ai_config,htplus_planning_base.group_aps_manager,1,1,1,1
+access_htplus_ai_forecast_user,htplus.ai.forecast,model_htplus_ai_forecast,htplus_planning_base.group_aps_user,1,0,0,0
+access_htplus_ai_forecast_planner,htplus.ai.forecast,model_htplus_ai_forecast,htplus_planning_base.group_aps_planner,1,1,1,0
+access_htplus_ai_forecast_manager,htplus.ai.forecast,model_htplus_ai_forecast,htplus_planning_base.group_aps_manager,1,1,1,1
+access_htplus_ai_forecast_line_user,htplus.ai.forecast.line,model_htplus_ai_forecast_line,htplus_planning_base.group_aps_user,1,0,0,0
+access_htplus_ai_forecast_line_planner,htplus.ai.forecast.line,model_htplus_ai_forecast_line,htplus_planning_base.group_aps_planner,1,1,1,0
+access_htplus_ai_forecast_line_manager,htplus.ai.forecast.line,model_htplus_ai_forecast_line,htplus_planning_base.group_aps_manager,1,1,1,1
+access_htplus_ai_chat_user,htplus.ai.chat,model_htplus_ai_chat,htplus_planning_base.group_aps_user,1,1,1,0
+access_htplus_ai_chat_manager,htplus.ai.chat,model_htplus_ai_chat,htplus_planning_base.group_aps_manager,1,1,1,1
+access_htplus_ai_chat_line_user,htplus.ai.chat.line,model_htplus_ai_chat_line,htplus_planning_base.group_aps_user,1,1,1,0
+access_htplus_ai_chat_line_manager,htplus.ai.chat.line,model_htplus_ai_chat_line,htplus_planning_base.group_aps_manager,1,1,1,1
+access_htplus_ai_recommendation_user,htplus.ai.recommendation,model_htplus_ai_recommendation,htplus_planning_base.group_aps_user,1,1,1,0
+access_htplus_ai_recommendation_manager,htplus.ai.recommendation,model_htplus_ai_recommendation,htplus_planning_base.group_aps_manager,1,1,1,1

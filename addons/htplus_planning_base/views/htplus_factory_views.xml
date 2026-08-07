@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_factory" model="ir.actions.act_window">
+        <field name="name">Factory</field>
+        <field name="res_model">htplus.factory</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_htplus_plant" model="ir.actions.act_window">
+        <field name="name">Plant</field>
+        <field name="res_model">htplus.plant</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_htplus_line" model="ir.actions.act_window">
+        <field name="name">Line</field>
+        <field name="res_model">htplus.line</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_factory_tree" model="ir.ui.view">
+        <field name="name">htplus.factory.tree</field>
+        <field name="model">htplus.factory</field>
+        <field name="arch" type="xml">
+            <tree string="Factory">
+                <field name="code"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_factory_form" model="ir.ui.view">
+        <field name="name">htplus.factory.form</field>
+        <field name="model">htplus.factory</field>
+        <field name="arch" type="xml">
+            <form string="Factory">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="company_id"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Plants">
+                            <field name="plant_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_plant_tree" model="ir.ui.view">
+        <field name="name">htplus.plant.tree</field>
+        <field name="model">htplus.plant</field>
+        <field name="arch" type="xml">
+            <tree string="Plant">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="factory_id"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_plant_form" model="ir.ui.view">
+        <field name="name">htplus.plant.form</field>
+        <field name="model">htplus.plant</field>
+        <field name="arch" type="xml">
+            <form string="Plant">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="factory_id"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_line_tree" model="ir.ui.view">
+        <field name="name">htplus.line.tree</field>
+        <field name="model">htplus.line</field>
+        <field name="arch" type="xml">
+            <tree string="Line">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="plant_id"/>
+                <field name="shift_pattern_id"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_line_form" model="ir.ui.view">
+        <field name="name">htplus.line.form</field>
+        <field name="model">htplus.line</field>
+        <field name="arch" type="xml">
+            <form string="Line">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="plant_id"/>
+                            <field name="factory_id"/>
+                        </group>
+                        <group>
+                            <field name="shift_pattern_id"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Work Centers">
+                            <field name="workcenter_ids"/>
+                        </page>
+                        <page string="Machines">
+                            <field name="machine_ids"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_factory"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_factory"
+        sequence="10"/>
+    <menuitem id="menu_htplus_plant"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_plant"
+        sequence="20"/>
+    <menuitem id="menu_htplus_line"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_line"
+        sequence="30"/>
+</odoo>

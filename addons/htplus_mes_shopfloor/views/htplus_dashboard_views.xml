@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_htplus_dashboard_kpi_form_mes" model="ir.ui.view">
+        <field name="name">htplus.dashboard.kpi.form.mes</field>
+        <field name="model">htplus.dashboard.kpi</field>
+        <field name="inherit_id" ref="htplus_aps_core.view_htplus_dashboard_kpi_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//div[hasclass('row')]" position="inside">
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-success"><field name="qty_good"/></h3>
+                            <div>Qty Good</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-danger"><field name="qty_ng"/></h3>
+                            <div>Qty NG</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-success"><field name="oee_pct"/></h3>
+                            <div>OEE %</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-success"><field name="yield_pct"/></h3>
+                            <div>Yield %</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning"><field name="downtime_minutes"/></h3>
+                            <div>Downtime (minutes)</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning"><field name="machine_stop_count"/></h3>
+                            <div>Machine Stops</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-danger"><field name="open_issues"/></h3>
+                            <div>Open Issues</div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//sheet" position="inside">
+                <group>
+                    <button name="action_open_actuals" string="Open Execution Records"
+                        type="object"/>
+                    <button name="action_open_downtime" string="Open Downtime" type="object"/>
+                    <button name="action_open_issues" string="Open Issues" type="object"/>
+                </group>
+            </xpath>
+        </field>
+    </record>
+</odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="module_category_htplus_aps" model="ir.module.category">
+        <field name="name">HTPlus APS/MES</field>
+        <field name="description">Advanced Planning &amp; Scheduling on Odoo 18 CE.</field>
+        <field name="sequence">99</field>
+    </record>
+
+    <record id="group_aps_user" model="res.groups">
+        <field name="name">APS User</field>
+        <field name="category_id" ref="module_category_htplus_aps"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+
+    <record id="group_aps_planner" model="res.groups">
+        <field name="name">APS Planner</field>
+        <field name="category_id" ref="module_category_htplus_aps"/>
+        <field name="implied_ids" eval="[(4, ref('group_aps_user'))]"/>
+    </record>
+
+    <record id="group_aps_manager" model="res.groups">
+        <field name="name">APS Manager</field>
+        <field name="category_id" ref="module_category_htplus_aps"/>
+        <field name="implied_ids" eval="[(4, ref('group_aps_planner'))]"/>
+    </record>
+
+    <record id="group_mes_operator" model="res.groups">
+        <field name="name">MES Operator</field>
+        <field name="category_id" ref="module_category_htplus_aps"/>
+        <field name="implied_ids" eval="[(4, ref('base.group_user'))]"/>
+    </record>
+</odoo>

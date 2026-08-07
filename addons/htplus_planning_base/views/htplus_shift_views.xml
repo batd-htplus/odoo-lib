@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_shift_template" model="ir.actions.act_window">
+        <field name="name">Shift Template</field>
+        <field name="res_model">htplus.shift.template</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_htplus_shift_pattern" model="ir.actions.act_window">
+        <field name="name">Shift Pattern</field>
+        <field name="res_model">htplus.shift.pattern</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_htplus_holiday_calendar" model="ir.actions.act_window">
+        <field name="name">Holiday Calendar</field>
+        <field name="res_model">htplus.holiday.calendar</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_shift_template_tree" model="ir.ui.view">
+        <field name="name">htplus.shift.template.tree</field>
+        <field name="model">htplus.shift.template</field>
+        <field name="arch" type="xml">
+            <tree string="Shift Template">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="start_time"/>
+                <field name="end_time"/>
+                <field name="total_hours"/>
+                <field name="is_overtime"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_shift_template_form" model="ir.ui.view">
+        <field name="name">htplus.shift.template.form</field>
+        <field name="model">htplus.shift.template</field>
+        <field name="arch" type="xml">
+            <form string="Shift Template">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                            <field name="total_hours"/>
+                        </group>
+                        <group>
+                            <field name="is_overtime"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_shift_pattern_tree" model="ir.ui.view">
+        <field name="name">htplus.shift.pattern.tree</field>
+        <field name="model">htplus.shift.pattern</field>
+        <field name="arch" type="xml">
+            <tree string="Shift Pattern">
+                <field name="code"/>
+                <field name="name"/>
+                <field name="company_id"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_shift_pattern_form" model="ir.ui.view">
+        <field name="name">htplus.shift.pattern.form</field>
+        <field name="model">htplus.shift.pattern</field>
+        <field name="arch" type="xml">
+            <form string="Shift Pattern">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                            <field name="company_id"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids">
+                                <tree string="Shift Pattern Lines">
+                                    <field name="sequence"/>
+                                    <field name="weekday"/>
+                                    <field name="template_id"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_holiday_calendar_tree" model="ir.ui.view">
+        <field name="name">htplus.holiday.calendar.tree</field>
+        <field name="model">htplus.holiday.calendar</field>
+        <field name="arch" type="xml">
+            <tree string="Holiday Calendar">
+                <field name="name"/>
+                <field name="year"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_holiday_calendar_form" model="ir.ui.view">
+        <field name="name">htplus.holiday.calendar.form</field>
+        <field name="model">htplus.holiday.calendar</field>
+        <field name="arch" type="xml">
+            <form string="Holiday Calendar">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="year"/>
+                        </group>
+                        <group>
+                            <field name="company_id"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Holidays">
+                            <field name="line_ids">
+                                <tree string="Holidays">
+                                    <field name="date"/>
+                                    <field name="name"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_shift_template"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_shift_template"
+        sequence="50"/>
+    <menuitem id="menu_htplus_shift_pattern"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_shift_pattern"
+        sequence="60"/>
+    <menuitem id="menu_htplus_holiday_calendar"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_holiday_calendar"
+        sequence="70"/>
+</odoo>

@@ -1,0 +1,91 @@
+from odoo import api, fields, models, _
+
+
+class HtplusSimulationScenario(models.Model):
+    _name = 'htplus.simulation.scenario'
+    _description = 'Simulation Scenario'
+
+    name = fields.Char(required=True)
+    state = fields.Selection([
+        ('draft', 'Draft'),
+        ('computed', 'Computed'),
+        ('applied', 'Applied'),
+        ('cancelled', 'Cancelled'),
+    ], default='draft', string='Status')
+    base_schedule_run_id = fields.Many2one('htplus.schedule.run', string='Base Schedule Run')
+    scenario_date = fields.Date(default=fields.Date.context_today)
+    overtime_hours = fields.Float(string='Overtime (hours)')
+    capacity_change_pct = fields.Float(string='Capacity Change (%)')
+    manpower_change_pct = fields.Float(string='Manpower Change (%)')
+    cost_multiplier = fields.Float(string='Cost Multiplier', default=1.0)
+    include_holiday = fields.Boolean(string='Include Holidays')
+    line_ids = fields.One2many('htplus.simulation.line', 'scenario_id', string='Lines')
+    total_delay_hours = fields.Float(compute='_compute_totals', string='Total Delay (hours)')
+    total_cost = fields.Float(compute='_compute_totals', string='Total Cost')
+    active = fields.Boolean(default=True)
+
+    @api.depends('line_ids.delay_hours', 'line_ids.cost')
+    def _compute_totals(self):
+        for scenario in self:
+            scenario.total_delay_hours = sum(scenario.line_ids.mapped('delay_hours'))
+            scenario.total_cost = sum(scenario.line_ids.mapped('cost'))
+
+    def action_copy_from_base(self):
+        for scenario in self:
+            if not scenario.base_schedule_run_id:
+                continue
+            vals = []
+            for workorder in scenario.base_schedule_run_id.workorder_ids:
+                vals.append((0, 0, {
+                    'workorder_id': workorder.id,
+                    'machine_id': workorder.machine_id.id or False,
+                    'original_start': workorder.schedule_start,
+                    'original_end': workorder.schedule_end,
+                }))
+            scenario.line_ids = vals
+            scenario.state = 'computed'
+
+    def action_run(self):
+        for scenario in self:
+            if not scenario.line_ids:
+                scenario.action_copy_from_base()
+            for line in scenario.line_ids:
+                start = line.original_start
+                end = line.original_end
+                if end and start:
+                    line.simulated_start = start
+                    line.simulated_end = end
+            scenario.state = 'computed'
+        return True
+
+    def action_apply(self):
+        for scenario in self:
+            for line in scenario.line_ids.filtered(lambda l: l.simulated_start):
+                line.workorder_id.schedule_start = line.simulated_start
+                line.workorder_id.schedule_end = line.simulated_end
+            scenario.state = 'applied'
+
+
+class HtplusSimulationLine(models.Model):
+    _name = 'htplus.simulation.line'
+    _description = 'Simulation Line'
+
+    scenario_id = fields.Many2one('htplus.simulation.scenario', required=True, ondelete='cascade')
+    workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order')
+    machine_id = fields.Many2one('htplus.machine', string='Machine')
+    original_start = fields.Datetime(string='Original Start')
+    original_end = fields.Datetime(string='Original End')
+    simulated_start = fields.Datetime(string='Simulated Start')
+    simulated_end = fields.Datetime(string='Simulated End')
+
+    @api.depends('simulated_end', 'original_end')
+    def _compute_delay(self):
+        for line in self:
+            delay = 0.0
+            if line.simulated_end and line.original_end:
+                delta = line.simulated_end - line.original_end
+                delay = delta.total_seconds() / 3600.0
+            line.delay_hours = max(delay, 0.0)
+
+    delay_hours = fields.Float(compute='_compute_delay', string='Delay (hours)')
+    cost = fields.Float(string='Cost')

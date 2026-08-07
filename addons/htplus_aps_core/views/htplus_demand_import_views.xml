@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_demand_plan_import" model="ir.actions.act_window">
+        <field name="name">Import Demand Plan</field>
+        <field name="res_model">htplus.demand.plan.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_htplus_demand_plan_import_form" model="ir.ui.view">
+        <field name="name">htplus.demand.plan.import.form</field>
+        <field name="model">htplus.demand.plan.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Demand Plan">
+                <group>
+                    <field name="date_start"/>
+                    <field name="date_end"/>
+                    <field name="file" filename="filename"/>
+                    <field name="filename" invisible="True"/>
+                </group>
+                <group>
+                    <field name="preview" colspan="2"/>
+                </group>
+                <footer>
+                    <button name="action_preview" string="Preview" type="object"/>
+                    <button name="action_import" string="Import" type="object"
+                        class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_demand_import"
+        parent="htplus_aps_menu_planning"
+        action="action_htplus_demand_plan_import"
+        sequence="15"/>
+</odoo>

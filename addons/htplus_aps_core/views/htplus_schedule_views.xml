@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_schedule_run" model="ir.actions.act_window">
+        <field name="name">Schedule Runs</field>
+        <field name="res_model">htplus.schedule.run</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_htplus_workorder_list" model="ir.actions.act_window">
+        <field name="name">Scheduled Work Orders</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_schedule_run_tree" model="ir.ui.view">
+        <field name="name">htplus.schedule.run.tree</field>
+        <field name="model">htplus.schedule.run</field>
+        <field name="arch" type="xml">
+            <tree string="Schedule Runs">
+                <field name="name"/>
+                <field name="version"/>
+                <field name="production_plan_id"/>
+                <field name="algorithm"/>
+                <field name="conflict_count"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_schedule_run_form" model="ir.ui.view">
+        <field name="name">htplus.schedule.run.form</field>
+        <field name="model">htplus.schedule.run</field>
+        <field name="arch" type="xml">
+            <form string="Schedule Run">
+                <header>
+                    <button name="action_calculate" string="Calculate" type="object"
+                        states="draft" class="btn-primary"/>
+                    <button name="action_run_solver" string="Run Solver" type="object"
+                        states="draft,calculated" class="btn-primary"/>
+                    <button name="action_confirm" string="Confirm" type="object"
+                        states="calculated"/>
+                    <button name="action_lock" string="Lock" type="object"
+                        states="calculated,confirmed"/>
+                    <button name="action_undo_change" string="Undo Last Change" type="object"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                        <group>
+                            <field name="version"/>
+                        </group>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="production_plan_id"/>
+                            <field name="algorithm"/>
+                            <field name="scenario_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="conflict_count"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Work Orders">
+                            <field name="workorder_ids">
+                                <tree string="Work Orders">
+                                    <field name="display_name"/>
+                                    <field name="workcenter_id"/>
+                                    <field name="line_id"/>
+                                    <field name="machine_id"/>
+                                    <field name="schedule_start"/>
+                                    <field name="schedule_end"/>
+                                    <field name="priority"/>
+                                    <field name="schedule_conflict"/>
+                                    <field name="schedule_state"/>
+                                    <field name="locked"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_htplus_mrp_workorder_tree" model="ir.ui.view">
+        <field name="name">htplus.mrp.workorder.tree</field>
+        <field name="model">mrp.workorder</field>
+        <field name="inherit_id" ref="mrp.view_workorder_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//tree" position="inside">
+                <field name="line_id" optional="hide"/>
+                <field name="machine_id" optional="hide"/>
+                <field name="schedule_start" optional="show"/>
+                <field name="schedule_end" optional="show"/>
+                <field name="schedule_state" optional="show"/>
+                <field name="locked" optional="hide"/>
+            </xpath>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_schedule_run"
+        parent="htplus_aps_menu_scheduling"
+        action="action_htplus_schedule_run"
+        sequence="10"/>
+    <menuitem id="menu_htplus_workorder_list"
+        parent="htplus_aps_menu_scheduling"
+        action="action_htplus_workorder_list"
+        sequence="20"/>
+</odoo>

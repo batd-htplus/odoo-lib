@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_skill" model="ir.actions.act_window">
+        <field name="name">Skill</field>
+        <field name="res_model">htplus.skill</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <record id="action_htplus_employee_skill" model="ir.actions.act_window">
+        <field name="name">Employee Skill</field>
+        <field name="res_model">htplus.employee.skill</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_skill_tree" model="ir.ui.view">
+        <field name="name">htplus.skill.tree</field>
+        <field name="model">htplus.skill</field>
+        <field name="arch" type="xml">
+            <tree string="Skill">
+                <field name="code"/>
+                <field name="name"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_skill_form" model="ir.ui.view">
+        <field name="name">htplus.skill.form</field>
+        <field name="model">htplus.skill</field>
+        <field name="arch" type="xml">
+            <form string="Skill">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="code"/>
+                            <field name="name"/>
+                        </group>
+                        <group>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <field name="description"/>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_employee_skill_tree" model="ir.ui.view">
+        <field name="name">htplus.employee.skill.tree</field>
+        <field name="model">htplus.employee.skill</field>
+        <field name="arch" type="xml">
+            <tree string="Employee Skill">
+                <field name="employee_id"/>
+                <field name="skill_id"/>
+                <field name="level"/>
+                <field name="certified"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_employee_skill_form" model="ir.ui.view">
+        <field name="name">htplus.employee.skill.form</field>
+        <field name="model">htplus.employee.skill</field>
+        <field name="arch" type="xml">
+            <form string="Employee Skill">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="skill_id"/>
+                        </group>
+                        <group>
+                            <field name="level"/>
+                            <field name="certified"/>
+                            <field name="last_assessed"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_skill"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_skill"
+        sequence="120"/>
+    <menuitem id="menu_htplus_employee_skill"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_employee_skill"
+        sequence="130"/>
+</odoo>

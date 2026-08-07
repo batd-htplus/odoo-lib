@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_workforce_assignment" model="ir.actions.act_window">
+        <field name="name">Workforce Assignments</field>
+        <field name="res_model">htplus.workforce.assignment</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_workforce_assignment_tree" model="ir.ui.view">
+        <field name="name">htplus.workforce.assignment.tree</field>
+        <field name="model">htplus.workforce.assignment</field>
+        <field name="arch" type="xml">
+            <tree string="Workforce Assignments">
+                <field name="name"/>
+                <field name="workorder_id"/>
+                <field name="employee_id"/>
+                <field name="shift_template_id"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="skill_ok"/>
+                <field name="conflict"/>
+                <field name="state"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_workforce_assignment_form" model="ir.ui.view">
+        <field name="name">htplus.workforce.assignment.form</field>
+        <field name="model">htplus.workforce.assignment</field>
+        <field name="arch" type="xml">
+            <form string="Workforce Assignment">
+                <header>
+                    <button name="action_validate" string="Validate" type="object"
+                        states="draft"/>
+                    <button name="action_confirm" string="Confirm" type="object"
+                        states="draft" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                        states="draft,confirmed"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="workorder_id"/>
+                            <field name="employee_id"/>
+                            <field name="shift_template_id"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <group string="Validation">
+                        <group>
+                            <field name="skill_ok"/>
+                            <field name="ot_ok"/>
+                        </group>
+                        <group>
+                            <field name="conflict"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_workforce_assignment"
+        parent="htplus_aps_menu_workforce"
+        action="action_htplus_workforce_assignment"
+        sequence="10"/>
+</odoo>

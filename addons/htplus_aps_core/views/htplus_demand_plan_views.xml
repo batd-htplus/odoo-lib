@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_demand_plan" model="ir.actions.act_window">
+        <field name="name">Demand Plans</field>
+        <field name="res_model">htplus.demand.plan</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+
+    <record id="view_htplus_demand_plan_tree" model="ir.ui.view">
+        <field name="name">htplus.demand.plan.tree</field>
+        <field name="model">htplus.demand.plan</field>
+        <field name="arch" type="xml">
+            <tree string="Demand Plans">
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="source"/>
+                <field name="state"/>
+                <field name="user_id"/>
+            </tree>
+        </field>
+    </record>
+    <record id="view_htplus_demand_plan_form" model="ir.ui.view">
+        <field name="name">htplus.demand.plan.form</field>
+        <field name="model">htplus.demand.plan</field>
+        <field name="arch" type="xml">
+            <form string="Demand Plan">
+                <header>
+                    <button name="action_confirm" string="Confirm" type="object"
+                        states="draft" class="btn-primary"/>
+                    <button name="action_approve" string="Approve" type="object"
+                        states="confirmed"/>
+                    <button name="action_generate_plan" string="Generate Production Plan"
+                        type="object" states="approved" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                        states="draft,confirmed,approved"/>
+                    <button name="action_export_excel" string="Export Excel" type="object"
+                        class="btn-secondary"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="source"/>
+                            <field name="ai_forecast_id"/>
+                        </group>
+                        <group>
+                            <field name="user_id"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Lines">
+                            <field name="line_ids">
+                                <tree string="Demand Lines" editable="bottom">
+                                    <field name="sequence"/>
+                                    <field name="product_id"/>
+                                    <field name="date"/>
+                                    <field name="qty"/>
+                                    <field name="uom_id"/>
+                                    <field name="forecast_confidence"/>
+                                    <field name="state"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="notes"/>
+                        </page>
+                    </notebook>
+                </sheet>
+                <div class="oe_chatter">
+                    <field name="message_ids" widget="mail_thread"/>
+                </div>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_demand_plan"
+        parent="htplus_aps_menu_planning"
+        action="action_htplus_demand_plan"
+        sequence="10"/>
+</odoo>

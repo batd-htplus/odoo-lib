@@ -1,0 +1,7 @@
+<templates>
+    <t t-name="htplus_aps_core.HtplusGanttClientAction">
+        <div class="o_htplus_gantt_container">
+            <HtplusGantt workorders="props.workorders || []"/>
+        </div>
+    </t>
+</templates>

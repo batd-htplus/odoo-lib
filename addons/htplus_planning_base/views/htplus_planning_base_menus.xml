@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <menuitem id="htplus_aps_menu_root"
+        name="HTPlus APS"
+        sequence="20">
+    </menuitem>
+
+    <menuitem id="htplus_aps_menu_master_data"
+        parent="htplus_aps_menu_root"
+        name="Master Data"
+        sequence="10">
+    </menuitem>
+</odoo>

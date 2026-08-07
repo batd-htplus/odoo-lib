@@ -1,1 +1,9 @@
 /volumes
+/etc/filestore
+
+__pycache__/
+*.pyc
+
+.DS_Store
+
+*.log
