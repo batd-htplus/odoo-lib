@@ -191,10 +191,16 @@ class HtplusProductionPlanLine(models.Model):
                 continue
             shortages = []
             company = line.plan_id.company_id
+            ctx = {}
+            if line.date_deadline:
+                ctx['to_date'] = line.date_deadline
+            warehouse_ids = company.warehouse_ids.ids
+            if warehouse_ids:
+                ctx['warehouse'] = warehouse_ids
             for bom_line, line_data in lines_done:
                 product = bom_line.product_id.with_company(company)
                 need = line_data.get('qty', 0.0)
-                available = product.qty_available
+                available = product.with_context(ctx).qty_available
                 if available < need:
                     shortages.append('%s (need %.2f / have %.2f)' % (
                         product.display_name, need, available))

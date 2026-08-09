@@ -333,24 +333,51 @@ class HtplusScheduleRun(models.Model):
             )
             if not workorders:
                 raise UserError(_('No dated work orders to assign. Calculate or run the solver first.'))
-            for workorder in workorders:
-                existing = Assignment.search([
-                    ('workorder_id', '=', workorder.id),
+
+            # One lookup for every existing assignment instead of one per work order.
+            assigned_wo_ids = set(
+                Assignment.search([
+                    ('workorder_id', 'in', workorders.ids),
                     ('state', '!=', 'cancelled'),
-                ], limit=1)
-                if existing:
-                    continue
-                shift = run._htplus_ensure_shift_for_wo(workorder)
+                ]).mapped('workorder_id').ids
+            )
+            pending = workorders.filtered(lambda w: w.id not in assigned_wo_ids)
+            if not pending:
+                continue
+
+            # Resolve one shift per (date, line, work center) group instead of per work order.
+            shift_by_group = {}
+            employee_by_company = {}
+            for workorder in pending:
+                group = (
+                    fields.Date.to_date(workorder.date_start),
+                    workorder.line_id.id or 0,
+                    workorder.workcenter_id.id or 0,
+                )
+                if group not in shift_by_group:
+                    shift_by_group[group] = run._htplus_ensure_shift_for_wo(workorder)
+
+            vals_list = []
+            for workorder in pending:
+                group = (
+                    fields.Date.to_date(workorder.date_start),
+                    workorder.line_id.id or 0,
+                    workorder.workcenter_id.id or 0,
+                )
+                shift = shift_by_group.get(group)
                 if not shift:
                     continue
                 employee = shift.leader_id
                 if not employee:
-                    employee = self.env['hr.employee'].search([
-                        ('company_id', '=', run.user_id.company_id.id),
-                    ], limit=1)
+                    company_id = run.user_id.company_id.id
+                    if company_id not in employee_by_company:
+                        employee_by_company[company_id] = self.env['hr.employee'].search([
+                            ('company_id', '=', company_id),
+                        ], limit=1)
+                    employee = employee_by_company[company_id]
                 if not employee:
                     continue
-                assignment = Assignment.create({
+                vals_list.append({
                     'shift_id': shift.id,
                     'workorder_id': workorder.id,
                     'employee_id': employee.id,
@@ -358,8 +385,9 @@ class HtplusScheduleRun(models.Model):
                     'date_end': workorder.date_finished or workorder.date_start,
                     'qty': workorder.production_id.product_qty or 1.0,
                 })
-                assignment.action_validate()
-                created |= assignment
+            if vals_list:
+                created |= Assignment.create(vals_list)
+        created.action_validate()
         if not created:
             raise UserError(_(
                 'No new assignments created. Need shift templates (and preferably a shift leader '
@@ -385,7 +413,7 @@ class MrpProduction(models.Model):
 class MrpWorkorder(models.Model):
     _inherit = 'mrp.workorder'
 
-    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run')
+    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
     line_id = fields.Many2one('htplus.line', string='Line')
     machine_id = fields.Many2one('htplus.machine', string='Machine')
     # Planned window = Odoo date_start / date_finished (resource.calendar.leaves).
@@ -395,10 +423,10 @@ class MrpWorkorder(models.Model):
         ('scheduled', 'Scheduled'),
         ('confirmed', 'Confirmed'),
         ('locked', 'Locked'),
-    ], default='unscheduled', string='Schedule Status')
-    locked = fields.Boolean(default=False)
+    ], default='unscheduled', string='Schedule Status', index=True)
+    locked = fields.Boolean(default=False, index=True)
     priority = fields.Integer(default=0)
-    schedule_conflict = fields.Boolean(string='Conflict')
+    schedule_conflict = fields.Boolean(string='Conflict', index=True)
     material_ok = fields.Boolean(string='Material OK')
     capacity_ok = fields.Boolean(string='Capacity OK')
     machine_ok = fields.Boolean(string='Machine OK')
@@ -516,8 +544,8 @@ class HtplusScheduleChange(models.Model):
     _description = 'Schedule Change'
     _order = 'id desc'
 
-    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run')
-    workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order')
+    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
+    workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
     user_id = fields.Many2one('res.users', string='User', default=lambda self: self.env.user)
     field = fields.Selection([
         ('date_start', 'Start'),
@@ -528,4 +556,14 @@ class HtplusScheduleChange(models.Model):
     ], required=True)
     old_value = fields.Char(string='Old Value')
     new_value = fields.Char(string='New Value')
-    date_change = fields.Datetime(string='Changed At', default=fields.Datetime.now)
+    date_change = fields.Datetime(string='Changed At', default=fields.Datetime.now, index=True)
+
+    def action_cleanup_old_changes(self, days=90):
+        """Delete change logs older than the given age to bound audit growth.
+
+        Args:
+            days: Keep logs younger than this many days.
+        """
+        cutoff = fields.Datetime.subtract(fields.Datetime.now(), days=days)
+        self.search([('date_change', '<', cutoff)]).unlink()
+        return True

@@ -7,8 +7,8 @@ class HtplusWorkorderActual(models.Model):
     _description = 'Work Order Actual'
     _order = 'date_start desc'
 
-    workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order')
-    date_start = fields.Datetime(required=True, string='Start')
+    workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
+    date_start = fields.Datetime(required=True, string='Start', index=True)
     date_finished = fields.Datetime(string='Finished')
     employee_id = fields.Many2one('hr.employee', string='Employee')
     machine_id = fields.Many2one('htplus.machine', string='Machine')
@@ -19,7 +19,7 @@ class HtplusWorkorderActual(models.Model):
         ('running', 'Running'),
         ('paused', 'Paused'),
         ('finished', 'Finished'),
-    ], default='running', string='Status')
+    ], default='running', string='Status', index=True)
     productivity_id = fields.Many2one(
         'mrp.workcenter.productivity',
         string='Odoo Time Log',

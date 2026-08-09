@@ -43,14 +43,14 @@ class HtplusDowntime(models.Model):
     _name = 'htplus.downtime'
     _description = 'Downtime'
 
-    workorder_id = fields.Many2one('mrp.workorder', string='Work Order')
-    machine_id = fields.Many2one('htplus.machine', string='Machine')
+    workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True)
+    machine_id = fields.Many2one('htplus.machine', string='Machine', index=True)
     reason_id = fields.Many2one('htplus.downtime.reason', required=True, string='Reason')
     type = fields.Selection([
         ('planned', 'Planned'),
         ('unplanned', 'Unplanned'),
     ], default='unplanned')
-    date_start = fields.Datetime(required=True, string='Start')
+    date_start = fields.Datetime(required=True, string='Start', index=True)
     date_end = fields.Datetime(string='End')
     employee_id = fields.Many2one('hr.employee', string='Employee')
     cost = fields.Float()

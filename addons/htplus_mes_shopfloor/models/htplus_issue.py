@@ -5,8 +5,8 @@ class HtplusMachineStop(models.Model):
     _name = 'htplus.machine.stop'
     _description = 'Machine Stop'
 
-    machine_id = fields.Many2one('htplus.machine', required=True, string='Machine')
-    date_start = fields.Datetime(required=True, string='Start')
+    machine_id = fields.Many2one('htplus.machine', required=True, string='Machine', index=True)
+    date_start = fields.Datetime(required=True, string='Start', index=True)
     date_end = fields.Datetime(string='End')
     reason_id = fields.Many2one('htplus.downtime.reason', string='Reason')
     type = fields.Selection([
@@ -44,8 +44,8 @@ class HtplusIssue(models.Model):
         ('in_progress', 'In Progress'),
         ('resolved', 'Resolved'),
         ('closed', 'Closed'),
-    ], default='open', string='Status')
-    date = fields.Datetime(default=fields.Datetime.now, required=True)
+    ], default='open', string='Status', index=True)
+    date = fields.Datetime(default=fields.Datetime.now, required=True, index=True)
     root_cause = fields.Text(string='Root Cause')
     countermeasure = fields.Text()
     employee_id = fields.Many2one('hr.employee', string='Employee')

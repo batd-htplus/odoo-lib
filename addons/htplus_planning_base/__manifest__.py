@@ -2,8 +2,17 @@
     "name": "HTPlus APS Planning Base",
     "version": "18.0.1.5.1",
     "summary": "Master data foundation for HTPlus APS/MES.",
+    "description": """
+HTPlus APS Planning Base
+========================
+
+Master data foundation for the HTPlus APS/MES suite: factories, machines,
+production lines, shift templates and skill definitions used across the
+planning, scheduling and shop floor modules.
+    """,
     "author": "Ba.TD",
     "maintainer": "Ba.TD",
+    "website": "https://www.htplus.jp/",
     "license": "LGPL-3",
     "category": "HTPlus",
     "depends": [

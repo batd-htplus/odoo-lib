@@ -14,9 +14,9 @@ bookmark URLs are limited to http(s) and instance-relative paths.
     """,
     "author": "Ba.TD",
     "maintainer": "Ba.TD",
-    "website": "https://htplus.software",
+    "website": "https://www.htplus.jp/",
     "license": "LGPL-3",
-    "category": "Productivity",
+    "category": "HTPlus",
     "depends": [
         "web",
     ],
@@ -34,10 +34,7 @@ bookmark URLs are limited to http(s) and instance-relative paths.
     "images": [
         "static/description/banner.png",
     ],
-    # auto_install with depends=["web"] would mean "install on every database,
-    # always, with no way to opt out". An end-user application is installed
-    # explicitly.
-    "auto_install": False,
     "application": True,
     "installable": True,
+    "auto_install": False,
 }

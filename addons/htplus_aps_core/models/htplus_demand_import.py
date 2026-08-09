@@ -76,21 +76,42 @@ class HtplusDemandPlanImportWizard(models.TransientModel):
         self.preview = '\n'.join(lines)
         return True
 
-    def _convert_row(self, row):
-        """Resolve a raw row to a product, date and quantity.
+    def _load_product_map(self, rows):
+        """Load every referenced product once, keyed by internal reference and name.
+
+        Args:
+            rows: Raw rows from the parsed file.
+
+        Returns:
+            (by_code, by_name) dicts mapping product keys to products.
+        """
+        codes = {row[0].strip() for row in rows if row[0] and row[0].strip()}
+        products = self.env['product.product'].search([
+            '|', ('default_code', 'in', list(codes)), ('name', 'in', list(codes)),
+        ])
+        by_code = {}
+        by_name = {}
+        for product in products:
+            if product.default_code and product.default_code not in by_code:
+                by_code[product.default_code] = product
+            if product.name and product.name not in by_name:
+                by_name[product.name] = product
+        return by_code, by_name
+
+    def _convert_row(self, row, by_code, by_name):
+        """Resolve a raw row to a product, date and quantity using preloaded maps.
 
         Args:
             row: (product_code, date, qty) tuple from the parsed file.
+            by_code: Products keyed by internal reference.
+            by_name: Products keyed by name.
 
         Returns:
             (product, date, qty) ready to create a demand plan line.
         """
         product_code, date_str, qty_str = row
-        product = self.env['product.product'].search(
-            [('default_code', '=', product_code.strip())], limit=1)
-        if not product:
-            product = self.env['product.product'].search(
-                [('name', '=', product_code.strip())], limit=1)
+        key = product_code.strip()
+        product = by_code.get(key) or by_name.get(key)
         if not product:
             raise UserError(_('Product not found: %s') % product_code)
         date = fields.Date.from_string(date_str.strip())
@@ -103,19 +124,23 @@ class HtplusDemandPlanImportWizard(models.TransientModel):
         rows = self._parse_file()
         if not rows:
             raise UserError(_('The file is empty.'))
+        by_code, by_name = self._load_product_map(rows)
         plan = self.env['htplus.demand.plan'].create({
             'date_start': self.date_start,
             'date_end': self.date_end,
             'source': self.source,
         })
+        line_vals = []
         for row in rows:
-            product, date, qty = self._convert_row(row)
-            plan.line_ids = [(0, 0, {
+            product, date, qty = self._convert_row(row, by_code, by_name)
+            line_vals.append((0, 0, {
                 'product_id': product.id,
                 'date': date,
                 'qty': qty,
                 'uom_id': product.uom_id.id,
-            })]
+            }))
+        if line_vals:
+            plan.write({'line_ids': line_vals})
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.demand.plan',

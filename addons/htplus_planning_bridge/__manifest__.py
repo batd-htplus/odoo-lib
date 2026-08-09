@@ -2,8 +2,16 @@
     "name": "HTPlus Planning Bridge",
     "version": "18.0.1.1.2",
     "summary": "Client bridge to the HTPlus Planning Engine (forecast, scheduling, assignment, assistant).",
+    "description": """
+HTPlus Planning Bridge
+======================
+
+Client bridge to the HTPlus Planning Engine covering forecast, scheduling,
+assignment and the planning assistant.
+    """,
     "author": "Ba.TD",
     "maintainer": "Ba.TD",
+    "website": "https://www.htplus.jp/",
     "license": "LGPL-3",
     "category": "HTPlus",
     "depends": [

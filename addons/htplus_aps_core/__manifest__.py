@@ -2,8 +2,16 @@
     "name": "HTPlus APS Core",
     "version": "18.0.1.5.1",
     "summary": "Demand planning, production planning, APS scheduling and simulation.",
+    "description": """
+HTPlus APS Core
+===============
+
+Demand planning, production planning, APS scheduling and simulation for
+manufacturing operations.
+    """,
     "author": "Ba.TD",
     "maintainer": "Ba.TD",
+    "website": "https://www.htplus.jp/",
     "license": "LGPL-3",
     "category": "HTPlus",
     "depends": [
@@ -12,6 +20,7 @@
     ],
     "data": [
         "data/ir_sequence_data.xml",
+        "data/ir_cron_data.xml",
         "security/ir.model.access.csv",
         "views/htplus_aps_menus.xml",
         "views/htplus_dashboard_views.xml",

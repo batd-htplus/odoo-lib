@@ -1,5 +1,3 @@
-from datetime import datetime
-
 from odoo import api, fields, models, _
 
 
@@ -33,73 +31,79 @@ class HtplusDashboardKpi(models.Model):
     @api.depends('date_from', 'date_to')
     def _compute_planning(self):
         """Aggregate planning KPIs within the selected window."""
-        plans = self.env['htplus.production.plan'].search([
-            ('state', 'in', ['approved', 'locked']),
-        ])
-        demand_lines = self.env['htplus.demand.plan.line'].search([
-            ('date', '>=', self.date_from),
-            ('date', '<=', self.date_to),
-        ])
-        plan_lines = self.env['htplus.production.plan.line'].search([
-            ('date_deadline', '>=', self.date_from),
-            ('date_deadline', '<=', self.date_to),
-        ])
         for rec in self:
-            rec.plan_count = len(plans)
-            rec.demand_qty = sum(demand_lines.mapped('qty'))
-            rec.planned_qty = sum(plan_lines.mapped('qty'))
+            rec.plan_count = self.env['htplus.production.plan'].search_count([
+                ('state', 'in', ['approved', 'locked']),
+            ])
+            rec.demand_qty = self._sum_qty('htplus.demand.plan.line',
+                                           [('date', '>=', rec.date_from), ('date', '<=', rec.date_to)])
+            rec.planned_qty = self._sum_qty('htplus.production.plan.line',
+                                            [('date_deadline', '>=', rec.date_from), ('date_deadline', '<=', rec.date_to)])
 
     @api.depends('date_from', 'date_to')
     def _compute_schedule(self):
         """Aggregate scheduling KPIs (scheduled, locked, conflicts, late WOs)."""
-        runs = self.env['htplus.schedule.run'].search([])
-        workorders = self.env['mrp.workorder'].search([])
-        now = datetime.now()
+        now = fields.Datetime.now()
+        Workorder = self.env['mrp.workorder']
+        stats = {
+            'workorder_count': Workorder.search_count([]),
+            'scheduled_wo': Workorder.search_count([
+                ('schedule_state', 'in', ('scheduled', 'confirmed', 'locked')),
+            ]),
+            'locked_wo': Workorder.search_count([('locked', '=', True)]),
+            'conflict_count': Workorder.search_count([('schedule_conflict', '=', True)]),
+            'late_wo': Workorder.search_count([
+                ('date_finished', '!=', False),
+                ('date_finished', '<', now),
+                ('state', 'not in', ('done', 'cancel')),
+            ]),
+        }
         for rec in self:
-            rec.workorder_count = len(workorders)
-            rec.scheduled_wo = len(workorders.filtered(
-                lambda w: w.schedule_state in ('scheduled', 'confirmed', 'locked')))
-            rec.locked_wo = len(workorders.filtered(lambda w: w.locked))
-            rec.conflict_count = len(workorders.filtered(lambda w: w.schedule_conflict))
-            rec.late_wo = len(workorders.filtered(
-                lambda w: w.date_finished
-                and w.date_finished < now
-                and w.state not in ('done', 'cancel')))
+            rec.workorder_count = stats['workorder_count']
+            rec.scheduled_wo = stats['scheduled_wo']
+            rec.locked_wo = stats['locked_wo']
+            rec.conflict_count = stats['conflict_count']
+            rec.late_wo = stats['late_wo']
+
+    def _sum_qty(self, model, domain):
+        """Sum the qty field of the given model over a domain without loading records."""
+        lines = self.env[model].read_group(domain, ['qty'], [])
+        if not lines:
+            return 0.0
+        return lines[0]['qty'] or 0.0
 
     @api.depends('date_from', 'date_to')
     def _compute_shift(self):
         """Aggregate shift KPIs (manpower, completion and overtime)."""
-        shifts = self.env['htplus.production.shift'].search([
-            ('date', '>=', self.date_from),
-            ('date', '<=', self.date_to),
-        ])
-        completions = self.env['htplus.shift.completion'].search([
-            ('date', '>=', self.date_from),
-            ('date', '<=', self.date_to),
-        ])
         for rec in self:
-            rec.total_shifts = len(shifts)
-            rec.confirmed_shifts = len(shifts.filtered(lambda s: s.state == 'confirmed'))
-            rec.completed_shifts = len(shifts.filtered(lambda s: s.state == 'completed'))
-            rec.assignment_rate = (
-                sum(s.manpower_assigned for s in shifts) /
-                sum(s.manpower_required for s in shifts) * 100
-            ) if sum(s.manpower_required for s in shifts) else 0.0
-            rec.completion_rate = (
-                len(completions.filtered(lambda c: c.qty_done > 0)) /
-                len(completions) * 100
-            ) if completions else 0.0
-            rec.shortage_shifts = len(shifts.filtered(
-                lambda s: s.state == 'confirmed'
-                and s.manpower_assigned < s.manpower_required))
-            rec.total_ot_minutes = sum(completions.mapped('overtime_minutes'))
+            domain = [('date', '>=', rec.date_from), ('date', '<=', rec.date_to)]
+            Shift = self.env['htplus.production.shift']
+            Completion = self.env['htplus.shift.completion']
+            rec.total_shifts = Shift.search_count(domain)
+            rec.confirmed_shifts = Shift.search_count(domain + [('state', '=', 'confirmed')])
+            rec.completed_shifts = Shift.search_count(domain + [('state', '=', 'completed')])
+            rec.shortage_shifts = Shift.search_count(domain + [
+                ('state', '=', 'confirmed'),
+                ('manpower_assigned', '<', 'manpower_required'),
+            ])
+            totals = Shift.read_group(domain, ['manpower_assigned', 'manpower_required'], [])
+            if totals:
+                assigned = totals[0]['manpower_assigned'] or 0.0
+                required = totals[0]['manpower_required'] or 0.0
+            else:
+                assigned = required = 0.0
+            rec.assignment_rate = assigned / required * 100 if required else 0.0
+            done = Completion.search_count(domain + [('qty_done', '>', 0)])
+            total = Completion.search_count(domain)
+            rec.completion_rate = done / total * 100 if total else 0.0
+            overtime = Completion.read_group(domain, ['overtime_minutes'], [])
+            rec.total_ot_minutes = overtime[0]['overtime_minutes'] or 0.0 if overtime else 0.0
 
     @api.depends()
     def _compute_machine(self):
         """Count machines currently in 'down' status."""
-        machines = self.env['htplus.machine'].search([('status', '=', 'down')])
         for rec in self:
-            rec.machine_down = len(machines)
+            rec.machine_down = self.env['htplus.machine'].search_count([('status', '=', 'down')])
 
     def action_refresh(self):
         """Invalidate caches so the dashboard recomputes its KPIs."""

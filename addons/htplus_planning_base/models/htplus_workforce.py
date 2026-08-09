@@ -45,31 +45,40 @@ class HtplusWorkforceAssignment(models.Model):
 
     def action_validate(self):
         """Check skills, shift conflicts and overtime eligibility for each assignment."""
+        employees = self.mapped('employee_id')
         production_type = self.env.ref(
             'htplus_planning_base.hr_skill_type_production', raise_if_not_found=False,
         )
+        if production_type:
+            skill_ok_employee_ids = set(
+                self.env['hr.employee.skill'].search([
+                    ('employee_id', 'in', employees.ids),
+                    ('skill_id.skill_type_id', '=', production_type.id),
+                ]).mapped('employee_id').ids
+            )
+        else:
+            # No production skill taxonomy installed — do not block assignment.
+            skill_ok_employee_ids = None
+        confirmed = self.env['htplus.workforce.assignment'].search([
+            ('employee_id', 'in', employees.ids),
+            ('state', '=', 'confirmed'),
+        ])
         for assignment in self:
-            skills = self.env['hr.employee.skill'].search([
-                ('employee_id', '=', assignment.employee_id.id),
-            ])
-            if production_type:
-                assignment.skill_ok = bool(skills.filtered(
-                    lambda s: s.skill_id.skill_type_id == production_type
-                ))
-            else:
-                # No production skill taxonomy installed — do not block assignment.
+            if skill_ok_employee_ids is None:
                 assignment.skill_ok = True
+            else:
+                assignment.skill_ok = assignment.employee_id.id in skill_ok_employee_ids
             start = assignment.date_start
             end = assignment.date_end or start
             if start and end:
-                conflicts = self.search([
-                    ('employee_id', '=', assignment.employee_id.id),
-                    ('id', '!=', assignment.id),
-                    ('date_start', '<', end),
-                    ('date_end', '>', start),
-                    ('state', '=', 'confirmed'),
-                ])
-                assignment.conflict = bool(conflicts)
+                assignment.conflict = any(
+                    other.date_start and other.date_end
+                    and other.employee_id == assignment.employee_id
+                    and other.id != assignment.id
+                    and other.date_start < end
+                    and other.date_end > start
+                    for other in confirmed
+                )
             else:
                 assignment.conflict = False
             assignment.ot_ok = not assignment.conflict
