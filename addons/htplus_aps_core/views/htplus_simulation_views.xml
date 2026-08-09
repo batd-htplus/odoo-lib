@@ -27,11 +27,14 @@
             <form string="Simulation Scenario">
                 <header>
                     <button name="action_copy_from_base" string="Copy from Base Schedule"
-                        type="object" invisible="state != 'draft'"/>
+                        type="object" invisible="state != 'draft'"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_run" string="Run Simulation" type="object"
-                        invisible="state != 'draft'" class="btn-primary"/>
+                        invisible="state != 'draft'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_apply" string="Apply Scenario" type="object"
-                        invisible="state != 'computed'" class="btn-primary"/>
+                        invisible="state != 'computed'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

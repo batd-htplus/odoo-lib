@@ -31,11 +31,14 @@
             <form string="Workforce Assignment">
                 <header>
                     <button name="action_validate" string="Validate" type="object"
-                        invisible="state != 'draft'"/>
+                        invisible="state != 'draft'"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_confirm" string="Confirm" type="object"
-                        invisible="state != 'draft'" class="btn-primary"/>
+                        invisible="state != 'draft'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                        invisible="state not in ['draft', 'confirmed']"/>
+                        invisible="state not in ['draft', 'confirmed']"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

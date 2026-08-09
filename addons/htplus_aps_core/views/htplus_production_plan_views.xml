@@ -40,7 +40,6 @@
                     <button name="action_create_schedule" string="Create Schedule Run"
                         type="object"
                         invisible="state not in ['approved', 'locked']"
-                        class="btn-primary"
                         groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_lock" string="Lock" type="object"
                         invisible="state not in ['approved', 'confirmed']"

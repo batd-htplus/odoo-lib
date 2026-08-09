@@ -130,11 +130,14 @@
             <form string="Shift">
                 <header>
                     <button name="action_confirm" type="object" string="Confirm"
-                        invisible="state != 'draft'" class="oe_highlight"/>
+                        invisible="state != 'draft'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_complete" type="object" string="Complete Shift"
-                        invisible="state != 'confirmed'"/>
+                        invisible="state != 'confirmed'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_cancel" type="object" string="Cancel"
-                        invisible="state not in ('draft','confirmed')"/>
+                        invisible="state not in ('draft','confirmed')"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -162,7 +165,6 @@
                             <field name="line_id"/>
                             <field name="workcenter_id"/>
                             <field name="leader_id"/>
-                            <field name="state"/>
                         </group>
                     </group>
                     <group>
@@ -234,7 +236,7 @@
     <menuitem id="menu_htplus_shift_mgmt"
         parent="htplus_aps_menu_root"
         name="Shift Management"
-        sequence="30">
+        sequence="25">
     </menuitem>
 
     <menuitem id="menu_htplus_shift_calendar"

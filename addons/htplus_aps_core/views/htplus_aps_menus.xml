@@ -23,6 +23,6 @@
         parent="htplus_aps_menu_scheduling"
         name="Gantt View"
         action="htplus_aps_action_gantt"
-        sequence="50">
+        sequence="40">
     </menuitem>
 </odoo>

@@ -1,6 +1,6 @@
 {
     "name": "HTPlus MES Shop Floor",
-    "version": "18.0.1.2.0",
+    "version": "18.0.1.2.1",
     "summary": "Shop floor execution (MES lite): actuals, downtime, NG, issues, shift completion.",
     "author": "Ba.TD",
     "maintainer": "Ba.TD",

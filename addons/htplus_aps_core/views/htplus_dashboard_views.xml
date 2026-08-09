@@ -111,5 +111,5 @@
     <menuitem id="menu_htplus_dashboard"
         parent="htplus_planning_base.htplus_aps_menu_root"
         action="action_htplus_dashboard"
-        sequence="10"/>
+        sequence="15"/>
 </odoo>

@@ -80,9 +80,11 @@
             <form string="Demand Forecast">
                 <header>
                     <button name="action_run" string="Run Forecast" type="object"
-                        invisible="state != 'draft'" class="btn-primary"/>
+                        invisible="state != 'draft'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_apply" string="Apply to Demand Plan" type="object"
-                        invisible="state != 'computed'"/>
+                        invisible="state != 'computed'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -179,8 +181,10 @@
             <form string="Recommendation">
                 <header>
                     <button name="action_apply" string="Apply" type="object" invisible="state != 'new'"
-                        class="btn-primary"/>
-                    <button name="action_dismiss" string="Dismiss" type="object" invisible="state != 'new'"/>
+                        class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
+                    <button name="action_dismiss" string="Dismiss" type="object" invisible="state != 'new'"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

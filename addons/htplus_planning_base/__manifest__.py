@@ -1,6 +1,6 @@
 {
     "name": "HTPlus APS Planning Base",
-    "version": "18.0.1.5.0",
+    "version": "18.0.1.5.1",
     "summary": "Master data foundation for HTPlus APS/MES.",
     "author": "Ba.TD",
     "maintainer": "Ba.TD",
