@@ -31,15 +31,27 @@
         <field name="arch" type="xml">
             <form string="Schedule Run">
                 <header>
+                    <button name="action_load_workorders_from_plan" string="Load Work Orders from Plan"
+                        type="object" invisible="state != 'draft' or not production_plan_id"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_calculate" string="Calculate" type="object"
-                        invisible="state != 'draft'" class="btn-primary"/>
+                        invisible="state != 'draft'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_run_solver" string="Run Solver" type="object"
-                        invisible="state not in ['draft', 'calculated']" class="btn-primary"/>
+                        invisible="state not in ['draft', 'calculated']" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
+                    <button name="action_propose_workforce" string="Propose Workforce"
+                        type="object"
+                        invisible="state not in ['draft', 'calculated', 'confirmed']"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_confirm" string="Confirm" type="object"
-                        invisible="state != 'calculated'"/>
+                        invisible="state != 'calculated'"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_lock" string="Lock" type="object"
-                        invisible="state not in ['calculated', 'confirmed']"/>
-                    <button name="action_undo_change" string="Undo Last Change" type="object"/>
+                        invisible="state not in ['calculated', 'confirmed']"
+                        groups="htplus_planning_base.group_aps_manager"/>
+                    <button name="action_undo_change" string="Undo Last Change" type="object"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

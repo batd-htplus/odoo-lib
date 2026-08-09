@@ -1,4 +1,5 @@
 from . import htplus_workorder_actual
+from . import htplus_workforce
 from . import htplus_downtime
 from . import htplus_ng
 from . import htplus_issue

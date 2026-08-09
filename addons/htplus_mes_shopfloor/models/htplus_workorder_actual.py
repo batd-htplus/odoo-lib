@@ -1,4 +1,5 @@
 from odoo import _, api, fields, models
+from odoo.exceptions import ValidationError
 
 
 class HtplusWorkorderActual(models.Model):
@@ -85,12 +86,32 @@ class HtplusWorkorderActual(models.Model):
             self.filtered(lambda r: r.state in ('running', 'finished', 'paused'))._sync_productivity()
         return res
 
+    def action_start(self):
+        """Resume / start shop-floor execution (from paused or after assignment)."""
+        for rec in self:
+            if rec.state == 'finished':
+                continue
+            running = self.search([
+                ('workorder_id', '=', rec.workorder_id.id),
+                ('state', '=', 'running'),
+                ('id', '!=', rec.id),
+            ], limit=1)
+            if running:
+                raise ValidationError(_(
+                    'Work order already has a running actual (%s).'
+                ) % running.display_name)
+            rec.write({
+                'state': 'running',
+                'date_start': rec.date_start or fields.Datetime.now(),
+                'date_finished': False,
+            })
+            rec._sync_productivity()
+        return True
+
     def action_finish(self):
         for rec in self:
             rec.date_finished = fields.Datetime.now()
             rec.state = 'finished'
-            # Do not overwrite MRP planned date_finished (capacity leave).
-            # qty_producing is the shop-floor progress signal Odoo already uses.
             rec.workorder_id.qty_producing = rec.qty_good or rec.qty_done
             rec._sync_productivity()
 

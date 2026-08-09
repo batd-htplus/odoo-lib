@@ -42,21 +42,33 @@ class HtplusWorkforceAssignment(models.Model):
             self.date_end = self.shift_id.end_time
 
     def action_validate(self):
+        production_type = self.env.ref(
+            'htplus_planning_base.hr_skill_type_production', raise_if_not_found=False,
+        )
         for assignment in self:
             skills = self.env['hr.employee.skill'].search([
                 ('employee_id', '=', assignment.employee_id.id),
             ])
-            assignment.skill_ok = bool(skills)
+            if production_type:
+                assignment.skill_ok = bool(skills.filtered(
+                    lambda s: s.skill_id.skill_type_id == production_type
+                ))
+            else:
+                # No production skill taxonomy installed — do not block assignment.
+                assignment.skill_ok = True
             start = assignment.date_start
-            end = assignment.date_end
-            conflicts = self.search([
-                ('employee_id', '=', assignment.employee_id.id),
-                ('id', '!=', assignment.id),
-                ('date_start', '<', end),
-                ('date_end', '>', start),
-                ('state', '=', 'confirmed'),
-            ])
-            assignment.conflict = bool(conflicts)
+            end = assignment.date_end or start
+            if start and end:
+                conflicts = self.search([
+                    ('employee_id', '=', assignment.employee_id.id),
+                    ('id', '!=', assignment.id),
+                    ('date_start', '<', end),
+                    ('date_end', '>', start),
+                    ('state', '=', 'confirmed'),
+                ])
+                assignment.conflict = bool(conflicts)
+            else:
+                assignment.conflict = False
             assignment.ot_ok = not assignment.conflict
 
     def action_confirm(self):

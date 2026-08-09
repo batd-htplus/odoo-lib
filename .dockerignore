@@ -27,6 +27,9 @@ Makefile
 README.md
 docs/
 
+manufacture-18.0/
+project-18.0/
+
 # Python / Node cruft
 __pycache__/
 *.py[cod]

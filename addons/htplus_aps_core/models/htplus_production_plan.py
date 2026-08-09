@@ -5,7 +5,7 @@ from odoo.exceptions import UserError
 class HtplusProductionPlan(models.Model):
     _name = 'htplus.production.plan'
     _description = 'Production Plan'
-    _inherit = ['mail.thread']
+    _inherit = ['mail.thread', 'htplus.security.mixin']
     _order = 'date_start desc'
 
     name = fields.Char(required=True, default=lambda self: _('New'))
@@ -35,23 +35,29 @@ class HtplusProductionPlan(models.Model):
         return super().create(vals_list)
 
     def action_confirm(self):
+        self._htplus_require_planner()
         self.state = 'confirmed'
 
     def action_approve(self):
+        self._htplus_require_manager()
         self.line_ids.action_check_materials()
         self.state = 'approved'
 
     def action_lock(self):
+        self._htplus_require_manager()
         self.state = 'locked'
 
     def action_cancel(self):
+        self._htplus_require_planner()
         self.state = 'cancelled'
 
     def action_check_materials(self):
+        self._htplus_require_planner()
         self.line_ids.action_check_materials()
         return True
 
     def action_create_productions(self):
+        self._htplus_require_planner()
         for plan in self:
             plan.line_ids.action_check_materials()
             missing = plan.line_ids.filtered(lambda l: l.state == 'draft' and not l.material_ok)
@@ -82,6 +88,47 @@ class HtplusProductionPlan(models.Model):
                     'state': 'confirmed',
                 })
         return True
+
+    def action_create_schedule(self):
+        """Create a schedule run and attach work orders from this plan's MOs.
+        """
+        self.ensure_one()
+        self._htplus_require_planner()
+        if self.state in ('draft', 'cancelled'):
+            raise UserError(_('Confirm and approve the production plan before scheduling.'))
+        productions = self.production_ids.filtered(lambda p: p.state != 'cancel')
+        if not productions:
+            raise UserError(_(
+                'No manufacturing orders on this plan. '
+                'Use "Create Manufacturing Orders" first.'
+            ))
+        workorders = productions.mapped('workorder_ids').filtered(lambda w: w.state != 'cancel')
+        if not workorders:
+            raise UserError(_(
+                'No work orders found. Confirm MOs that use a BOM with operations.'
+            ))
+
+        run = self.env['htplus.schedule.run'].create({
+            'production_plan_id': self.id,
+            'date_start': self.date_start,
+            'date_end': self.date_end,
+            'algorithm': 'rule_engine',
+            'version': len(self.schedule_run_ids) + 1,
+        })
+        # Attach proposes dates + refuses WOs on confirmed/locked runs.
+        run._htplus_attach_workorders(workorders, propose_dates=True)
+        run.action_calculate()
+        self.line_ids.filtered(lambda l: l.production_id and l.state == 'confirmed').write({
+            'state': 'planned',
+        })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Schedule Run'),
+            'res_model': 'htplus.schedule.run',
+            'res_id': run.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
 
 class HtplusProductionPlanLine(models.Model):

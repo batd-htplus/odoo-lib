@@ -26,17 +26,28 @@
             <form string="Production Plan">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object"
-                        invisible="state != 'draft'" class="btn-primary"/>
+                        invisible="state != 'draft'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_approve" string="Approve" type="object"
-                        invisible="state != 'confirmed'"/>
+                        invisible="state != 'confirmed'"
+                        groups="htplus_planning_base.group_aps_manager"/>
                     <button name="action_check_materials" string="Check Materials"
-                        type="object" invisible="state in ['locked', 'cancelled']"/>
+                        type="object" invisible="state in ['locked', 'cancelled']"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_create_productions" string="Create Manufacturing Orders"
-                        type="object" invisible="state != 'approved'" class="btn-primary"/>
+                        type="object" invisible="state != 'approved'" class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
+                    <button name="action_create_schedule" string="Create Schedule Run"
+                        type="object"
+                        invisible="state not in ['approved', 'locked']"
+                        class="btn-primary"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <button name="action_lock" string="Lock" type="object"
-                        invisible="state not in ['approved', 'confirmed']"/>
+                        invisible="state not in ['approved', 'confirmed']"
+                        groups="htplus_planning_base.group_aps_manager"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                        invisible="state not in ['draft', 'confirmed', 'approved']"/>
+                        invisible="state not in ['draft', 'confirmed', 'approved']"
+                        groups="htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

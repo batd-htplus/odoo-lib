@@ -12,9 +12,10 @@ certbot/
 *.crt
 *.p12
 
-# Old pre-refactor configs kept for reference; the old odoo.conf still contains
-# the leaked admin_passwd, so it must not be re-committed.
 .archive/
+
+manufacture-18.0/
+project-18.0/
 
 # --- Runtime data ------------------------------------------------------------
 /volumes

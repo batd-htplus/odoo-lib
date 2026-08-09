@@ -4,5 +4,6 @@ from . import htplus_resource
 from . import htplus_machine
 from . import htplus_shift
 from . import htplus_workforce
+from . import htplus_security
 from . import htplus_shift_completion
 from . import htplus_rule

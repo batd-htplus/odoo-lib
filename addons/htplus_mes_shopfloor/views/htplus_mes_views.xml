@@ -63,9 +63,14 @@
         <field name="arch" type="xml">
             <form string="Work Order Execution">
                 <header>
-                    <button name="action_pause" string="Pause" type="object" invisible="state != 'running'"/>
+                    <button name="action_start" string="Start" type="object" invisible="state != 'paused'"
+                        class="btn-primary"
+                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                    <button name="action_pause" string="Pause" type="object" invisible="state != 'running'"
+                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
                     <button name="action_finish" string="Finish" type="object" invisible="state != 'running'"
-                        class="btn-primary"/>
+                        class="btn-primary"
+                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
