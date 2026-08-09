@@ -1,133 +1,71 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <!-- ====================== Shift Pattern / 16 ====================== -->
     <record id="action_htplus_shift_template" model="ir.actions.act_window">
-        <field name="name">Shift Template</field>
-        <field name="res_model">htplus.shift.template</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-    <record id="action_htplus_shift_pattern" model="ir.actions.act_window">
         <field name="name">Shift Pattern</field>
-        <field name="res_model">htplus.shift.pattern</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-    <record id="action_htplus_holiday_calendar" model="ir.actions.act_window">
-        <field name="name">Holiday Calendar</field>
-        <field name="res_model">htplus.holiday.calendar</field>
-        <field name="view_mode">tree,form</field>
+        <field name="res_model">htplus.shift.template</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="view_htplus_shift_template_tree" model="ir.ui.view">
-        <field name="name">htplus.shift.template.tree</field>
+        <field name="name">htplus.shift.template.list</field>
         <field name="model">htplus.shift.template</field>
         <field name="arch" type="xml">
-            <tree string="Shift Template">
+            <list string="Shift Pattern">
                 <field name="code"/>
                 <field name="name"/>
+                <field name="shift_type"/>
                 <field name="start_time"/>
                 <field name="end_time"/>
-                <field name="total_hours"/>
-                <field name="is_overtime"/>
-            </tree>
+                <field name="break_minutes"/>
+                <field name="color"/>
+                <field name="active"/>
+            </list>
         </field>
     </record>
     <record id="view_htplus_shift_template_form" model="ir.ui.view">
         <field name="name">htplus.shift.template.form</field>
         <field name="model">htplus.shift.template</field>
         <field name="arch" type="xml">
-            <form string="Shift Template">
+            <form string="Shift Pattern">
+                <header>
+                    <button name="action_sync_to_calendar" type="object"
+                        string="Sync to Working Hours" class="btn-primary"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
                             <field name="code"/>
                             <field name="name"/>
+                            <field name="shift_type"/>
                             <field name="start_time"/>
                             <field name="end_time"/>
-                            <field name="total_hours"/>
+                            <field name="break_minutes"/>
                         </group>
                         <group>
-                            <field name="is_overtime"/>
-                            <field name="active"/>
-                        </group>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-    <record id="view_htplus_shift_pattern_tree" model="ir.ui.view">
-        <field name="name">htplus.shift.pattern.tree</field>
-        <field name="model">htplus.shift.pattern</field>
-        <field name="arch" type="xml">
-            <tree string="Shift Pattern">
-                <field name="code"/>
-                <field name="name"/>
-                <field name="company_id"/>
-            </tree>
-        </field>
-    </record>
-    <record id="view_htplus_shift_pattern_form" model="ir.ui.view">
-        <field name="name">htplus.shift.pattern.form</field>
-        <field name="model">htplus.shift.pattern</field>
-        <field name="arch" type="xml">
-            <form string="Shift Pattern">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="code"/>
-                            <field name="name"/>
-                            <field name="company_id"/>
-                        </group>
-                        <group>
+                            <field name="day_of_week_start"/>
+                            <field name="day_of_week_end"/>
+                            <field name="factory_id"/>
+                            <field name="plant_id"/>
+                            <field name="line_id"/>
+                            <field name="resource_calendar_id"/>
+                            <field name="default_manpower"/>
+                            <field name="color"/>
                             <field name="active"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Lines">
-                            <field name="line_ids">
-                                <tree string="Shift Pattern Lines">
-                                    <field name="sequence"/>
-                                    <field name="weekday"/>
-                                    <field name="template_id"/>
-                                </tree>
-                            </field>
-                        </page>
-                    </notebook>
-                </sheet>
-            </form>
-        </field>
-    </record>
-    <record id="view_htplus_holiday_calendar_tree" model="ir.ui.view">
-        <field name="name">htplus.holiday.calendar.tree</field>
-        <field name="model">htplus.holiday.calendar</field>
-        <field name="arch" type="xml">
-            <tree string="Holiday Calendar">
-                <field name="name"/>
-                <field name="year"/>
-            </tree>
-        </field>
-    </record>
-    <record id="view_htplus_holiday_calendar_form" model="ir.ui.view">
-        <field name="name">htplus.holiday.calendar.form</field>
-        <field name="model">htplus.holiday.calendar</field>
-        <field name="arch" type="xml">
-            <form string="Holiday Calendar">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="name"/>
-                            <field name="year"/>
-                        </group>
-                        <group>
-                            <field name="company_id"/>
-                            <field name="active"/>
-                        </group>
-                    </group>
-                    <notebook>
-                        <page string="Holidays">
-                            <field name="line_ids">
-                                <tree string="Holidays">
-                                    <field name="date"/>
+                        <page string="Odoo Calendar Lines" name="attendances">
+                            <field name="attendance_ids" readonly="1">
+                                <list>
                                     <field name="name"/>
-                                </tree>
+                                    <field name="dayofweek"/>
+                                    <field name="hour_from" widget="float_time"/>
+                                    <field name="hour_to" widget="float_time"/>
+                                    <field name="day_period"/>
+                                    <field name="calendar_id"/>
+                                </list>
                             </field>
                         </page>
                     </notebook>
@@ -136,16 +74,180 @@
         </field>
     </record>
 
+    <!-- ====================== Production Shift list / 18 ====================== -->
+    <record id="action_htplus_production_shift" model="ir.actions.act_window">
+        <field name="name">Shift Management</field>
+        <field name="res_model">htplus.production.shift</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_htplus_production_shift_search" model="ir.ui.view">
+        <field name="name">htplus.production.shift.search</field>
+        <field name="model">htplus.production.shift</field>
+        <field name="arch" type="xml">
+            <search string="Shifts">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="line_id"/>
+                <field name="factory_id"/>
+                <field name="template_id"/>
+                <field name="state"/>
+                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('state','=','confirmed')]"/>
+                <filter name="completed" string="Completed" domain="[('state','=','completed')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_date" string="Date" context="{'group_by':'date'}"/>
+                    <filter name="group_by_line" string="Line" context="{'group_by':'line_id'}"/>
+                    <filter name="group_by_state" string="Status" context="{'group_by':'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_production_shift_tree" model="ir.ui.view">
+        <field name="name">htplus.production.shift.tree</field>
+        <field name="model">htplus.production.shift</field>
+        <field name="arch" type="xml">
+            <list string="Shifts">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="template_id"/>
+                <field name="line_id"/>
+                <field name="leader_id"/>
+                <field name="qty_target"/>
+                <field name="manpower_required"/>
+                <field name="manpower_assigned"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- ====================== Production Shift form / 10 + 11 ====================== -->
+    <record id="view_htplus_production_shift_form" model="ir.ui.view">
+        <field name="name">htplus.production.shift.form</field>
+        <field name="model">htplus.production.shift</field>
+        <field name="arch" type="xml">
+            <form string="Shift">
+                <header>
+                    <button name="action_confirm" type="object" string="Confirm"
+                        invisible="state != 'draft'" class="oe_highlight"/>
+                    <button name="action_complete" type="object" string="Complete Shift"
+                        invisible="state != 'confirmed'"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                        invisible="state not in ('draft','confirmed')"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_button_box" colspan="2">
+                        <button name="action_open_assignments" type="object"
+                            class="oe_stat_button" icon="fa-users" string="Assignments">
+                            <field name="manpower_assigned"/>
+                        </button>
+                        <button name="action_open_actuals" type="object"
+                            class="oe_stat_button" icon="fa-check-circle" string="Actuals">
+                            <field name="completion_ids" widget="statinfo"/>
+                        </button>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="name" readonly="1"/>
+                            <field name="date"/>
+                            <field name="template_id"/>
+                            <field name="start_time"/>
+                            <field name="end_time"/>
+                        </group>
+                        <group>
+                            <field name="factory_id"/>
+                            <field name="plant_id"/>
+                            <field name="line_id"/>
+                            <field name="workcenter_id"/>
+                            <field name="leader_id"/>
+                            <field name="state"/>
+                        </group>
+                    </group>
+                    <group>
+                        <group string="Summary">
+                            <field name="qty_target"/>
+                            <field name="qty_assigned"/>
+                            <field name="manpower_required"/>
+                            <field name="manpower_assigned"/>
+                        </group>
+                        <group string="Notes">
+                            <field name="notes"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Assignments">
+                            <field name="assignment_ids">
+                                <list string="Assignments">
+                                    <field name="employee_id"/>
+                                    <field name="workorder_id"/>
+                                    <field name="qty"/>
+                                    <field name="skill_ok"/>
+                                    <field name="ot_ok"/>
+                                    <field name="conflict"/>
+                                    <field name="state"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Actuals">
+                            <field name="completion_ids">
+                                <list string="Actuals">
+                                    <field name="workorder_id"/>
+                                    <field name="qty_target"/>
+                                    <field name="qty_done"/>
+                                    <field name="qty_good"/>
+                                    <field name="qty_ng"/>
+                                    <field name="downtime_minutes"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ====================== Shift Calendar / 09 ====================== -->
+    <record id="action_htplus_production_shift_calendar" model="ir.actions.act_window">
+        <field name="name">Shift Calendar</field>
+        <field name="res_model">htplus.production.shift</field>
+        <field name="view_mode">calendar,list,form</field>
+        <field name="context">{'search_default_group_by_date': 1}</field>
+    </record>
+
+    <record id="view_htplus_production_shift_calendar" model="ir.ui.view">
+        <field name="name">htplus.production.shift.calendar</field>
+        <field name="model">htplus.production.shift</field>
+        <field name="arch" type="xml">
+            <calendar string="Shift Calendar" date_start="start_time" date_stop="end_time"
+                color="template_id" mode="month">
+                <field name="name"/>
+                <field name="template_id"/>
+                <field name="line_id"/>
+                <field name="state"/>
+            </calendar>
+        </field>
+    </record>
+
+    <!-- ====================== Menus ====================== -->
+    <menuitem id="menu_htplus_shift_mgmt"
+        parent="htplus_aps_menu_root"
+        name="Shift Management"
+        sequence="30">
+    </menuitem>
+
+    <menuitem id="menu_htplus_shift_calendar"
+        parent="menu_htplus_shift_mgmt"
+        action="action_htplus_production_shift_calendar"
+        sequence="10"/>
+    <menuitem id="menu_htplus_shift_list"
+        parent="menu_htplus_shift_mgmt"
+        action="action_htplus_production_shift"
+        sequence="20"/>
     <menuitem id="menu_htplus_shift_template"
         parent="htplus_aps_menu_master_data"
         action="action_htplus_shift_template"
         sequence="50"/>
-    <menuitem id="menu_htplus_shift_pattern"
-        parent="htplus_aps_menu_master_data"
-        action="action_htplus_shift_pattern"
-        sequence="60"/>
-    <menuitem id="menu_htplus_holiday_calendar"
-        parent="htplus_aps_menu_master_data"
-        action="action_htplus_holiday_calendar"
-        sequence="70"/>
+
 </odoo>

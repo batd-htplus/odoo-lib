@@ -1,0 +1,180 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* htplus_aps_core
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-09 05:00+0000\n"
+"PO-Revision-Date: 2026-08-09 05:00+0000\n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: htplus_aps_core
+#: model:ir.module.module,shortdesc:htplus_aps_core.module_meta_information
+msgid "HTPlus APS Core"
+msgstr "HTPlus APS コア"
+
+#. module: htplus_aps_core
+#: model:ir.ui.menu,name:htplus_aps_core.htplus_aps_menu_planning
+msgid "Planning"
+msgstr "計画"
+
+#. module: htplus_aps_core
+#: model:ir.ui.menu,name:htplus_aps_core.htplus_aps_menu_scheduling
+msgid "Scheduling"
+msgstr "スケジューリング"
+
+#. module: htplus_aps_core
+#: model:ir.ui.menu,name:htplus_aps_core.htplus_aps_menu_workforce
+msgid "Workforce"
+msgstr "人員配置"
+
+#. module: htplus_aps_core
+#: model:ir.ui.menu,name:htplus_aps_core.htplus_aps_menu_gantt
+msgid "Gantt View"
+msgstr "ガントチャート"
+
+#. module: htplus_aps_core
+#: model:ir.actions.client,name:htplus_aps_core.htplus_aps_action_gantt
+msgid "HTPlus Gantt"
+msgstr "HTPlus ガント"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_dashboard
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_dashboard
+msgid "Dashboard"
+msgstr "ダッシュボード"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_demand_plan
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_demand_plan
+msgid "Demand Plans"
+msgstr "需要計画一覧"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_demand_plan_import
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_demand_import
+msgid "Import Demand Plan"
+msgstr "需要計画インポート"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_production_plan
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_production_plan
+msgid "Production Plans"
+msgstr "生産計画一覧"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_schedule_run
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_schedule_run
+msgid "Schedule Runs"
+msgstr "スケジュール実行"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_workorder_list
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_workorder_list
+msgid "Scheduled Work Orders"
+msgstr "計画作業オーダ"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_simulation_scenario
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_simulation_scenario
+msgid "Simulation Scenarios"
+msgstr "生産シミュレーション"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_workforce_assignment
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_workforce_assignment
+msgid "Workforce Assignments"
+msgstr "シフト割当"
+
+#. module: htplus_aps_core
+#: model:ir.actions.act_window,name:htplus_aps_core.action_htplus_shift_dashboard
+#: model:ir.ui.menu,name:htplus_aps_core.menu_htplus_shift_dashboard
+msgid "Shift Management Dashboard"
+msgstr "シフト管理ダッシュボード"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_production_plan_form
+msgid "Check Materials"
+msgstr "部材確認"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_production_plan_form
+msgid "Create Manufacturing Orders"
+msgstr "製造オーダ作成"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_production_plan_form
+msgid "Confirm"
+msgstr "確認"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_production_plan_form
+msgid "Approve"
+msgstr "承認"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_production_plan_form
+msgid "Lock"
+msgstr "ロック"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_production_plan_form
+msgid "Cancel"
+msgstr "取消"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_simulation_scenario_form
+msgid "Copy from Base Schedule"
+msgstr "基準スケジュールからコピー"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_simulation_scenario_form
+msgid "Run Simulation"
+msgstr "シミュレーション実行"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_simulation_scenario_form
+msgid "Apply Scenario"
+msgstr "シナリオ適用"
+
+#. module: htplus_aps_core
+#: model_terms:ir.ui.view,arch_db:htplus_aps_core.view_htplus_workforce_assignment_form
+msgid "Validate"
+msgstr "検証"
+
+#. module: htplus_aps_core
+#: model:ir.model,name:htplus_aps_core.model_htplus_demand_plan
+msgid "Demand Plan"
+msgstr "需要計画"
+
+#. module: htplus_aps_core
+#: model:ir.model,name:htplus_aps_core.model_htplus_production_plan
+msgid "Production Plan"
+msgstr "生産計画"
+
+#. module: htplus_aps_core
+#: model:ir.model,name:htplus_aps_core.model_htplus_schedule_run
+msgid "Schedule Run"
+msgstr "スケジュール実行"
+
+#. module: htplus_aps_core
+#: model:ir.model,name:htplus_aps_core.model_htplus_simulation_scenario
+msgid "Simulation Scenario"
+msgstr "シミュレーションシナリオ"
+
+#. module: htplus_aps_core
+#: model:ir.model.fields,field_description:htplus_aps_core.field_htplus_production_plan_line__material_ok
+msgid "Material OK"
+msgstr "部材OK"
+
+#. module: htplus_aps_core
+#: model:ir.model.fields,field_description:htplus_aps_core.field_htplus_production_plan_line__material_note
+msgid "Material Note"
+msgstr "部材メモ"

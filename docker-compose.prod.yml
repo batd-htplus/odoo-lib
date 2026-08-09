@@ -1,0 +1,153 @@
+secrets:
+    postgres_password:
+        file: ./secrets/postgres_password.txt
+    odoo_admin_passwd:
+        file: ./secrets/odoo_admin_passwd.txt
+    planning_api_key:
+        file: ./secrets/planning_api_key.txt
+
+services:
+    db:
+        # No `ports:` - PostgreSQL must never be reachable from outside the host.
+        environment:
+            POSTGRES_USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+            POSTGRES_DB: postgres
+            PGDATA: /var/lib/postgresql/data/pgdata
+        secrets:
+            - postgres_password
+        # Defaults target a 16 GB / 4 vCPU host; override in .env.prod.
+        command:
+            - postgres
+            - -c
+            - max_connections=${PG_MAX_CONNECTIONS:-100}
+            - -c
+            - shared_buffers=${PG_SHARED_BUFFERS:-2GB}
+            - -c
+            - effective_cache_size=${PG_EFFECTIVE_CACHE_SIZE:-8GB}
+            - -c
+            - work_mem=${PG_WORK_MEM:-16MB}
+            - -c
+            - maintenance_work_mem=${PG_MAINTENANCE_WORK_MEM:-512MB}
+            - -c
+            - wal_level=replica
+            - -c
+            - max_wal_size=4GB
+            - -c
+            - checkpoint_completion_target=0.9
+            - -c
+            - random_page_cost=1.1
+            - -c
+            - log_min_duration_statement=2000
+            - -c
+            - log_lock_waits=on
+            - -c
+            - track_activity_query_size=4096
+        healthcheck:
+            test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d postgres"]
+            interval: 10s
+            timeout: 5s
+            retries: 10
+            start_period: 60s
+        shm_size: 512mb
+        security_opt:
+            - no-new-privileges:true
+        deploy:
+            resources:
+                limits:
+                    cpus: "${PG_CPUS:-2.0}"
+                    memory: ${PG_MEMORY:-4G}
+        restart: always
+
+    odoo:
+        depends_on:
+            db:
+                condition: service_healthy
+            planning:
+                condition: service_started
+        environment:
+            HOST: db
+            PORT: 5432
+            USER: ${POSTGRES_USER}
+            POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+            ODOO_ADMIN_PASSWD_FILE: /run/secrets/odoo_admin_passwd
+            ODOO_CONFIG_TEMPLATE: /etc/odoo/odoo.conf.template
+            ODOO_DB_NAME: ${ODOO_DB_NAME}
+            ODOO_WORKERS: ${ODOO_WORKERS}
+            ODOO_CRON_THREADS: ${ODOO_CRON_THREADS}
+            ODOO_DB_MAXCONN: ${ODOO_DB_MAXCONN}
+            ODOO_LIMIT_MEMORY_SOFT: ${ODOO_LIMIT_MEMORY_SOFT}
+            ODOO_LIMIT_MEMORY_HARD: ${ODOO_LIMIT_MEMORY_HARD}
+            ODOO_LIMIT_TIME_CPU: ${ODOO_LIMIT_TIME_CPU}
+            ODOO_LIMIT_TIME_REAL: ${ODOO_LIMIT_TIME_REAL}
+            ODOO_LIMIT_TIME_REAL_CRON: ${ODOO_LIMIT_TIME_REAL_CRON}
+            ODOO_LOG_LEVEL: ${ODOO_LOG_LEVEL:-warn}
+            WAIT_DB_TIMEOUT: 120
+        secrets:
+            - postgres_password
+            - odoo_admin_passwd
+        volumes:
+            - odoo-data:/var/lib/odoo
+            - ./addons:/mnt/extra-addons:ro
+            - ./addons_vendor:/mnt/vendor-addons:ro
+            - ./config/odoo.prod.conf:/etc/odoo/odoo.conf.template:ro
+        # No published ports: nginx is the only way in.
+        security_opt:
+            - no-new-privileges:true
+        cap_drop:
+            - ALL
+        tmpfs:
+            # entrypoint renders the config here; wkhtmltopdf also needs scratch space
+            - /tmp:mode=1777,size=256m
+        stop_grace_period: 60s
+        deploy:
+            resources:
+                limits:
+                    # ~ (ODOO_WORKERS + ODOO_CRON_THREADS) * 800 MB + 1 GB headroom.
+                    cpus: "${ODOO_CPUS:-3.0}"
+                    memory: ${ODOO_MEMORY:-8G}
+        restart: always
+
+    planning:
+        environment:
+            HTPLUS_PLANNING_API_KEY_FILE: /run/secrets/planning_api_key
+            UVICORN_WORKERS: ${PLANNING_SERVICE_WORKERS:-2}
+        secrets:
+            - planning_api_key
+        # No published ports: reached as http://planning:8000 from Odoo only.
+        read_only: true
+        tmpfs:
+            - /tmp:mode=1777,size=64m
+        security_opt:
+            - no-new-privileges:true
+        cap_drop:
+            - ALL
+        deploy:
+            resources:
+                limits:
+                    cpus: "${PLANNING_CPUS:-1.0}"
+                    memory: ${PLANNING_MEMORY:-1G}
+        restart: always
+
+    nginx:
+        depends_on:
+            odoo:
+                condition: service_healthy
+        volumes:
+            - ./nginx/prod.conf.template:/etc/nginx/templates/default.conf.template:ro
+            # TLS material. Point this at your certbot/live directory.
+            - ./certs:/etc/nginx/certs:ro
+            - ./certbot/www:/var/www/certbot:ro
+            # Read-only filestore for x_sendfile (X-Accel-Redirect) downloads.
+            - odoo-data:/var/lib/odoo:ro
+        ports:
+            - "80:80"
+            - "443:443"
+        security_opt:
+            - no-new-privileges:true
+        deploy:
+            resources:
+                limits:
+                    cpus: "${NGINX_CPUS:-0.5}"
+                    memory: ${NGINX_MEMORY:-256M}
+        restart: always

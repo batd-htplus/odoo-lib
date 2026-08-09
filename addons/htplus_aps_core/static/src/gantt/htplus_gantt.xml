@@ -1,29 +1,33 @@
-<div class="o_htplus_gantt">
-    <div class="o_htplus_gantt_header">
-        <span class="o_htplus_gantt_title">HTPlus Schedule Gantt</span>
-        <button t-on-click="load" class="btn btn-secondary btn-sm">Reload</button>
-    </div>
-    <div t-if="state.loading" class="o_htplus_gantt_loading">Loading…</div>
-    <div t-else="" class="o_htplus_gantt_body">
-        <div class="o_htplus_gantt_row o_htplus_gantt_gridhead">
-            <div class="o_htplus_gantt_side">Resource / Workorder</div>
-            <div class="o_htplus_gantt_axis">
-                <span class="o_htplus_gantt_axis_label" t-esc="gridLeft()"/>
+<templates>
+    <t t-name="htplus_aps_core.HtplusGantt">
+        <div class="o_htplus_gantt">
+            <div class="o_htplus_gantt_header">
+                <span class="o_htplus_gantt_title">HTPlus Schedule Gantt</span>
+                <button t-on-click="load" class="btn btn-secondary btn-sm">Reload</button>
             </div>
-        </div>
-        <div t-foreach="state.rows" t-as="row" t-key="row.id" class="o_htplus_gantt_row">
-            <div class="o_htplus_gantt_side">
-                <div class="o_htplus_gantt_side_name" t-esc="row.resource_id"/>
-                <div class="o_htplus_gantt_side_sub" t-esc="row.workorder"/>
-                <div class="o_htplus_gantt_side_sub" t-esc="row.product"/>
-            </div>
-            <div class="o_htplus_gantt_axis">
-                <div class="o_htplus_gantt_bar"
-                     t-attf-style="left: {{ (row.start - state.start) / 86400000 * 60 }}px; width: {{ Math.max((row.end - row.start) / 86400000, 0.5) * 60 }}px; background: {{ row.color }};"
-                     t-att-title="row.locked ? 'Locked' : 'Scheduled'">
-                    <span class="o_htplus_gantt_bar_label" t-esc="row.product"/>
+            <div t-if="state.loading" class="o_htplus_gantt_loading">Loading…</div>
+            <div t-else="" class="o_htplus_gantt_body">
+                <div class="o_htplus_gantt_row o_htplus_gantt_gridhead">
+                    <div class="o_htplus_gantt_side">Resource / Workorder</div>
+                    <div class="o_htplus_gantt_axis">
+                        <span class="o_htplus_gantt_axis_label" t-esc="gridLeft()"/>
+                    </div>
+                </div>
+                <div t-foreach="state.rows" t-as="row" t-key="row.id" class="o_htplus_gantt_row">
+                    <div class="o_htplus_gantt_side">
+                        <div class="o_htplus_gantt_side_name" t-esc="row.resource_id"/>
+                        <div class="o_htplus_gantt_side_sub" t-esc="row.workorder"/>
+                        <div class="o_htplus_gantt_side_sub" t-esc="row.product"/>
+                    </div>
+                    <div class="o_htplus_gantt_axis">
+                        <div class="o_htplus_gantt_bar"
+                             t-attf-style="left: {{ (row.start - state.start) / 86400000 * 60 }}px; width: {{ Math.max((row.end - row.start) / 86400000, 0.5) * 60 }}px; background: {{ row.color }};"
+                             t-att-title="row.locked ? 'Locked' : 'Scheduled'">
+                            <span class="o_htplus_gantt_bar_label" t-esc="row.product"/>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
+    </t>
+</templates>

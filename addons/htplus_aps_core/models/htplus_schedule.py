@@ -60,11 +60,19 @@ class HtplusScheduleRun(models.Model):
     def action_undo_change(self):
         changes = self.env['htplus.schedule.change'].search([
             ('schedule_run_id', 'in', self.ids),
-        ], order='id desc')
-        if changes:
-            change = changes[0]
-            change.workorder_id[change.field] = change.old_value
-            change.unlink()
+        ], order='id desc', limit=1)
+        if not changes:
+            return
+        change = changes[0]
+        field = change.field
+        workorder = change.workorder_id
+        if field in ('date_start', 'date_finished'):
+            workorder[field] = fields.Datetime.to_datetime(change.old_value) if change.old_value else False
+        elif field in ('machine_id', 'line_id'):
+            workorder[field] = int(change.old_value) if change.old_value else False
+        elif field == 'priority':
+            workorder.priority = int(change.old_value or 0)
+        change.unlink()
 
     def action_run_solver(self):
         self.ensure_one()
@@ -91,8 +99,8 @@ class MrpWorkorder(models.Model):
     schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run')
     line_id = fields.Many2one('htplus.line', string='Line')
     machine_id = fields.Many2one('htplus.machine', string='Machine')
-    schedule_start = fields.Datetime(string='Schedule Start')
-    schedule_end = fields.Datetime(string='Schedule End')
+    # Planned window = Odoo date_start / date_finished (resource.calendar.leaves).
+    # Do not reintroduce schedule_start/schedule_end — that was a shadow schedule.
     schedule_state = fields.Selection([
         ('unscheduled', 'Unscheduled'),
         ('scheduled', 'Scheduled'),
@@ -107,32 +115,63 @@ class MrpWorkorder(models.Model):
     machine_ok = fields.Boolean(string='Machine OK')
 
     def action_open_gantt(self):
-        workorders = self.filtered(lambda w: w.schedule_start or w.schedule_state != 'unscheduled')
+        workorders = self.filtered(lambda w: w.date_start or w.schedule_state != 'unscheduled')
         if not workorders:
-            workorders = self.search([('schedule_start', '!=', False)], limit=500)
-        return [{
-            'id': workorder.id,
-            'workcenter_id': workorder.workcenter_id.name or '',
-            'workorder_ref': workorder.name or '',
-            'product_ref': workorder.product_id.display_name or '',
-            'schedule_start': workorder.schedule_start.isoformat(),
-            'schedule_end': (workorder.schedule_end or workorder.schedule_start).isoformat(),
-            'locked': workorder.locked,
-        } for workorder in workorders.sorted(lambda w: (w.schedule_start or w.create_date or fields.Datetime.now()))]
+            workorders = self.search([('date_start', '!=', False)], limit=500)
+        rows = []
+        for workorder in workorders.sorted(
+            lambda w: (w.date_start or w.create_date or fields.Datetime.now())
+        ):
+            if not workorder.date_start:
+                continue
+            end = workorder.date_finished or workorder.date_start
+            rows.append({
+                'id': workorder.id,
+                'workcenter_id': workorder.workcenter_id.name or '',
+                'workorder_ref': workorder.name or '',
+                'product_ref': workorder.product_id.display_name or '',
+                'date_start': workorder.date_start.isoformat(),
+                'date_finished': end.isoformat(),
+                'locked': workorder.locked,
+            })
+        return rows
+
+    @staticmethod
+    def _htplus_change_value(value):
+        if value is False or value is None:
+            return None
+        if hasattr(value, 'id'):
+            return str(value.id) if value else None
+        return str(value)
 
     def write(self, vals):
-        res = super().write(vals)
-        tracked = ('schedule_start', 'schedule_end', 'machine_id', 'line_id', 'priority')
+        tracked = ('date_start', 'date_finished', 'machine_id', 'line_id', 'priority')
+        pending = []
         if any(field in vals for field in tracked):
             for workorder in self:
-                self.env['htplus.schedule.change'].create({
-                    'schedule_run_id': workorder.schedule_run_id.id or False,
-                    'workorder_id': workorder.id,
-                    'user_id': self.env.uid,
-                    'field': next((f for f in tracked if f in vals), 'schedule_start'),
-                    'old_value': None,
-                    'new_value': None,
-                })
+                if not workorder.schedule_run_id:
+                    continue
+                for field in tracked:
+                    if field not in vals:
+                        continue
+                    old_value = self._htplus_change_value(workorder[field])
+                    new_value = self._htplus_change_value(vals[field])
+                    if old_value == new_value:
+                        continue
+                    pending.append({
+                        'schedule_run_id': workorder.schedule_run_id.id,
+                        'workorder_id': workorder.id,
+                        'user_id': self.env.uid,
+                        'field': field,
+                        'old_value': old_value,
+                        'new_value': new_value,
+                    })
+        res = super().write(vals)
+        if pending:
+            self.env['htplus.schedule.change'].create(pending)
+        if 'date_start' in vals or 'date_finished' in vals:
+            for workorder in self.filtered(lambda w: w.date_start and w.schedule_state == 'unscheduled'):
+                workorder.schedule_state = 'scheduled'
         return res
 
 
@@ -145,8 +184,8 @@ class HtplusScheduleChange(models.Model):
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order')
     user_id = fields.Many2one('res.users', string='User', default=lambda self: self.env.user)
     field = fields.Selection([
-        ('schedule_start', 'Schedule Start'),
-        ('schedule_end', 'Schedule End'),
+        ('date_start', 'Start'),
+        ('date_finished', 'Finished'),
         ('machine_id', 'Machine'),
         ('line_id', 'Line'),
         ('priority', 'Priority'),

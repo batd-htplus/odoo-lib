@@ -1,4 +1,4 @@
-from odoo import api, fields, models, _
+from odoo import _, api, fields, models
 
 
 class HtplusWorkorderActual(models.Model):
@@ -19,6 +19,13 @@ class HtplusWorkorderActual(models.Model):
         ('paused', 'Paused'),
         ('finished', 'Finished'),
     ], default='running', string='Status')
+    productivity_id = fields.Many2one(
+        'mrp.workcenter.productivity',
+        string='Odoo Time Log',
+        copy=False,
+        readonly=True,
+        help='Linked mrp.workcenter.productivity row (Fully Productive Time).',
+    )
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
 
     @api.constrains('workorder_id', 'state')
@@ -31,16 +38,64 @@ class HtplusWorkorderActual(models.Model):
                     ('id', '!=', rec.id),
                 ])
                 if running:
-                    raise models.ValidationError(_('A work order can have at most one running actual record.'))
+                    raise models.ValidationError(
+                        _('A work order can have at most one running actual record.'))
+
+    def _productive_loss(self):
+        return self.env.ref('mrp.block_reason7', raise_if_not_found=False)
+
+    def _sync_productivity(self):
+        Productivity = self.env['mrp.workcenter.productivity']
+        loss = self._productive_loss()
+        for rec in self:
+            workcenter = rec.workorder_id.workcenter_id
+            if not workcenter or not loss:
+                continue
+            vals = {
+                'workcenter_id': workcenter.id,
+                'workorder_id': rec.workorder_id.id,
+                'loss_id': loss.id,
+                'date_start': rec.date_start,
+                'date_end': rec.date_finished,
+                'company_id': rec.company_id.id,
+                'description': _('HTPlus actual #%s', rec.id),
+            }
+            user = rec.employee_id.user_id
+            if user:
+                vals['user_id'] = user.id
+            if rec.productivity_id:
+                rec.productivity_id.write(vals)
+            else:
+                productivity = Productivity.create(vals)
+                rec.with_context(htplus_skip_productivity_sync=True).write({
+                    'productivity_id': productivity.id,
+                })
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records.filtered(lambda r: r.state == 'running')._sync_productivity()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if self.env.context.get('htplus_skip_productivity_sync'):
+            return res
+        if any(k in vals for k in ('date_start', 'date_finished', 'state', 'workorder_id', 'employee_id')):
+            self.filtered(lambda r: r.state in ('running', 'finished', 'paused'))._sync_productivity()
+        return res
 
     def action_finish(self):
         for rec in self:
             rec.date_finished = fields.Datetime.now()
             rec.state = 'finished'
-            rec.workorder_id.write({
-                'qty_producing': rec.qty_good,
-                'date_finished': rec.date_finished,
-            })
+            # Do not overwrite MRP planned date_finished (capacity leave).
+            # qty_producing is the shop-floor progress signal Odoo already uses.
+            rec.workorder_id.qty_producing = rec.qty_good or rec.qty_done
+            rec._sync_productivity()
 
     def action_pause(self):
-        self.state = 'paused'
+        self.write({
+            'state': 'paused',
+            'date_finished': fields.Datetime.now(),
+        })

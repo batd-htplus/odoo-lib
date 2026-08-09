@@ -1,0 +1,331 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* htplus_planning_base
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-09 05:00+0000\n"
+"PO-Revision-Date: 2026-08-09 05:00+0000\n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: htplus_planning_base
+#: model:ir.ui.menu,name:htplus_planning_base.htplus_aps_menu_root
+msgid "HTPlus APS"
+msgstr "HTPlus APS"
+
+#. module: htplus_planning_base
+#: model:ir.ui.menu,name:htplus_planning_base.htplus_aps_menu_master_data
+msgid "Master Data"
+msgstr "マスタデータ"
+
+#. module: htplus_planning_base
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_shift_mgmt
+msgid "Shift Management"
+msgstr "シフト管理"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_factory
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_factory
+msgid "Factory"
+msgstr "工場"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_plant
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_plant
+msgid "Plant"
+msgstr "プラント"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_line
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_line
+msgid "Line"
+msgstr "ライン"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_machine
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_machine
+msgid "Machine"
+msgstr "設備"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_shift_template
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_shift_template
+msgid "Shift Pattern"
+msgstr "シフトパターン"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_production_shift
+msgid "Shift Management"
+msgstr "シフト管理"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_production_shift_calendar
+#: model_terms:ir.ui.view,arch_db:htplus_planning_base.view_htplus_production_shift_calendar
+msgid "Shift Calendar"
+msgstr "シフトカレンダー"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_skill_type
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_skill_type
+msgid "Skill Types"
+msgstr "スキル種別"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_skill
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_skill
+msgid "Production Skills"
+msgstr "生産スキル"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_employee_skill
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_employee_skill
+msgid "Employee Skills"
+msgstr "従業員スキル"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_holiday
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_holiday
+msgid "Employee Time Off"
+msgstr "従業員休暇"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_factory_holiday
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_factory_holiday
+msgid "Factory Holidays"
+msgstr "工場休業日"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_planning_rule
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_planning_rule
+msgid "Planning Rule"
+msgstr "計画ルール"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_priority_rule
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_priority_rule
+msgid "Priority Rule"
+msgstr "優先ルール"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_capacity_rule
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_capacity_rule
+msgid "Capacity Rule"
+msgstr "能力ルール"
+
+#. module: htplus_planning_base
+#: model:ir.actions.act_window,name:htplus_planning_base.action_htplus_planning_parameter
+#: model:ir.ui.menu,name:htplus_planning_base.menu_htplus_planning_parameter
+msgid "Planning Parameter"
+msgstr "計画パラメータ"
+
+#. module: htplus_planning_base
+#: model_terms:ir.ui.view,arch_db:htplus_planning_base.view_htplus_shift_template_form
+msgid "Sync to Working Hours"
+msgstr "稼働時間へ同期"
+
+#. module: htplus_planning_base
+#: model_terms:ir.ui.view,arch_db:htplus_planning_base.view_htplus_factory_form
+msgid "Apply Working Hours to Work Centers"
+msgstr "作業区へ稼働時間を適用"
+
+#. module: htplus_planning_base
+#: model:hr.skill.type,name:htplus_planning_base.hr_skill_type_production
+msgid "Production"
+msgstr "生産"
+
+#. module: htplus_planning_base
+#: model:hr.skill.type,name:htplus_planning_base.hr_skill_type_quality
+msgid "Quality"
+msgstr "品質"
+
+#. module: htplus_planning_base
+#: model:hr.skill.type,name:htplus_planning_base.hr_skill_type_maintenance
+msgid "Maintenance"
+msgstr "保全"
+
+#. module: htplus_planning_base
+#: model:hr.skill.type,name:htplus_planning_base.hr_skill_type_safety
+msgid "Safety"
+msgstr "安全"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_prod_trainee
+msgid "Trainee"
+msgstr "研修"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_prod_operator
+msgid "Operator"
+msgstr "オペレータ"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_prod_senior
+msgid "Senior"
+msgstr "上級"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_prod_leader
+msgid "Line Leader"
+msgstr "ラインリーダー"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_qa_basic
+msgid "Basic"
+msgstr "基礎"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_qa_inspector
+msgid "Inspector"
+msgstr "検査員"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_qa_senior
+msgid "Senior Inspector"
+msgstr "上級検査員"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_mnt_helper
+msgid "Helper"
+msgstr "助手"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_mnt_tech
+msgid "Technician"
+msgstr "技術者"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_mnt_senior
+msgid "Senior Technician"
+msgstr "上級技術者"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_safety_aware
+msgid "Aware"
+msgstr "理解"
+
+#. module: htplus_planning_base
+#: model:hr.skill.level,name:htplus_planning_base.hr_skill_level_safety_certified
+msgid "Certified"
+msgstr "認定"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_machine_operation
+msgid "Machine Operation"
+msgstr "機械操作"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_assembly
+msgid "Assembly"
+msgstr "組立"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_welding
+msgid "Welding"
+msgstr "溶接"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_cnc
+msgid "CNC Operation"
+msgstr "CNC操作"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_molding
+msgid "Molding / Injection"
+msgstr "成形／射出"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_packaging
+msgid "Packaging"
+msgstr "梱包"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_material_handling
+msgid "Material Handling"
+msgstr "材料搬送"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_forklift
+msgid "Forklift"
+msgstr "フォークリフト"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_incoming_inspection
+msgid "Incoming Inspection"
+msgstr "受入検査"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_inprocess_inspection
+msgid "In-Process Inspection"
+msgstr "工程内検査"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_final_inspection
+msgid "Final Inspection"
+msgstr "最終検査"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_measuring
+msgid "Measuring Instruments"
+msgstr "測定機器"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_mechanical_maint
+msgid "Mechanical Maintenance"
+msgstr "機械保全"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_electrical_maint
+msgid "Electrical Maintenance"
+msgstr "電気保全"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_setup_changeover
+msgid "Setup / Changeover"
+msgstr "段取り／段替え"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_safety_basic
+msgid "Shop Floor Safety"
+msgstr "現場安全"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_chemical_handling
+msgid "Chemical Handling"
+msgstr "薬品取扱い"
+
+#. module: htplus_planning_base
+#: model:hr.skill,name:htplus_planning_base.hr_skill_lockout_tagout
+msgid "Lockout / Tagout"
+msgstr "ロックアウト／タグアウト"
+
+#. module: htplus_planning_base
+#: model:ir.model,name:htplus_planning_base.model_htplus_factory
+msgid "Factory"
+msgstr "工場"
+
+#. module: htplus_planning_base
+#: model:ir.model,name:htplus_planning_base.model_htplus_factory_holiday
+msgid "Factory Holiday"
+msgstr "工場休業日"
+
+#. module: htplus_planning_base
+#: model:ir.model,name:htplus_planning_base.model_htplus_shift_template
+msgid "Shift Template"
+msgstr "シフトテンプレート"
+
+#. module: htplus_planning_base
+#: model:ir.model,name:htplus_planning_base.model_htplus_production_shift
+msgid "Production Shift"
+msgstr "生産シフト"
+
+#. module: htplus_planning_base
+#: model:ir.model.fields,field_description:htplus_planning_base.field_htplus_factory__resource_calendar_id
+msgid "Working Hours"
+msgstr "稼働時間"

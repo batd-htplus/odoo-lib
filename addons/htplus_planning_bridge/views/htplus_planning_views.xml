@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_planning_config" model="ir.actions.act_window">
+        <field name="name">Engine Configurations</field>
+        <field name="res_model">htplus.planning.config</field>
+        <field name="view_mode">list,form</field>
+        <field name="groups_id" eval="[(4, ref('htplus_planning_base.group_aps_manager'))]"/>
+    </record>
+    <record id="action_htplus_planning_forecast" model="ir.actions.act_window">
+        <field name="name">Demand Forecast</field>
+        <field name="res_model">htplus.planning.forecast</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_htplus_planning_chat" model="ir.actions.act_window">
+        <field name="name">Planning Assistant</field>
+        <field name="res_model">htplus.planning.chat</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_htplus_planning_recommendation" model="ir.actions.act_window">
+        <field name="name">Recommendations</field>
+        <field name="res_model">htplus.planning.recommendation</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_htplus_planning_config_tree" model="ir.ui.view">
+        <field name="name">htplus.planning.config.tree</field>
+        <field name="model">htplus.planning.config</field>
+        <field name="arch" type="xml">
+            <list string="Engine Configurations">
+                <field name="name"/>
+                <field name="url"/>
+                <field name="model"/>
+                <field name="timeout_sec"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_htplus_planning_config_form" model="ir.ui.view">
+        <field name="name">htplus.planning.config.form</field>
+        <field name="model">htplus.planning.config</field>
+        <field name="arch" type="xml">
+            <form string="Engine Configuration">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="url"/>
+                            <field name="api_key" password="True"
+                                    placeholder="Leave empty to use HTPLUS_PLANNING_API_KEY env"/>
+                        </group>
+                        <group>
+                            <field name="model"/>
+                            <field name="timeout_sec"/>
+                            <field name="active"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_planning_forecast_tree" model="ir.ui.view">
+        <field name="name">htplus.planning.forecast.tree</field>
+        <field name="model">htplus.planning.forecast</field>
+        <field name="arch" type="xml">
+            <list string="Demand Forecasts">
+                <field name="name"/>
+                <field name="date_start"/>
+                <field name="date_end"/>
+                <field name="horizon_days"/>
+                <field name="model"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_htplus_planning_forecast_form" model="ir.ui.view">
+        <field name="name">htplus.planning.forecast.form</field>
+        <field name="model">htplus.planning.forecast</field>
+        <field name="arch" type="xml">
+            <form string="Demand Forecast">
+                <header>
+                    <button name="action_run" string="Run Forecast" type="object"
+                        invisible="state != 'draft'" class="btn-primary"/>
+                    <button name="action_apply" string="Apply to Demand Plan" type="object"
+                        invisible="state != 'computed'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="config_id"/>
+                            <field name="model"/>
+                            <field name="horizon_days"/>
+                        </group>
+                        <group>
+                            <field name="date_start"/>
+                            <field name="date_end"/>
+                            <field name="company_id"/>
+                        </group>
+                    </group>
+                    <group string="Products">
+                        <field name="product_ids"/>
+                    </group>
+                    <notebook>
+                        <page string="Forecast Lines">
+                            <field name="line_ids">
+                                <list string="Forecast Lines">
+                                    <field name="product_id"/>
+                                    <field name="date"/>
+                                    <field name="qty"/>
+                                    <field name="confidence"/>
+                                    <field name="model"/>
+                                </list>
+                            </field>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_planning_chat_tree" model="ir.ui.view">
+        <field name="name">htplus.planning.chat.tree</field>
+        <field name="model">htplus.planning.chat</field>
+        <field name="arch" type="xml">
+            <list string="Planning Assistant Sessions">
+                <field name="name"/>
+                <field name="user_id"/>
+                <field name="config_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_htplus_planning_chat_form" model="ir.ui.view">
+        <field name="name">htplus.planning.chat.form</field>
+        <field name="model">htplus.planning.chat</field>
+        <field name="arch" type="xml">
+            <form string="Planning Assistant">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="config_id"/>
+                            <field name="session_id"/>
+                        </group>
+                    </group>
+                    <group string="Messages">
+                        <field name="line_ids">
+                            <list string="Messages">
+                                <field name="role"/>
+                                <field name="content"/>
+                                <field name="created_at"/>
+                            </list>
+                        </field>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+    <record id="view_htplus_planning_recommendation_tree" model="ir.ui.view">
+        <field name="name">htplus.planning.recommendation.tree</field>
+        <field name="model">htplus.planning.recommendation</field>
+        <field name="arch" type="xml">
+            <list string="Recommendations">
+                <field name="name"/>
+                <field name="type"/>
+                <field name="title"/>
+                <field name="source_workorder_id"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_htplus_planning_recommendation_form" model="ir.ui.view">
+        <field name="name">htplus.planning.recommendation.form</field>
+        <field name="model">htplus.planning.recommendation</field>
+        <field name="arch" type="xml">
+            <form string="Recommendation">
+                <header>
+                    <button name="action_apply" string="Apply" type="object" invisible="state != 'new'"
+                        class="btn-primary"/>
+                    <button name="action_dismiss" string="Dismiss" type="object" invisible="state != 'new'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="type"/>
+                            <field name="model"/>
+                        </group>
+                        <group>
+                            <field name="source_workorder_id"/>
+                            <field name="source_plan_id"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <group>
+                        <field name="title"/>
+                        <field name="summary"/>
+                        <field name="explanation"/>
+                    </group>
+                    <group string="Payload">
+                        <field name="payload"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_planning_config"
+        parent="htplus_planning_menu"
+        action="action_htplus_planning_config"
+        sequence="10"/>
+    <menuitem id="menu_htplus_planning_forecast"
+        parent="htplus_planning_menu"
+        action="action_htplus_planning_forecast"
+        sequence="20"/>
+    <menuitem id="menu_htplus_planning_chat"
+        parent="htplus_planning_menu"
+        action="action_htplus_planning_chat"
+        sequence="30"/>
+    <menuitem id="menu_htplus_planning_recommendation"
+        parent="htplus_planning_menu"
+        action="action_htplus_planning_recommendation"
+        sequence="40"/>
+</odoo>

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_htplus_production_shift" model="ir.sequence">
+        <field name="name">Production Shift</field>
+        <field name="code">htplus.production.shift</field>
+        <field name="prefix">SHIFT/%(year)s/</field>
+        <field name="padding">4</field>
+        <field name="company_id" eval="False"/>
+    </record>
+    <record id="seq_htplus_workforce_assignment" model="ir.sequence">
+        <field name="name">Workforce Assignment</field>
+        <field name="code">htplus.workforce.assignment</field>
+        <field name="prefix">WF/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

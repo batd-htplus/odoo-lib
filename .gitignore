@@ -1,9 +1,45 @@
+# --- Secrets: nothing in here may ever be committed --------------------------
+.env
+.env.*
+!.env.example
+!.env.prod.example
+secrets/
+!secrets/.gitkeep
+certs/
+certbot/
+*.pem
+*.key
+*.crt
+*.p12
+
+# Old pre-refactor configs kept for reference; the old odoo.conf still contains
+# the leaked admin_passwd, so it must not be re-committed.
+.archive/
+
+# --- Runtime data ------------------------------------------------------------
 /volumes
-/etc/filestore
-
-__pycache__/
-*.pyc
-
-.DS_Store
-
+/backups
+filestore/
 *.log
+*.dump
+*.sql.gz
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+
+# --- Node --------------------------------------------------------------------
+node_modules/
+
+# --- OS / editor -------------------------------------------------------------
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp

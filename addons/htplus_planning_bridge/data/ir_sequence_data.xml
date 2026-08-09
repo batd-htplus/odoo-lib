@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="seq_htplus_planning_forecast" model="ir.sequence">
+        <field name="name">Demand Forecast</field>
+        <field name="code">htplus.planning.forecast</field>
+        <field name="prefix">AF/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
+</odoo>

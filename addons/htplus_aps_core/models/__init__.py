@@ -2,7 +2,6 @@ from . import htplus_demand_plan
 from . import htplus_production_plan
 from . import htplus_schedule
 from . import htplus_simulation
-from . import htplus_workforce
 from . import htplus_dashboard
 from . import htplus_demand_import
 from . import htplus_settings

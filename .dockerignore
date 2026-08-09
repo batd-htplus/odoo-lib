@@ -1,0 +1,44 @@
+# Keep the build context small and free of secrets.
+# Anything listed here is invisible to `docker build`.
+
+.git
+.gitignore
+.github
+
+# Secrets - critical: these must never end up in an image layer
+.env
+.env.*
+secrets/
+certs/
+certbot/
+*.pem
+*.key
+
+# Runtime data
+volumes/
+backups/
+*.log
+*.dump
+*.sql.gz
+
+# Compose / docs are not needed inside the image
+docker-compose*.yml
+Makefile
+README.md
+docs/
+
+# Python / Node cruft
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+node_modules/
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

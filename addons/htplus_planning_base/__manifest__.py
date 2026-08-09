@@ -1,6 +1,6 @@
 {
     "name": "HTPlus APS Planning Base",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.4.1",
     "summary": "Master data foundation for HTPlus APS/MES.",
     "author": "Ba.TD",
     "maintainer": "Ba.TD",
@@ -10,10 +10,14 @@
         "mrp",
         "resource",
         "hr",
+        "hr_skills",
+        "hr_holidays",
     ],
     "data": [
         "security/htplus_groups.xml",
         "security/ir.model.access.csv",
+        "data/ir_sequence_data.xml",
+        "data/htplus_skill_data.xml",
         "views/htplus_planning_base_menus.xml",
         "views/htplus_factory_views.xml",
         "views/htplus_machine_views.xml",

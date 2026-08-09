@@ -45,8 +45,8 @@
                                         <td t-field="wo.display_name"/>
                                         <td t-field="wo.workcenter_id"/>
                                         <td t-field="wo.machine_id"/>
-                                        <td t-field="wo.schedule_start"/>
-                                        <td t-field="wo.schedule_end"/>
+                                        <td t-field="wo.date_start"/>
+                                        <td t-field="wo.date_finished"/>
                                         <td t-field="wo.priority"/>
                                         <td t-field="wo.schedule_state"/>
                                     </tr>

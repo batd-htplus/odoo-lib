@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_shift_dashboard" model="ir.actions.act_window">
+        <field name="name">Shift Management Dashboard</field>
+        <field name="res_model">htplus.dashboard.kpi</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+    </record>
+
+    <record id="view_htplus_shift_dashboard_kpi_form" model="ir.ui.view">
+        <field name="name">htplus.shift.dashboard.kpi.form</field>
+        <field name="model">htplus.dashboard.kpi</field>
+        <field name="arch" type="xml">
+            <form string="Shift Management Dashboard">
+                <header>
+                    <button name="action_refresh" string="Refresh" type="object"
+                        class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                    </group>
+                    <div class="row">
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="total_shifts"/></h3>
+                                    <div>Total Shifts</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary">
+                                        <field name="assignment_rate" widget="percentpie"/>
+                                    </h3>
+                                    <div>Assignment Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-success">
+                                        <field name="completion_rate" widget="percentpie"/>
+                                    </h3>
+                                    <div>Completion Rate</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning"><field name="confirmed_shifts"/></h3>
+                                    <div>Confirmed Shifts</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-success"><field name="completed_shifts"/></h3>
+                                    <div>Completed Shifts</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-danger"><field name="shortage_shifts"/></h3>
+                                    <div>Shifts Short Manpower</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="total_ot_minutes"/></h3>
+                                    <div>Total Overtime (min)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <button name="action_open_shifts" string="Open Shifts" type="object"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_shift_dashboard"
+        parent="htplus_planning_base.menu_htplus_shift_mgmt"
+        action="action_htplus_shift_dashboard"
+        sequence="50"/>
+</odoo>

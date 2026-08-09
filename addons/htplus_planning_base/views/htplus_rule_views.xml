@@ -3,34 +3,34 @@
     <record id="action_htplus_planning_rule" model="ir.actions.act_window">
         <field name="name">Planning Rule</field>
         <field name="res_model">htplus.planning.rule</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_priority_rule" model="ir.actions.act_window">
         <field name="name">Priority Rule</field>
         <field name="res_model">htplus.priority.rule</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_capacity_rule" model="ir.actions.act_window">
         <field name="name">Capacity Rule</field>
         <field name="res_model">htplus.capacity.rule</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
-    <record id="action_htplus_ai_parameter" model="ir.actions.act_window">
-        <field name="name">AI Parameter</field>
-        <field name="res_model">htplus.ai.parameter</field>
-        <field name="view_mode">tree,form</field>
+    <record id="action_htplus_planning_parameter" model="ir.actions.act_window">
+        <field name="name">Planning Parameter</field>
+        <field name="res_model">htplus.planning.parameter</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="view_htplus_planning_rule_tree" model="ir.ui.view">
         <field name="name">htplus.planning.rule.tree</field>
         <field name="model">htplus.planning.rule</field>
         <field name="arch" type="xml">
-            <tree string="Planning Rule">
+            <list string="Planning Rule">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="objective"/>
                 <field name="capacity_limit_pct"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_planning_rule_form" model="ir.ui.view">
@@ -71,12 +71,12 @@
         <field name="name">htplus.priority.rule.tree</field>
         <field name="model">htplus.priority.rule</field>
         <field name="arch" type="xml">
-            <tree string="Priority Rule">
+            <list string="Priority Rule">
                 <field name="sequence"/>
                 <field name="name"/>
                 <field name="priority_field"/>
                 <field name="weight"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_priority_rule_form" model="ir.ui.view">
@@ -105,12 +105,12 @@
         <field name="name">htplus.capacity.rule.tree</field>
         <field name="model">htplus.capacity.rule</field>
         <field name="arch" type="xml">
-            <tree string="Capacity Rule">
+            <list string="Capacity Rule">
                 <field name="name"/>
                 <field name="workcenter_id"/>
                 <field name="max_units_per_day"/>
                 <field name="max_hours_per_day"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_capacity_rule_form" model="ir.ui.view">
@@ -134,22 +134,22 @@
             </form>
         </field>
     </record>
-    <record id="view_htplus_ai_parameter_tree" model="ir.ui.view">
-        <field name="name">htplus.ai.parameter.tree</field>
-        <field name="model">htplus.ai.parameter</field>
+    <record id="view_htplus_planning_parameter_tree" model="ir.ui.view">
+        <field name="name">htplus.planning.parameter.tree</field>
+        <field name="model">htplus.planning.parameter</field>
         <field name="arch" type="xml">
-            <tree string="AI Parameter">
+            <list string="Planning Parameter">
                 <field name="key"/>
                 <field name="name"/>
                 <field name="value"/>
-            </tree>
+            </list>
         </field>
     </record>
-    <record id="view_htplus_ai_parameter_form" model="ir.ui.view">
-        <field name="name">htplus.ai.parameter.form</field>
-        <field name="model">htplus.ai.parameter</field>
+    <record id="view_htplus_planning_parameter_form" model="ir.ui.view">
+        <field name="name">htplus.planning.parameter.form</field>
+        <field name="model">htplus.planning.parameter</field>
         <field name="arch" type="xml">
-            <form string="AI Parameter">
+            <form string="Planning Parameter">
                 <sheet>
                     <group>
                         <group>
@@ -179,8 +179,8 @@
         parent="htplus_aps_menu_master_data"
         action="action_htplus_capacity_rule"
         sequence="100"/>
-    <menuitem id="menu_htplus_ai_parameter"
+    <menuitem id="menu_htplus_planning_parameter"
         parent="htplus_aps_menu_master_data"
-        action="action_htplus_ai_parameter"
+        action="action_htplus_planning_parameter"
         sequence="110"/>
 </odoo>

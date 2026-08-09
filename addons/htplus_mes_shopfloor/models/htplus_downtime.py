@@ -19,6 +19,20 @@ class HtplusDowntimeReason(models.Model):
     ], default='other')
     active = fields.Boolean(default=True)
 
+    def _mrp_loss_xmlid(self):
+        self.ensure_one()
+        mapping = {
+            'breakdown': 'mrp.block_reason1',
+            'setup': 'mrp.block_reason2',
+            'wait_material': 'mrp.block_reason0',
+            'wait_machine': 'mrp.block_reason1',
+            'wait_manpower': 'mrp.block_reason0',
+            'power': 'mrp.block_reason1',
+            'quality': 'mrp.block_reason5',
+            'other': 'mrp.block_reason0',
+        }
+        return mapping.get(self.category, 'mrp.block_reason0')
+
 
 class HtplusDowntime(models.Model):
     _name = 'htplus.downtime'
@@ -35,6 +49,12 @@ class HtplusDowntime(models.Model):
     date_end = fields.Datetime(string='End')
     employee_id = fields.Many2one('hr.employee', string='Employee')
     cost = fields.Float()
+    productivity_id = fields.Many2one(
+        'mrp.workcenter.productivity',
+        string='Odoo Time Log',
+        copy=False,
+        readonly=True,
+    )
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
 
     @api.depends('date_start', 'date_end')
@@ -47,3 +67,54 @@ class HtplusDowntime(models.Model):
                 rec.duration_minutes = 0.0
 
     duration_minutes = fields.Float(compute='_compute_duration', string='Duration (minutes)')
+
+    def _workcenter(self):
+        self.ensure_one()
+        if self.workorder_id.workcenter_id:
+            return self.workorder_id.workcenter_id
+        if self.machine_id.workcenter_id:
+            return self.machine_id.workcenter_id
+        return self.env['mrp.workcenter']
+
+    def _sync_productivity(self):
+        Productivity = self.env['mrp.workcenter.productivity']
+        for rec in self:
+            workcenter = rec._workcenter()
+            loss = self.env.ref(rec.reason_id._mrp_loss_xmlid(), raise_if_not_found=False)
+            if not workcenter or not loss:
+                continue
+            vals = {
+                'workcenter_id': workcenter.id,
+                'workorder_id': rec.workorder_id.id or False,
+                'loss_id': loss.id,
+                'date_start': rec.date_start,
+                'date_end': rec.date_end,
+                'company_id': rec.company_id.id,
+                'description': rec.reason_id.display_name,
+            }
+            user = rec.employee_id.user_id
+            if user:
+                vals['user_id'] = user.id
+            if rec.productivity_id:
+                rec.productivity_id.write(vals)
+            else:
+                productivity = Productivity.create(vals)
+                rec.with_context(htplus_skip_productivity_sync=True).write({
+                    'productivity_id': productivity.id,
+                })
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        records = super().create(vals_list)
+        records._sync_productivity()
+        return records
+
+    def write(self, vals):
+        res = super().write(vals)
+        if self.env.context.get('htplus_skip_productivity_sync'):
+            return res
+        if any(k in vals for k in (
+            'date_start', 'date_end', 'reason_id', 'workorder_id', 'machine_id', 'employee_id',
+        )):
+            self._sync_productivity()
+        return res

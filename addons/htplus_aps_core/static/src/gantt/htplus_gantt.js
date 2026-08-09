@@ -31,8 +31,12 @@ export class HtplusGantt extends Component {
                 "action_open_gantt",
                 []
             );
-            const min = new Date(Math.min(...records.map((r) => new Date(r.schedule_start))));
-            const max = new Date(Math.max(...records.map((r) => new Date(r.schedule_end))));
+            if (!records.length) {
+                this.state.rows = [];
+                return;
+            }
+            const min = new Date(Math.min(...records.map((r) => new Date(r.date_start))));
+            const max = new Date(Math.max(...records.map((r) => new Date(r.date_finished))));
             this.state.start = new Date(min.getTime() - DAY_MS);
             this.state.end = new Date(max.getTime() + DAY_MS);
             this.state.rows = records.map((r) => ({
@@ -40,8 +44,8 @@ export class HtplusGantt extends Component {
                 resource_id: r.workcenter_id,
                 workorder: r.workorder_ref,
                 product: r.product_ref,
-                start: new Date(r.schedule_start),
-                end: new Date(r.schedule_end),
+                start: new Date(r.date_start),
+                end: new Date(r.date_finished),
                 locked: r.locked,
                 color: r.locked ? "#6b7280" : "#2563eb",
             }));

@@ -49,9 +49,9 @@ class HtplusCapacityRule(models.Model):
     active = fields.Boolean(default=True)
 
 
-class HtplusAiParameter(models.Model):
-    _name = 'htplus.ai.parameter'
-    _description = 'AI Parameter'
+class HtplusPlanningParameter(models.Model):
+    _name = 'htplus.planning.parameter'
+    _description = 'Planning Parameter'
 
     name = fields.Char(required=True)
     key = fields.Char(required=True)

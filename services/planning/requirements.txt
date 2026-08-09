@@ -1,0 +1,7 @@
+fastapi==0.115.6
+uvicorn[standard]==0.32.1
+pydantic==2.10.4
+# Apache-2.0, Python-native (prebuilt wheel, no compiler needed).
+# See docs/05_scheduling_engine_decision.md for the license/runtime
+# evaluation against Timefold Solver (Java/Kotlin-only, rejected for now).
+ortools==9.15.6755

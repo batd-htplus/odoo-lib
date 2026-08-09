@@ -1,0 +1,60 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* htplus_planning_bridge
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-09 05:00+0000\n"
+"PO-Revision-Date: 2026-08-09 05:00+0000\n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: htplus_planning_bridge
+#: model:ir.ui.menu,name:htplus_planning_bridge.htplus_planning_menu
+msgid "Planning Assistant"
+msgstr "AI計画アシスト"
+
+#. module: htplus_planning_bridge
+#: model:ir.actions.act_window,name:htplus_planning_bridge.action_htplus_planning_config
+#: model:ir.ui.menu,name:htplus_planning_bridge.menu_htplus_planning_config
+msgid "Engine Configurations"
+msgstr "エンジン設定"
+
+#. module: htplus_planning_bridge
+#: model:ir.actions.act_window,name:htplus_planning_bridge.action_htplus_planning_forecast
+#: model:ir.ui.menu,name:htplus_planning_bridge.menu_htplus_planning_forecast
+msgid "Demand Forecast"
+msgstr "需要予測"
+
+#. module: htplus_planning_bridge
+#: model:ir.actions.act_window,name:htplus_planning_bridge.action_htplus_planning_chat
+#: model:ir.ui.menu,name:htplus_planning_bridge.menu_htplus_planning_chat
+msgid "Planning Assistant"
+msgstr "計画アシスタント"
+
+#. module: htplus_planning_bridge
+#: model:ir.actions.act_window,name:htplus_planning_bridge.action_htplus_planning_recommendation
+#: model:ir.ui.menu,name:htplus_planning_bridge.menu_htplus_planning_recommendation
+msgid "Recommendations"
+msgstr "推奨提案"
+
+#. module: htplus_planning_bridge
+#: model:ir.model,name:htplus_planning_bridge.model_htplus_planning_config
+msgid "Planning Engine Config"
+msgstr "計画エンジン設定"
+
+#. module: htplus_planning_bridge
+#: model:ir.model,name:htplus_planning_bridge.model_htplus_planning_forecast
+msgid "Demand Forecast"
+msgstr "需要予測"
+
+#. module: htplus_planning_bridge
+#: model:ir.model,name:htplus_planning_bridge.model_htplus_planning_recommendation
+msgid "Recommendation"
+msgstr "推奨"

@@ -28,10 +28,30 @@
                             <field name="htplus_aps_batch_size"/>
                         </setting>
                     </block>
-                    <block title="AI Service">
-                        <setting string="Service URL"
-                            help="Base URL of the HTPlus AI service (FastAPI).">
-                            <field name="htplus_ai_service_url"/>
+                    <block title="Shift Management">
+                        <setting string="Default Factory"
+                            help="Default factory used when creating shifts.">
+                            <field name="htplus_shift_default_factory"/>
+                        </setting>
+                        <setting string="Shifts per Day"
+                            help="Default number of shifts per working day.">
+                            <field name="htplus_shift_count_per_day"/>
+                        </setting>
+                        <setting string="Working Hours">
+                            <div class="row mt-1">
+                                <label for="htplus_shift_std_hours" class="col-3"/>
+                                <field name="htplus_shift_std_hours" class="col-3"/>
+                                <label for="htplus_shift_max_ot" class="col-3"/>
+                                <field name="htplus_shift_max_ot" class="col-3"/>
+                            </div>
+                        </setting>
+                        <setting string="AI Auto Assignment"
+                            help="Allow the system to propose employee assignment automatically.">
+                            <field name="htplus_shift_ai_auto_assign"/>
+                        </setting>
+                        <setting string="Auto Conflict Check"
+                            help="Automatically check shift/OT conflicts on assignment.">
+                            <field name="htplus_shift_auto_conflict_check"/>
                         </setting>
                     </block>
                 </app>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="htplus_workorder_timeline_spike_view" model="ir.ui.view">
+        <field name="name">mrp.workorder.timeline.spike</field>
+        <field name="model">mrp.workorder</field>
+        <field name="type">timeline</field>
+        <field name="arch" type="xml">
+            <timeline date_start="date_start" date_stop="date_finished"
+                      default_group_by="workcenter_id"
+                      colors="red: schedule_state == 'unscheduled';orange: schedule_state == 'scheduled';darkgreen: schedule_state == 'confirmed';purple: schedule_state == 'locked'">
+                <field name="production_id" />
+                <t t-name="timeline-item">
+                    <div class="text-truncate">
+                        <span t-out="record.display_name" />
+                    </div>
+                    <div class="text-muted small text-truncate">
+                        <span t-out="record.production_id[1]" />
+                    </div>
+                </t>
+            </timeline>
+        </field>
+    </record>
+
+    <record id="htplus_workorder_tree_spike_view" model="ir.ui.view">
+        <field name="name">mrp.workorder.tree.spike</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="display_name" />
+                <field name="workcenter_id" />
+                <field name="date_start" />
+                <field name="date_finished" />
+                <field name="schedule_state" />
+                <field name="locked" />
+            </list>
+        </field>
+    </record>
+
+    <record id="htplus_workorder_form_spike_view" model="ir.ui.view">
+        <field name="name">mrp.workorder.form.spike</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <form>
+                <group>
+                    <group>
+                        <field name="production_id" />
+                        <field name="product_id" />
+                        <field name="operation_id" />
+                    </group>
+                    <group>
+                        <field name="workcenter_id" />
+                        <field name="date_start" />
+                        <field name="date_finished" />
+                        <field name="schedule_state" />
+                        <field name="locked" />
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="htplus_workorder_timeline_spike_action" model="ir.actions.act_window">
+        <field name="name">Work Order Timeline (Spike)</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="view_mode">list,timeline,form</field>
+    </record>
+
+    <function model="ir.actions.act_window" name="write">
+        <value eval="[ref('htplus_workorder_timeline_spike_action')]" />
+        <value eval="{'view_ids': [(5, 0, 0)]}" />
+    </function>
+
+    <record id="htplus_wo_spike_act_list" model="ir.actions.act_window.view">
+        <field name="view_mode">list</field>
+        <field name="view_id" ref="htplus_workorder_tree_spike_view" />
+        <field name="act_window_id" ref="htplus_workorder_timeline_spike_action" />
+    </record>
+    <record id="htplus_wo_spike_act_timeline" model="ir.actions.act_window.view">
+        <field name="view_mode">timeline</field>
+        <field name="view_id" ref="htplus_workorder_timeline_spike_view" />
+        <field name="act_window_id" ref="htplus_workorder_timeline_spike_action" />
+    </record>
+    <record id="htplus_wo_spike_act_form" model="ir.actions.act_window.view">
+        <field name="view_mode">form</field>
+        <field name="view_id" ref="htplus_workorder_form_spike_view" />
+        <field name="act_window_id" ref="htplus_workorder_timeline_spike_action" />
+    </record>
+
+    <menuitem id="htplus_workorder_timeline_spike_menu"
+        parent="htplus_aps_core.htplus_aps_menu_scheduling"
+        name="Work Order Timeline (Spike)"
+        action="htplus_workorder_timeline_spike_action"
+        sequence="60" />
+</odoo>

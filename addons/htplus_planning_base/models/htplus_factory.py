@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import _, api, fields, models
 
 
 class HtplusFactory(models.Model):
@@ -11,7 +11,41 @@ class HtplusFactory(models.Model):
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     plant_ids = fields.One2many('htplus.plant', 'factory_id', string='Plants')
     workcenter_ids = fields.One2many('mrp.workcenter', 'factory_id', string='Work Centers')
+    resource_calendar_id = fields.Many2one(
+        'resource.calendar',
+        string='Working Hours',
+        help='Odoo resource calendar used by work centers in this factory '
+             '(shift patterns and factory holidays sync here).',
+    )
+    holiday_ids = fields.One2many('htplus.factory.holiday', 'factory_id', string='Factory Holidays')
     active = fields.Boolean(default=True)
+
+    def _ensure_resource_calendar(self):
+        self.ensure_one()
+        if self.resource_calendar_id:
+            return self.resource_calendar_id
+        calendar = self.env['resource.calendar'].create({
+            'name': _('Factory %s', self.name),
+            'company_id': self.company_id.id,
+            'attendance_ids': [(5, 0, 0)],
+        })
+        self.with_context(htplus_skip_wc_calendar=True).write({
+            'resource_calendar_id': calendar.id,
+        })
+        return calendar
+
+    def action_apply_calendar_to_workcenters(self):
+        for factory in self:
+            calendar = factory._ensure_resource_calendar()
+            factory.workcenter_ids.write({'resource_calendar_id': calendar.id})
+        return True
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        factories = super().create(vals_list)
+        for factory in factories:
+            factory._ensure_resource_calendar()
+        return factories
 
 
 class HtplusPlant(models.Model):
@@ -37,7 +71,6 @@ class HtplusLine(models.Model):
     code = fields.Char(required=True)
     plant_id = fields.Many2one('htplus.plant', required=True, ondelete='cascade')
     factory_id = fields.Many2one('htplus.factory', related='plant_id.factory_id', store=True)
-    shift_pattern_id = fields.Many2one('htplus.shift.pattern', string='Shift Pattern')
     workcenter_ids = fields.One2many('mrp.workcenter', 'line_id', string='Work Centers')
     machine_ids = fields.One2many('htplus.machine', 'line_id', string='Machines')
     active = fields.Boolean(default=True)
@@ -49,5 +82,29 @@ class MrpWorkcenter(models.Model):
     factory_id = fields.Many2one('htplus.factory')
     plant_id = fields.Many2one('htplus.plant')
     line_id = fields.Many2one('htplus.line')
-    capacity_per_hour = fields.Float(string='Capacity per Hour')
-    setup_time = fields.Float(string='Setup Time (hours)')
+
+    @api.onchange('factory_id')
+    def _onchange_htplus_factory_calendar(self):
+        for wc in self:
+            if wc.factory_id and wc.factory_id.resource_calendar_id:
+                wc.resource_calendar_id = wc.factory_id.resource_calendar_id
+
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('factory_id') and not vals.get('resource_calendar_id'):
+                factory = self.env['htplus.factory'].browse(vals['factory_id'])
+                calendar = factory._ensure_resource_calendar()
+                vals['resource_calendar_id'] = calendar.id
+        return super().create(vals_list)
+
+    def write(self, vals):
+        res = super().write(vals)
+        if self.env.context.get('htplus_skip_wc_calendar'):
+            return res
+        if 'factory_id' in vals:
+            for wc in self.filtered('factory_id'):
+                calendar = wc.factory_id._ensure_resource_calendar()
+                if wc.resource_calendar_id != calendar:
+                    super(MrpWorkcenter, wc).write({'resource_calendar_id': calendar.id})
+        return res

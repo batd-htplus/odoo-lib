@@ -23,9 +23,9 @@ class HtplusDemandPlan(models.Model):
         ('manual', 'Manual'),
         ('import', 'Import'),
         ('forecast', 'Forecast'),
-        ('ai', 'AI Forecast'),
+        ('ai', 'Demand Forecast'),
     ], default='manual', string='Source')
-    ai_forecast_id = fields.Many2one('htplus.ai.forecast', string='AI Forecast')
+    planning_forecast_id = fields.Many2one('htplus.planning.forecast', string='Demand Forecast')
     line_ids = fields.One2many('htplus.demand.plan.line', 'plan_id', string='Lines')
     notes = fields.Text()
     active = fields.Boolean(default=True)
@@ -53,13 +53,18 @@ class HtplusDemandPlan(models.Model):
             'date_start': self.date_start,
             'date_end': self.date_end,
         })
+        Bom = self.env['mrp.bom']
         for line in self.line_ids:
+            bom = Bom._bom_find(
+                line.product_id, company_id=self.company_id.id, bom_type='normal'
+            ).get(line.product_id)
             plan.line_ids = [(0, 0, {
                 'demand_line_id': line.id,
                 'product_id': line.product_id.id,
                 'qty': line.qty,
                 'uom_id': line.uom_id.id,
                 'date_deadline': line.date,
+                'bom_id': bom.id if bom else False,
             })]
         self.state = 'planned'
         return {

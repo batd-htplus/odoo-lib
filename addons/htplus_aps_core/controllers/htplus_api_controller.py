@@ -1,7 +1,6 @@
 from odoo import http
 from odoo.http import request
 
-
 class HtplusApiController(http.Controller):
 
     @http.route('/htplus/api/schedule', type='json', auth='user', methods=['GET'])
@@ -15,8 +14,8 @@ class HtplusApiController(http.Controller):
         domain = []
         if schedule_run_id:
             domain.append(('schedule_run_id', '=', int(schedule_run_id)))
-        fields = ['id', 'display_name', 'workcenter_id', 'machine_id', 'schedule_start',
-                  'schedule_end', 'schedule_state', 'priority', 'locked']
+        fields = ['id', 'display_name', 'workcenter_id', 'machine_id', 'date_start',
+                  'date_finished', 'schedule_state', 'priority', 'locked']
         workorders = request.env['mrp.workorder'].search_read(domain, fields)
         return {'success': True, 'data': workorders}
 

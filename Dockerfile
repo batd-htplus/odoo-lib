@@ -1,98 +1,74 @@
-FROM ubuntu:noble
+# =============================================================================
+# Odoo 18 image
+# =============================================================================
+# Based on the OFFICIAL odoo image instead of rebuilding from a nightly .deb.
+#
+# Why: the previous Dockerfile pulled
+#   http://nightly.odoo.com/18.0/nightly/deb/odoo_18.0.20260807_all.deb
+# pinned to a sha1. Nightly builds are pruned from that server after a few
+# weeks, so the build becomes unreproducible - the image cannot be rebuilt on a
+# new host, which is exactly what you need during an incident.
+#
+# `odoo:18.0` is a stable, signed, retained tag. Pin it by digest below once you
+# have chosen a build you have tested (`docker buildx imagetools inspect`).
+# =============================================================================
 
-SHELL ["/bin/bash", "-xo", "pipefail", "-c"]
+ARG ODOO_VERSION=18.0
+FROM odoo:${ODOO_VERSION}
 
-ENV LANG en_US.UTF-8
-ARG TARGETARCH
+USER root
 
-
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive \
+# --- OS packages -------------------------------------------------------------
+#   fonts-noto-cjk / -extra : CJK + Vietnamese glyphs in QWeb PDF reports
+#   gettext-base            : envsubst, used by entrypoint.sh
+#   curl                    : HEALTHCHECK
+#   libpq-dev, build-essential are NOT installed: no wheels here need compiling.
+RUN set -eux; \
+    apt-get update; \
     apt-get install -y --no-install-recommends \
-    ca-certificates \
-    curl \
-    dirmngr \
-    fonts-noto-cjk \
-    fonts-dejavu \
-    fonts-dejavu-core \
-    fonts-dejavu-extra \
-    gnupg \
-    libssl-dev \
-    node-less \
-    npm \
-    python3-magic \
-    python3-num2words \
-    python3-odf \
-    python3-pdfminer \
-    python3-pip \
-    python3-phonenumbers \
-    python3-pyldap \
-    python3-qrcode \
-    python3-renderpm \
-    python3-setuptools \
-    python3-slugify \
-    python3-vobject \
-    python3-watchdog \
-    python3-xlrd \
-    python3-xlwt \
-    xz-utils && \
-    if [ -z "${TARGETARCH}" ]; then \
-    TARGETARCH="$(dpkg --print-architecture)"; \
-    fi; \
-    WKHTMLTOPDF_ARCH=${TARGETARCH} && \
-    case ${TARGETARCH} in \
-    "amd64") WKHTMLTOPDF_ARCH=amd64 && WKHTMLTOPDF_SHA=967390a759707337b46d1c02452e2bb6b2dc6d59  ;; \
-    "arm64")  WKHTMLTOPDF_SHA=90f6e69896d51ef77339d3f3a20f8582bdf496cc  ;; \
-    "ppc64le" | "ppc64el") WKHTMLTOPDF_ARCH=ppc64el && WKHTMLTOPDF_SHA=5312d7d34a25b321282929df82e3574319aed25c  ;; \
-    esac \
-    && curl -o wkhtmltox.deb -sSL https://github.com/wkhtmltopdf/packaging/releases/download/0.12.6.1-3/wkhtmltox_0.12.6.1-3.jammy_${WKHTMLTOPDF_ARCH}.deb \
-    && echo ${WKHTMLTOPDF_SHA} wkhtmltox.deb | sha1sum -c - \
-    && apt-get install -y --no-install-recommends ./wkhtmltox.deb \
-    && rm -rf /var/lib/apt/lists/* wkhtmltox.deb
+        curl \
+        gettext-base \
+        fonts-noto-cjk \
+        fonts-noto-core \
+        fonts-liberation \
+    ; \
+    rm -rf /var/lib/apt/lists/*
 
-RUN echo 'deb http://apt.postgresql.org/pub/repos/apt/ noble-pgdg main' > /etc/apt/sources.list.d/pgdg.list \
-    && GNUPGHOME="$(mktemp -d)" \
-    && export GNUPGHOME \
-    && repokey='B97B0AFCAA1A47F044F244A07FCC7D46ACCC4CF8' \
-    && gpg --batch --keyserver keyserver.ubuntu.com --recv-keys "${repokey}" \
-    && gpg --batch --armor --export "${repokey}" > /etc/apt/trusted.gpg.d/pgdg.gpg.asc \
-    && gpgconf --kill all \
-    && rm -rf "$GNUPGHOME" \
-    && apt-get update  \
-    && apt-get install --no-install-recommends -y postgresql-client \
-    && rm -f /etc/apt/sources.list.d/pgdg.list \
-    && rm -rf /var/lib/apt/lists/*
+RUN set -eux; \
+    zic -d /usr/share/zoneinfo /usr/share/zoneinfo/tzdata.zi
 
-RUN npm install -g rtlcss
+# --- Python dependencies of the custom addons --------------------------------
+# Installed at build time, in the image. Never `pip install` inside a running
+# container: the change is lost the moment the container is recreated.
+COPY requirements.txt /tmp/requirements.txt
+RUN set -eux; \
+    pip3 install --no-cache-dir --break-system-packages -r /tmp/requirements.txt; \
+    rm -f /tmp/requirements.txt
 
-# Install Odoo
-ENV ODOO_VERSION 18.0
-ARG ODOO_RELEASE=20260807
-ARG ODOO_SHA=b6c86d3347080a3e1b63c97cb93cb7db2b3b2d18
-RUN curl -o odoo.deb -sSL http://nightly.odoo.com/${ODOO_VERSION}/nightly/deb/odoo_${ODOO_VERSION}.${ODOO_RELEASE}_all.deb \
-    && echo "${ODOO_SHA} odoo.deb" | sha1sum -c - \
-    && apt-get update \
-    && apt-get -y install --no-install-recommends ./odoo.deb \
-    && rm -rf /var/lib/apt/lists/* odoo.deb
+# --- Runtime files -----------------------------------------------------------
+COPY entrypoint.sh      /entrypoint.sh
+COPY wait-for-psql.py   /usr/local/bin/wait-for-psql.py
 
-COPY ./entrypoint.sh /
-COPY ./odoo.conf /etc/odoo/
+RUN set -eux; \
+    chmod 0755 /entrypoint.sh /usr/local/bin/wait-for-psql.py; \
+    mkdir -p /mnt/extra-addons /var/lib/odoo /etc/odoo; \
+    chown -R odoo:odoo /mnt/extra-addons /var/lib/odoo /etc/odoo
 
-RUN chmod +x /entrypoint.sh \
-    && chown odoo /etc/odoo/odoo.conf \
-    && mkdir -p /mnt/extra-addons \
-    && chown -R odoo /mnt/extra-addons
-VOLUME ["/var/lib/odoo", "/mnt/extra-addons"]
+# Config template is mounted read-only at runtime (dev vs prod), see compose.
+ENV ODOO_CONFIG_TEMPLATE=/etc/odoo/odoo.conf.template \
+    ODOO_RC=/tmp/odoo.conf \
+    PYTHONUNBUFFERED=1 \
+    LANG=C.UTF-8
 
-EXPOSE 8069 8071 8072
+EXPOSE 8069 8072
 
-ENV ODOO_RC /etc/odoo/odoo.conf
-
-COPY wait-for-psql.py /usr/local/bin/wait-for-psql.py
-RUN chmod +x /usr/local/bin/wait-for-psql.py
-
+# Run unprivileged. The official image already creates the `odoo` user.
 USER odoo
 
-ENTRYPOINT ["/entrypoint.sh"]
+# /web/health is a lightweight, unauthenticated endpoint that does touch the
+# registry, so it fails while Odoo is still booting - which is what we want.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=120s --retries=5 \
+    CMD curl -fsS http://localhost:8069/web/health || exit 1
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["odoo"]

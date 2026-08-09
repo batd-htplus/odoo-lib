@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo noupdate="1">
+    <record id="htplus_planning_config_local" model="htplus.planning.config">
+        <field name="name">Local Planning Engine</field>
+        <field name="url">http://planning:8000</field>
+        <field name="timeout_sec">60</field>
+        <field name="active" eval="True"/>
+    </record>
+</odoo>

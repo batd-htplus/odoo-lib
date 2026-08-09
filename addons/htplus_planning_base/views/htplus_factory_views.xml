@@ -3,27 +3,27 @@
     <record id="action_htplus_factory" model="ir.actions.act_window">
         <field name="name">Factory</field>
         <field name="res_model">htplus.factory</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_plant" model="ir.actions.act_window">
         <field name="name">Plant</field>
         <field name="res_model">htplus.plant</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_line" model="ir.actions.act_window">
         <field name="name">Line</field>
         <field name="res_model">htplus.line</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="view_htplus_factory_tree" model="ir.ui.view">
         <field name="name">htplus.factory.tree</field>
         <field name="model">htplus.factory</field>
         <field name="arch" type="xml">
-            <tree string="Factory">
+            <list string="Factory">
                 <field name="code"/>
                 <field name="name"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_factory_form" model="ir.ui.view">
@@ -31,6 +31,10 @@
         <field name="model">htplus.factory</field>
         <field name="arch" type="xml">
             <form string="Factory">
+                <header>
+                    <button name="action_apply_calendar_to_workcenters" type="object"
+                        string="Apply Working Hours to Work Centers" class="btn-secondary"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
@@ -39,12 +43,24 @@
                             <field name="company_id"/>
                         </group>
                         <group>
+                            <field name="resource_calendar_id"/>
                             <field name="active"/>
                         </group>
                     </group>
                     <notebook>
                         <page string="Plants">
                             <field name="plant_ids"/>
+                        </page>
+                        <page string="Factory Holidays">
+                            <field name="holiday_ids">
+                                <list editable="bottom">
+                                    <field name="name"/>
+                                    <field name="date_from"/>
+                                    <field name="date_to"/>
+                                    <field name="resource_leave_id" optional="hide"/>
+                                    <field name="active"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
                 </sheet>
@@ -55,11 +71,11 @@
         <field name="name">htplus.plant.tree</field>
         <field name="model">htplus.plant</field>
         <field name="arch" type="xml">
-            <tree string="Plant">
+            <list string="Plant">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="factory_id"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_plant_form" model="ir.ui.view">
@@ -91,12 +107,11 @@
         <field name="name">htplus.line.tree</field>
         <field name="model">htplus.line</field>
         <field name="arch" type="xml">
-            <tree string="Line">
+            <list string="Line">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="plant_id"/>
-                <field name="shift_pattern_id"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_line_form" model="ir.ui.view">
@@ -113,7 +128,6 @@
                             <field name="factory_id"/>
                         </group>
                         <group>
-                            <field name="shift_pattern_id"/>
                             <field name="active"/>
                         </group>
                     </group>
@@ -127,6 +141,20 @@
                     </notebook>
                 </sheet>
             </form>
+        </field>
+    </record>
+
+    <record id="view_mrp_workcenter_form_htplus" model="ir.ui.view">
+        <field name="name">mrp.workcenter.form.htplus</field>
+        <field name="model">mrp.workcenter</field>
+        <field name="inherit_id" ref="mrp.mrp_workcenter_view"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='name']" position="after">
+                <field name="factory_id"/>
+                <field name="plant_id"/>
+                <field name="line_id"/>
+            </xpath>
+            <!-- Working hours / capacity: Odoo resource_calendar_id + default_capacity. -->
         </field>
     </record>
 

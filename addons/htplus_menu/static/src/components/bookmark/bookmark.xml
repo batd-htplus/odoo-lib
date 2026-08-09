@@ -2,22 +2,27 @@
 <templates>
     <t t-name="htplus_menu.Bookmark">
         <Dropdown position="'bottom-end'" state="dropdown" beforeOpen.bind="onBeforeOpen">
-            <button>
-                <i class="fa fa-lg fa-bookmark"/>
+            <button class="btn o_htplus_bookmark_toggle" title="Bookmarks" aria-label="Bookmarks">
+                <i class="fa fa-lg fa-bookmark" role="img"/>
             </button>
             <t t-set-slot="content">
-                <t t-foreach="bookmarks" t-as="bookmark" t-key="bookmark.id">
+                <t t-if="!state.bookmarks.length">
+                    <div class="text-muted text-center px-3 py-2">
+                        No bookmarks yet
+                    </div>
+                </t>
+                <t t-foreach="state.bookmarks" t-as="bookmark" t-key="bookmark.id">
                     <DropdownItem onSelected="() => this.openBookmark(bookmark)">
-                        <div class="my-1">
-                            <i class="me-2 fa fa-fw fa-globe"/>
+                        <div class="my-1 text-truncate">
+                            <i class="me-2 fa fa-fw fa-globe" role="img"/>
                             <t t-esc="bookmark.name"/>
                         </div>
                     </DropdownItem>
                 </t>
-                <DropdownItem t-on-click="openMyBookmarks">
-                    <a href="#" class="text-primary text-center py-2">
+                <DropdownItem onSelected.bind="openMyBookmarks">
+                    <div class="text-primary text-center py-2">
                         View all bookmarks
-                    </a>
+                    </div>
                 </DropdownItem>
             </t>
         </Dropdown>

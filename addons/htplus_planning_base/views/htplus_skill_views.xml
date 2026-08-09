@@ -1,74 +1,141 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="action_htplus_skill" model="ir.actions.act_window">
-        <field name="name">Skill</field>
-        <field name="res_model">htplus.skill</field>
-        <field name="view_mode">tree,form</field>
-    </record>
-    <record id="action_htplus_employee_skill" model="ir.actions.act_window">
-        <field name="name">Employee Skill</field>
-        <field name="res_model">htplus.employee.skill</field>
-        <field name="view_mode">tree,form</field>
+
+    <!-- ====================== Skill Matrix / 21 (core hr_skills) ====================== -->
+    <record id="action_htplus_skill_type" model="ir.actions.act_window">
+        <field name="name">Skill Types</field>
+        <field name="res_model">hr.skill.type</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain"
+            eval="[('id', 'in', [
+                ref('htplus_planning_base.hr_skill_type_production'),
+                ref('htplus_planning_base.hr_skill_type_quality'),
+                ref('htplus_planning_base.hr_skill_type_maintenance'),
+                ref('htplus_planning_base.hr_skill_type_safety'),
+            ])]"/>
+        <field name="context"
+            eval="{'default_color': 4}"/>
     </record>
 
+    <record id="action_htplus_skill" model="ir.actions.act_window">
+        <field name="name">Production Skills</field>
+        <field name="res_model">hr.skill</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain"
+            eval="[('skill_type_id', 'in', [
+                ref('htplus_planning_base.hr_skill_type_production'),
+                ref('htplus_planning_base.hr_skill_type_quality'),
+                ref('htplus_planning_base.hr_skill_type_maintenance'),
+                ref('htplus_planning_base.hr_skill_type_safety'),
+            ])]"/>
+        <field name="context"
+            eval="{'default_skill_type_id': ref('htplus_planning_base.hr_skill_type_production')}"/>
+    </record>
     <record id="view_htplus_skill_tree" model="ir.ui.view">
-        <field name="name">htplus.skill.tree</field>
-        <field name="model">htplus.skill</field>
+        <field name="name">hr.skill.htplus.tree</field>
+        <field name="model">hr.skill</field>
         <field name="arch" type="xml">
-            <tree string="Skill">
-                <field name="code"/>
+            <list string="Production Skills">
                 <field name="name"/>
-            </tree>
+                <field name="skill_type_id"/>
+                <field name="color" widget="color_picker" optional="hide"/>
+            </list>
         </field>
     </record>
     <record id="view_htplus_skill_form" model="ir.ui.view">
-        <field name="name">htplus.skill.form</field>
-        <field name="model">htplus.skill</field>
+        <field name="name">hr.skill.htplus.form</field>
+        <field name="model">hr.skill</field>
         <field name="arch" type="xml">
             <form string="Skill">
                 <sheet>
                     <group>
                         <group>
-                            <field name="code"/>
                             <field name="name"/>
-                        </group>
-                        <group>
-                            <field name="active"/>
+                            <field name="skill_type_id"
+                                domain="[('id', 'in', [
+                                    %(htplus_planning_base.hr_skill_type_production)d,
+                                    %(htplus_planning_base.hr_skill_type_quality)d,
+                                    %(htplus_planning_base.hr_skill_type_maintenance)d,
+                                    %(htplus_planning_base.hr_skill_type_safety)d,
+                                ])]"/>
+                            <field name="color" widget="color_picker" readonly="1"/>
+                            <field name="sequence" optional="hide"/>
                         </group>
                     </group>
-                    <field name="description"/>
                 </sheet>
             </form>
         </field>
     </record>
-    <record id="view_htplus_employee_skill_tree" model="ir.ui.view">
-        <field name="name">htplus.employee.skill.tree</field>
-        <field name="model">htplus.employee.skill</field>
+    <record id="view_htplus_skill_search" model="ir.ui.view">
+        <field name="name">hr.skill.htplus.search</field>
+        <field name="model">hr.skill</field>
         <field name="arch" type="xml">
-            <tree string="Employee Skill">
+            <search>
+                <field name="name"/>
+                <field name="skill_type_id"/>
+                <filter name="production" string="Production"
+                    domain="[('skill_type_id','=', %(htplus_planning_base.hr_skill_type_production)d)]"/>
+                <filter name="quality" string="Quality"
+                    domain="[('skill_type_id','=', %(htplus_planning_base.hr_skill_type_quality)d)]"/>
+                <filter name="maintenance" string="Maintenance"
+                    domain="[('skill_type_id','=', %(htplus_planning_base.hr_skill_type_maintenance)d)]"/>
+                <filter name="safety" string="Safety"
+                    domain="[('skill_type_id','=', %(htplus_planning_base.hr_skill_type_safety)d)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_type" string="Type" context="{'group_by': 'skill_type_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_htplus_employee_skill" model="ir.actions.act_window">
+        <field name="name">Employee Skills</field>
+        <field name="res_model">hr.employee.skill</field>
+        <field name="view_mode">list,form</field>
+        <field name="domain"
+            eval="[('skill_type_id', 'in', [
+                ref('htplus_planning_base.hr_skill_type_production'),
+                ref('htplus_planning_base.hr_skill_type_quality'),
+                ref('htplus_planning_base.hr_skill_type_maintenance'),
+                ref('htplus_planning_base.hr_skill_type_safety'),
+            ])]"/>
+        <field name="context"
+            eval="{'default_skill_type_id': ref('htplus_planning_base.hr_skill_type_production')}"/>
+    </record>
+    <record id="view_htplus_employee_skill_tree" model="ir.ui.view">
+        <field name="name">hr.employee.skill.htplus.tree</field>
+        <field name="model">hr.employee.skill</field>
+        <field name="arch" type="xml">
+            <list string="Employee Skills">
                 <field name="employee_id"/>
+                <field name="skill_type_id"/>
                 <field name="skill_id"/>
-                <field name="level"/>
-                <field name="certified"/>
-            </tree>
+                <field name="skill_level_id"/>
+                <field name="level_progress" widget="progressbar"/>
+            </list>
         </field>
     </record>
     <record id="view_htplus_employee_skill_form" model="ir.ui.view">
-        <field name="name">htplus.employee.skill.form</field>
-        <field name="model">htplus.employee.skill</field>
+        <field name="name">hr.employee.skill.htplus.form</field>
+        <field name="model">hr.employee.skill</field>
         <field name="arch" type="xml">
             <form string="Employee Skill">
                 <sheet>
                     <group>
                         <group>
                             <field name="employee_id"/>
+                            <field name="skill_type_id"
+                                domain="[('id', 'in', [
+                                    %(htplus_planning_base.hr_skill_type_production)d,
+                                    %(htplus_planning_base.hr_skill_type_quality)d,
+                                    %(htplus_planning_base.hr_skill_type_maintenance)d,
+                                    %(htplus_planning_base.hr_skill_type_safety)d,
+                                ])]"/>
                             <field name="skill_id"/>
                         </group>
                         <group>
-                            <field name="level"/>
-                            <field name="certified"/>
-                            <field name="last_assessed"/>
-                            <field name="active"/>
+                            <field name="skill_level_id"/>
+                            <field name="level_progress" widget="progressbar"/>
                         </group>
                     </group>
                 </sheet>
@@ -76,6 +143,77 @@
         </field>
     </record>
 
+    <!-- ====================== Holiday / 17 ====================== -->
+    <!-- Employee time off: core hr.leave -->
+    <record id="action_htplus_holiday" model="ir.actions.act_window">
+        <field name="name">Employee Time Off</field>
+        <field name="res_model">hr.leave</field>
+        <field name="view_mode">list,calendar,form</field>
+    </record>
+    <record id="view_htplus_holiday_calendar" model="ir.ui.view">
+        <field name="name">hr.leave.htplus.calendar</field>
+        <field name="model">hr.leave</field>
+        <field name="arch" type="xml">
+            <calendar string="Holidays" date_start="date_from" date_stop="date_to"
+                color="holiday_status_id" mode="month">
+                <field name="employee_id"/>
+                <field name="holiday_status_id"/>
+            </calendar>
+        </field>
+    </record>
+    <!-- Factory shutdown: syncs to resource.calendar.leaves (MRP capacity) -->
+    <record id="action_htplus_factory_holiday" model="ir.actions.act_window">
+        <field name="name">Factory Holidays</field>
+        <field name="res_model">htplus.factory.holiday</field>
+        <field name="view_mode">list,calendar,form</field>
+    </record>
+    <record id="view_htplus_factory_holiday_tree" model="ir.ui.view">
+        <field name="name">htplus.factory.holiday.list</field>
+        <field name="model">htplus.factory.holiday</field>
+        <field name="arch" type="xml">
+            <list>
+                <field name="name"/>
+                <field name="factory_id"/>
+                <field name="date_from"/>
+                <field name="date_to"/>
+                <field name="resource_leave_id" optional="show"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_htplus_factory_holiday_calendar" model="ir.ui.view">
+        <field name="name">htplus.factory.holiday.calendar</field>
+        <field name="model">htplus.factory.holiday</field>
+        <field name="arch" type="xml">
+            <calendar string="Factory Holidays" date_start="date_from" date_stop="date_to"
+                color="factory_id" mode="month">
+                <field name="factory_id"/>
+            </calendar>
+        </field>
+    </record>
+    <record id="view_htplus_factory_holiday_form" model="ir.ui.view">
+        <field name="name">htplus.factory.holiday.form</field>
+        <field name="model">htplus.factory.holiday</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group>
+                        <field name="name"/>
+                        <field name="factory_id"/>
+                        <field name="date_from"/>
+                        <field name="date_to"/>
+                        <field name="resource_leave_id" readonly="1"/>
+                        <field name="active"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- ====================== Menus ====================== -->
+    <menuitem id="menu_htplus_skill_type"
+        parent="htplus_aps_menu_master_data"
+        action="action_htplus_skill_type"
+        sequence="115"/>
     <menuitem id="menu_htplus_skill"
         parent="htplus_aps_menu_master_data"
         action="action_htplus_skill"
@@ -84,4 +222,23 @@
         parent="htplus_aps_menu_master_data"
         action="action_htplus_employee_skill"
         sequence="130"/>
+    <menuitem id="menu_htplus_holiday"
+        parent="menu_htplus_shift_mgmt"
+        action="action_htplus_holiday"
+        sequence="40"/>
+    <menuitem id="menu_htplus_factory_holiday"
+        parent="menu_htplus_shift_mgmt"
+        action="action_htplus_factory_holiday"
+        sequence="45"/>
+    <!--
+        A "menu_htplus_employee_planning" entry pointing at
+        hr_shift.shift_planning_action used to live here. hr_shift is an
+        Odoo Enterprise module and is not present in this stack (see
+        docs/04_mrp_integration_decision.md); referencing its action would
+        fail ir.model.data resolution at data-load time, before the module
+        even reaches install. Screens 09-12 (shift calendar, assignment) are
+        HTPlus-owned - see menu_htplus_shift_calendar and menu_htplus_shift_list
+        in htplus_shift_views.xml instead.
+    -->
+
 </odoo>

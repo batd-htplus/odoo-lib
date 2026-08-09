@@ -1,15 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <!--
+        `tag` must match the key registered in the "actions" registry by
+        static/src/components/main_menu/main_menu.js.
+    -->
     <record id="main_menu_action" model="ir.actions.client">
         <field name="name">Menu</field>
         <field name="path">menu</field>
-        <field name="tag">main_menu.action_open_main_menu</field>
+        <field name="tag">htplus_menu.action_open_main_menu</field>
     </record>
 
+    <!--
+        Root entry the client action hangs off. It is hidden from the navbar by
+        static/src/components/navbar/navbar.scss; NavBar is patched so that
+        clicking the apps drawer opens this action instead of the stock menu.
+    -->
     <menuitem
         id="main_menu_root"
         name="Menu"
         action="main_menu_action"
-        sequence="1">
-    </menuitem>
+        sequence="1"/>
+
 </odoo>

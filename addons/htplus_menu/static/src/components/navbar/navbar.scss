@@ -1,9 +1,13 @@
+// Keep the navbar above the full-screen main-menu background.
 .o_main_navbar {
     > * {
         z-index: 10;
     }
 }
 
+// The "Menu" root menuitem exists only to give the client action a place in
+// ir.ui.menu; the apps drawer is what the user clicks, so hide the entry
+// itself rather than showing a duplicate.
 a[data-menu-xmlid="htplus_menu.main_menu_root"] {
     display: none !important;
 }

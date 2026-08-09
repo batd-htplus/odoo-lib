@@ -39,8 +39,8 @@ class HtplusSimulationScenario(models.Model):
                 vals.append((0, 0, {
                     'workorder_id': workorder.id,
                     'machine_id': workorder.machine_id.id or False,
-                    'original_start': workorder.schedule_start,
-                    'original_end': workorder.schedule_end,
+                    'original_start': workorder.date_start,
+                    'original_end': workorder.date_finished,
                 }))
             scenario.line_ids = vals
             scenario.state = 'computed'
@@ -59,10 +59,13 @@ class HtplusSimulationScenario(models.Model):
         return True
 
     def action_apply(self):
+        # Materialise simulation lines onto real work orders only on apply.
         for scenario in self:
             for line in scenario.line_ids.filtered(lambda l: l.simulated_start):
-                line.workorder_id.schedule_start = line.simulated_start
-                line.workorder_id.schedule_end = line.simulated_end
+                line.workorder_id.write({
+                    'date_start': line.simulated_start,
+                    'date_finished': line.simulated_end,
+                })
             scenario.state = 'applied'
 
 

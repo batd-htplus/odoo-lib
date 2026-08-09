@@ -1,0 +1,105 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* htplus_mes_shopfloor
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-09 05:00+0000\n"
+"PO-Revision-Date: 2026-08-09 05:00+0000\n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.htplus_mes_menu_shopfloor
+msgid "Shop Floor"
+msgstr "現場実行"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_workorder_actual
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_workorder_actual
+msgid "Work Order Execution"
+msgstr "作業実績"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_downtime
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_downtime
+msgid "Downtime"
+msgstr "停止時間"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_downtime_reason
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_downtime_reason
+msgid "Downtime Reasons"
+msgstr "停止理由"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_defect
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_defect
+msgid "Defects"
+msgstr "不良マスタ"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_workorder_ng
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_workorder_ng
+msgid "NG Records"
+msgstr "不良実績"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_machine_stop
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_machine_stop
+msgid "Machine Stops"
+msgstr "設備停止"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_issue
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_issue
+msgid "Issues"
+msgstr "課題"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.actions.act_window,name:htplus_mes_shopfloor.action_htplus_shift_completion
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_shift_completion
+msgid "Shift Completion"
+msgstr "シフト実績"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.ui.menu,name:htplus_mes_shopfloor.menu_htplus_report_production_daily
+msgid "Daily Production Report"
+msgstr "日次生産レポート"
+
+#. module: htplus_mes_shopfloor
+#: model_terms:ir.ui.view,arch_db:htplus_mes_shopfloor.view_htplus_workorder_actual_form
+msgid "Pause"
+msgstr "一時停止"
+
+#. module: htplus_mes_shopfloor
+#: model_terms:ir.ui.view,arch_db:htplus_mes_shopfloor.view_htplus_workorder_actual_form
+msgid "Finish"
+msgstr "完了"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.model,name:htplus_mes_shopfloor.model_htplus_workorder_actual
+msgid "Work Order Actual"
+msgstr "作業実績"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.model.fields,field_description:htplus_mes_shopfloor.field_htplus_workorder_actual__productivity_id
+#: model:ir.model.fields,field_description:htplus_mes_shopfloor.field_htplus_downtime__productivity_id
+msgid "Odoo Time Log"
+msgstr "Odoo稼働ログ"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.model.fields,field_description:htplus_mes_shopfloor.field_htplus_workorder_actual__qty_good
+msgid "Qty Good"
+msgstr "良品数"
+
+#. module: htplus_mes_shopfloor
+#: model:ir.model.fields,field_description:htplus_mes_shopfloor.field_htplus_workorder_actual__qty_ng
+msgid "Qty NG"
+msgstr "不良数"

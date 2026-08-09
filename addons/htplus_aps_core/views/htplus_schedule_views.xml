@@ -3,26 +3,26 @@
     <record id="action_htplus_schedule_run" model="ir.actions.act_window">
         <field name="name">Schedule Runs</field>
         <field name="res_model">htplus.schedule.run</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_workorder_list" model="ir.actions.act_window">
         <field name="name">Scheduled Work Orders</field>
         <field name="res_model">mrp.workorder</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="view_htplus_schedule_run_tree" model="ir.ui.view">
         <field name="name">htplus.schedule.run.tree</field>
         <field name="model">htplus.schedule.run</field>
         <field name="arch" type="xml">
-            <tree string="Schedule Runs">
+            <list string="Schedule Runs">
                 <field name="name"/>
                 <field name="version"/>
                 <field name="production_plan_id"/>
                 <field name="algorithm"/>
                 <field name="conflict_count"/>
                 <field name="state"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_schedule_run_form" model="ir.ui.view">
@@ -32,13 +32,13 @@
             <form string="Schedule Run">
                 <header>
                     <button name="action_calculate" string="Calculate" type="object"
-                        states="draft" class="btn-primary"/>
+                        invisible="state != 'draft'" class="btn-primary"/>
                     <button name="action_run_solver" string="Run Solver" type="object"
-                        states="draft,calculated" class="btn-primary"/>
+                        invisible="state not in ['draft', 'calculated']" class="btn-primary"/>
                     <button name="action_confirm" string="Confirm" type="object"
-                        states="calculated"/>
+                        invisible="state != 'calculated'"/>
                     <button name="action_lock" string="Lock" type="object"
-                        states="calculated,confirmed"/>
+                        invisible="state not in ['calculated', 'confirmed']"/>
                     <button name="action_undo_change" string="Undo Last Change" type="object"/>
                     <field name="state" widget="statusbar"/>
                 </header>
@@ -65,18 +65,18 @@
                     <notebook>
                         <page string="Work Orders">
                             <field name="workorder_ids">
-                                <tree string="Work Orders">
+                                <list string="Work Orders">
                                     <field name="display_name"/>
                                     <field name="workcenter_id"/>
                                     <field name="line_id"/>
                                     <field name="machine_id"/>
-                                    <field name="schedule_start"/>
-                                    <field name="schedule_end"/>
+                                    <field name="date_start"/>
+                                    <field name="date_finished"/>
                                     <field name="priority"/>
                                     <field name="schedule_conflict"/>
                                     <field name="schedule_state"/>
                                     <field name="locked"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                     </notebook>
@@ -91,13 +91,13 @@
     <record id="view_htplus_mrp_workorder_tree" model="ir.ui.view">
         <field name="name">htplus.mrp.workorder.tree</field>
         <field name="model">mrp.workorder</field>
-        <field name="inherit_id" ref="mrp.view_workorder_tree"/>
+        <field name="inherit_id" ref="mrp.mrp_production_workorder_tree_view"/>
         <field name="arch" type="xml">
-            <xpath expr="//tree" position="inside">
+            <xpath expr="//list" position="inside">
                 <field name="line_id" optional="hide"/>
                 <field name="machine_id" optional="hide"/>
-                <field name="schedule_start" optional="show"/>
-                <field name="schedule_end" optional="show"/>
+                <field name="date_start" optional="show"/>
+                <field name="date_finished" optional="show"/>
                 <field name="schedule_state" optional="show"/>
                 <field name="locked" optional="hide"/>
             </xpath>

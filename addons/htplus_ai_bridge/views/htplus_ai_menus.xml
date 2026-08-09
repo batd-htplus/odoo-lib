@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="utf-8"?>
-<odoo>
-    <menuitem id="htplus_ai_menu"
-        parent="htplus_planning_base.htplus_aps_menu_root"
-        name="AI Assistant"
-        sequence="60">
-    </menuitem>
-</odoo>

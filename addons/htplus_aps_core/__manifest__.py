@@ -1,6 +1,6 @@
 {
     "name": "HTPlus APS Core",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.2.2",
     "summary": "Demand planning, production planning, APS scheduling and simulation.",
     "author": "Ba.TD",
     "maintainer": "Ba.TD",
@@ -15,6 +15,7 @@
         "security/ir.model.access.csv",
         "views/htplus_aps_menus.xml",
         "views/htplus_dashboard_views.xml",
+        "views/htplus_shift_dashboard_views.xml",
         "views/htplus_demand_plan_views.xml",
         "views/htplus_demand_import_views.xml",
         "views/htplus_production_plan_views.xml",

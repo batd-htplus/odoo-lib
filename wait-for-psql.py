@@ -1,32 +1,60 @@
 #!/usr/bin/env python3
+"""Block until PostgreSQL accepts connections, or exit non-zero on timeout.
+
+Fixes vs. the upstream version shipped with the odoo image:
+  * the original never closed the successful connection (``else`` after
+    ``break`` is dead code) and leaked a backend slot on every start;
+  * it looped without a real backoff;
+  * it reported success even when the loop simply ran out of time on the
+    first iteration.
+"""
+from __future__ import annotations
+
 import argparse
-import psycopg2
 import sys
 import time
 
+import psycopg2
 
-if __name__ == '__main__':
-    arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--db_host', required=True)
-    arg_parser.add_argument('--db_port', required=True)
-    arg_parser.add_argument('--db_user', required=True)
-    arg_parser.add_argument('--db_password', required=True)
-    arg_parser.add_argument('--timeout', type=int, default=5)
 
-    args = arg_parser.parse_args()
+def main() -> int:
+    parser = argparse.ArgumentParser(description="Wait for PostgreSQL to be ready.")
+    parser.add_argument("--db_host", required=True)
+    parser.add_argument("--db_port", required=True)
+    parser.add_argument("--db_user", required=True)
+    parser.add_argument("--db_password", required=True)
+    parser.add_argument("--db_name", default="postgres")
+    parser.add_argument("--timeout", type=int, default=60)
+    args = parser.parse_args()
 
-    start_time = time.time()
-    while (time.time() - start_time) < args.timeout:
+    deadline = time.monotonic() + args.timeout
+    delay = 0.5
+    last_error: Exception | None = None
+
+    while True:
         try:
-            conn = psycopg2.connect(user=args.db_user, host=args.db_host, port=args.db_port, password=args.db_password, dbname='postgres')
-            error = ''
-            break
-        except psycopg2.OperationalError as e:
-            error = e
+            conn = psycopg2.connect(
+                host=args.db_host,
+                port=args.db_port,
+                user=args.db_user,
+                password=args.db_password,
+                dbname=args.db_name,
+                connect_timeout=5,
+            )
+        except psycopg2.OperationalError as error:
+            last_error = error
         else:
             conn.close()
-        time.sleep(1)
+            print(f"postgres at {args.db_host}:{args.db_port} is ready", file=sys.stderr)
+            return 0
 
-    if error:
-        print("Database connection failure: %s" % error, file=sys.stderr)
-        sys.exit(1)
+        if time.monotonic() >= deadline:
+            print(f"database connection failure: {last_error}", file=sys.stderr)
+            return 1
+
+        time.sleep(delay)
+        delay = min(delay * 1.5, 5.0)
+
+
+if __name__ == "__main__":
+    sys.exit(main())

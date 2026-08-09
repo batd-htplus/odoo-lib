@@ -1,10 +1,51 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+
+    <record id="menu_bookmark_view_list" model="ir.ui.view">
+        <field name="name">menu.bookmark.view.list</field>
+        <field name="model">menu.bookmark</field>
+        <field name="arch" type="xml">
+            <list string="Bookmarks" editable="bottom">
+                <field name="sequence" widget="handle"/>
+                <field name="name"/>
+                <field name="url" widget="url"/>
+                <field name="target"/>
+            </list>
+        </field>
+    </record>
+
+    <!--
+        Declared explicitly. Without it Odoo generates a default form from the
+        model, which would expose `user_id` and let a user reassign a bookmark
+        to somebody else.
+    -->
+    <record id="menu_bookmark_view_form" model="ir.ui.view">
+        <field name="name">menu.bookmark.view.form</field>
+        <field name="model">menu.bookmark</field>
+        <field name="arch" type="xml">
+            <form string="Bookmark">
+                <sheet>
+                    <group>
+                        <field name="name" placeholder="Sales dashboard"/>
+                        <field name="url" widget="url" placeholder="/odoo/sales"/>
+                        <field name="target"/>
+                        <field name="sequence" groups="base.group_no_one"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
     <record id="menu_bookmark_action_my_bookmarks" model="ir.actions.act_window">
         <field name="name">Bookmarks</field>
         <field name="res_model">menu.bookmark</field>
         <field name="view_mode">list,form</field>
         <field name="path">bookmarks</field>
+        <!--
+            Kept as a UI hint only. Isolation is enforced by
+            security/menu_bookmark_security.xml; a domain on an action is not a
+            security boundary.
+        -->
         <field name="domain">[('user_id', '=', uid)]</field>
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">
@@ -13,16 +54,4 @@
         </field>
     </record>
 
-    <record id="menu_bookmark_view_list" model="ir.ui.view">
-        <field name="name">menu.bookmark.view.list</field>
-        <field name="model">menu.bookmark</field>
-        <field name="arch" type="xml">
-            <list string="Bookmarks" editable="top">
-                <field name="sequence" widget="handle"/>
-                <field name="name"/>
-                <field name="url"/>
-                <field name="target"/>
-            </list>
-        </field>
-    </record>
 </odoo>

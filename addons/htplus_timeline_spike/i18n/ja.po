@@ -1,0 +1,22 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* htplus_timeline_spike
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-09 05:00+0000\n"
+"PO-Revision-Date: 2026-08-09 05:00+0000\n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: htplus_timeline_spike
+#: model:ir.ui.menu,name:htplus_timeline_spike.htplus_workorder_timeline_spike_menu
+#: model:ir.actions.act_window,name:htplus_timeline_spike.htplus_workorder_timeline_spike_action
+msgid "Work Order Timeline (Spike)"
+msgstr "作業オーダタイムライン（試験）"

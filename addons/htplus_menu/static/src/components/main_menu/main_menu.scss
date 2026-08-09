@@ -1,71 +1,85 @@
-.main-menu {
-    position: absolute;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    height: 100%;
-    padding-bottom: 52px;
-    overflow-y: scroll;
-}
+// Everything is scoped under .o_htplus_main_menu.
+//
+// The previous version declared `.background`, `.main-menu`, `.apps-container`
+// and `.module-icon` at the top level of web.assets_backend. Those bundles are
+// global, so names that generic silently restyled any other module using them.
 
-.background {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: #71639e;
-}
+.o_htplus_main_menu {
 
-.apps-container {
-    display: flex;
-    flex-wrap: wrap;
-    max-width: 768px;
-    width: 90%;
-    margin-top: 40px;
-
-    @media (max-width: 576px) {
+    .o_htplus_main_menu_background {
+        position: fixed;
+        top: 0;
+        left: 0;
         width: 100%;
+        height: 100%;
+        background-color: #71639e;
     }
 
-    a {
+    .o_htplus_main_menu_panel {
+        position: absolute;
         display: flex;
-        justify-content: center;
-        align-items: center;
         flex-direction: column;
-        margin-bottom: 12px;
-        cursor: pointer;
-        width: 16.66%;
+        align-items: center;
+        width: 100%;
+        height: 100%;
+        padding-bottom: 52px;
+        overflow-y: auto;
+    }
 
-        @media (max-width: 768px) {
-            width: 25%;
-        }
+    .o_htplus_apps_container {
+        display: flex;
+        flex-wrap: wrap;
+        max-width: 768px;
+        width: 90%;
+        margin-top: 40px;
 
         @media (max-width: 576px) {
-            width: 33.33%;
+            width: 100%;
         }
 
-        p {
-            max-width: 100%;
+        a {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            margin-bottom: 12px;
+            cursor: pointer;
+            width: 16.66%;
+            text-decoration: none;
+
+            @media (max-width: 768px) {
+                width: 25%;
+            }
+
+            @media (max-width: 576px) {
+                width: 33.33%;
+            }
+
+            p {
+                max-width: 100%;
+            }
         }
     }
-}
 
-.module-icon {
-    width: 70px;
-    height: 70px;
-    margin: 4px 0;
-    padding: 8px;
-    transition: all 350ms;
-    background: #9385C0;
-    background: conic-gradient(from 225deg, #ffffff, #ffffff);
-    border-radius: 6px;
-    border: 1px solid black;
-    box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.2);
+    .o_htplus_module_icon {
+        width: 70px;
+        height: 70px;
+        margin: 4px 0;
+        padding: 8px;
+        transition: all 350ms;
+        background: #ffffff;
+        border-radius: 6px;
+        border: 1px solid black;
+        box-shadow: 2px 2px 12px 1px rgba(0, 0, 0, 0.2);
 
-    &:hover {
-        margin: 2px 0 6px 0;
-        box-shadow: 2px 6px 12px 1px rgba(0, 0, 0, 0.4);
+        &:hover {
+            margin: 2px 0 6px 0;
+            box-shadow: 2px 6px 12px 1px rgba(0, 0, 0, 0.4);
+        }
+
+        // Respect the OS "reduce motion" setting.
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
+        }
     }
 }

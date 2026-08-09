@@ -3,20 +3,20 @@
     <record id="action_htplus_production_plan" model="ir.actions.act_window">
         <field name="name">Production Plans</field>
         <field name="res_model">htplus.production.plan</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="view_htplus_production_plan_tree" model="ir.ui.view">
         <field name="name">htplus.production.plan.tree</field>
         <field name="model">htplus.production.plan</field>
         <field name="arch" type="xml">
-            <tree string="Production Plans">
+            <list string="Production Plans">
                 <field name="name"/>
                 <field name="demand_plan_id"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="state"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_production_plan_form" model="ir.ui.view">
@@ -26,15 +26,17 @@
             <form string="Production Plan">
                 <header>
                     <button name="action_confirm" string="Confirm" type="object"
-                        states="draft" class="btn-primary"/>
+                        invisible="state != 'draft'" class="btn-primary"/>
                     <button name="action_approve" string="Approve" type="object"
-                        states="confirmed"/>
+                        invisible="state != 'confirmed'"/>
+                    <button name="action_check_materials" string="Check Materials"
+                        type="object" invisible="state in ['locked', 'cancelled']"/>
                     <button name="action_create_productions" string="Create Manufacturing Orders"
-                        type="object" states="approved" class="btn-primary"/>
+                        type="object" invisible="state != 'approved'" class="btn-primary"/>
                     <button name="action_lock" string="Lock" type="object"
-                        states="approved,confirmed"/>
+                        invisible="state not in ['approved', 'confirmed']"/>
                     <button name="action_cancel" string="Cancel" type="object"
-                        states="draft,confirmed,approved"/>
+                        invisible="state not in ['draft', 'confirmed', 'approved']"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -55,19 +57,21 @@
                     <notebook>
                         <page string="Lines">
                             <field name="line_ids">
-                                <tree string="Production Lines" editable="bottom">
+                                <list string="Production Lines" editable="bottom">
                                     <field name="sequence"/>
                                     <field name="product_id"/>
+                                    <field name="product_tmpl_id" column_invisible="1"/>
                                     <field name="qty"/>
                                     <field name="uom_id"/>
                                     <field name="date_deadline"/>
                                     <field name="bom_id"/>
-                                    <field name="routing_id"/>
                                     <field name="priority"/>
                                     <field name="material_ok"/>
-                                    <field name="capacity_ok"/>
+                                    <field name="material_note" optional="show"/>
+                                    <field name="capacity_ok" optional="hide"/>
+                                    <field name="production_id" optional="show"/>
                                     <field name="state"/>
-                                </tree>
+                                </list>
                             </field>
                         </page>
                         <page string="Manufacturing Orders">

@@ -1,0 +1,36 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* htplus_menu
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 18.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-09 05:00+0000\n"
+"PO-Revision-Date: 2026-08-09 05:00+0000\n"
+"Language-Team: \n"
+"Language: ja_JP\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#. module: htplus_menu
+#: model:ir.module.module,shortdesc:htplus_menu.module_meta_information
+msgid "HTPlus Menu"
+msgstr "HTPlus メニュー"
+
+#. module: htplus_menu
+#: model:ir.model,name:htplus_menu.model_menu_bookmark
+msgid "Menu Bookmark"
+msgstr "メニューブックマーク"
+
+#. module: htplus_menu
+#: model:ir.model.fields,field_description:htplus_menu.field_menu_bookmark__name
+msgid "Name"
+msgstr "名前"
+
+#. module: htplus_menu
+#: model:ir.model.fields,field_description:htplus_menu.field_menu_bookmark__url
+msgid "URL"
+msgstr "URL"

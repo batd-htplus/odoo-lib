@@ -1,0 +1,47 @@
+services:
+    db:
+        environment:
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+        ports:
+            # 127.0.0.1 prefix is essential: `- "5432:5432"` binds 0.0.0.0 and
+            # publishes your database to every machine that can reach this host.
+            - "127.0.0.1:5432:5432"
+
+    odoo:
+        environment:
+            ODOO_CONFIG_TEMPLATE: /etc/odoo/odoo.conf.template
+            POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in .env}
+            ODOO_ADMIN_PASSWD: ${ODOO_ADMIN_PASSWD:?set ODOO_ADMIN_PASSWD in .env}
+            ODOO_LOG_LEVEL: ${ODOO_LOG_LEVEL:-debug}
+            ODOO_WITHOUT_DEMO: ${ODOO_WITHOUT_DEMO:-all}
+            HTPLUS_PLANNING_API_KEY: ${HTPLUS_PLANNING_API_KEY:-dev-only-key-change-me}
+        volumes:
+            - odoo-data:/var/lib/odoo
+            # read-write in dev so you can edit addons live
+            - ./addons:/mnt/extra-addons
+            - ./addons_vendor:/mnt/vendor-addons:ro
+            - ./config/odoo.dev.conf:/etc/odoo/odoo.conf.template:ro
+        ports:
+            # Direct access, bypassing nginx, for pdb / odoo shell / quick checks.
+            - "127.0.0.1:8069:8069"
+            - "127.0.0.1:8072:8072"
+        # Keep stdin/tty so `docker attach odoo` works with pdb breakpoints.
+        stdin_open: true
+        tty: true
+
+    planning:
+        environment:
+            HTPLUS_PLANNING_API_KEY: ${HTPLUS_PLANNING_API_KEY:-dev-only-key-change-me}
+            UVICORN_RELOAD: "1"
+            UVICORN_WORKERS: "1"
+        volumes:
+            # hot reload of the FastAPI app
+            - ./services/planning/app:/srv/htplus-ai/app:ro
+        ports:
+            - "127.0.0.1:8000:8000"
+
+    nginx:
+        volumes:
+            - ./nginx/dev.conf.template:/etc/nginx/templates/default.conf.template:ro
+        ports:
+            - "127.0.0.1:8080:80"

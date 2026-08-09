@@ -3,49 +3,49 @@
     <record id="action_htplus_workorder_actual" model="ir.actions.act_window">
         <field name="name">Work Order Execution</field>
         <field name="res_model">htplus.workorder.actual</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_downtime" model="ir.actions.act_window">
         <field name="name">Downtime</field>
         <field name="res_model">htplus.downtime</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_downtime_reason" model="ir.actions.act_window">
         <field name="name">Downtime Reasons</field>
         <field name="res_model">htplus.downtime.reason</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_defect" model="ir.actions.act_window">
         <field name="name">Defects</field>
         <field name="res_model">htplus.defect</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_workorder_ng" model="ir.actions.act_window">
         <field name="name">NG Records</field>
         <field name="res_model">htplus.workorder.ng</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_machine_stop" model="ir.actions.act_window">
         <field name="name">Machine Stops</field>
         <field name="res_model">htplus.machine.stop</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_issue" model="ir.actions.act_window">
         <field name="name">Issues</field>
         <field name="res_model">htplus.issue</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
     <record id="action_htplus_shift_completion" model="ir.actions.act_window">
         <field name="name">Shift Completion</field>
         <field name="res_model">htplus.shift.completion</field>
-        <field name="view_mode">tree,form</field>
+        <field name="view_mode">list,form</field>
     </record>
 
     <record id="view_htplus_workorder_actual_tree" model="ir.ui.view">
         <field name="name">htplus.workorder.actual.tree</field>
         <field name="model">htplus.workorder.actual</field>
         <field name="arch" type="xml">
-            <tree string="Work Order Execution">
+            <list string="Work Order Execution">
                 <field name="workorder_id"/>
                 <field name="date_start"/>
                 <field name="date_finished"/>
@@ -54,7 +54,7 @@
                 <field name="qty_good"/>
                 <field name="qty_ng"/>
                 <field name="state"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_workorder_actual_form" model="ir.ui.view">
@@ -63,8 +63,8 @@
         <field name="arch" type="xml">
             <form string="Work Order Execution">
                 <header>
-                    <button name="action_pause" string="Pause" type="object" states="running"/>
-                    <button name="action_finish" string="Finish" type="object" states="running"
+                    <button name="action_pause" string="Pause" type="object" invisible="state != 'running'"/>
+                    <button name="action_finish" string="Finish" type="object" invisible="state != 'running'"
                         class="btn-primary"/>
                     <field name="state" widget="statusbar"/>
                 </header>
@@ -78,6 +78,7 @@
                         <group>
                             <field name="date_start"/>
                             <field name="date_finished"/>
+                            <field name="productivity_id" readonly="1"/>
                             <field name="company_id"/>
                         </group>
                     </group>
@@ -98,7 +99,7 @@
         <field name="name">htplus.downtime.tree</field>
         <field name="model">htplus.downtime</field>
         <field name="arch" type="xml">
-            <tree string="Downtime">
+            <list string="Downtime">
                 <field name="workorder_id"/>
                 <field name="machine_id"/>
                 <field name="reason_id"/>
@@ -107,7 +108,7 @@
                 <field name="date_end"/>
                 <field name="duration_minutes"/>
                 <field name="cost"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_downtime_form" model="ir.ui.view">
@@ -127,6 +128,7 @@
                             <field name="date_start"/>
                             <field name="date_end"/>
                             <field name="duration_minutes"/>
+                            <field name="productivity_id" readonly="1"/>
                             <field name="cost"/>
                         </group>
                     </group>
@@ -138,24 +140,24 @@
         <field name="name">htplus.downtime.reason.tree</field>
         <field name="model">htplus.downtime.reason</field>
         <field name="arch" type="xml">
-            <tree string="Downtime Reasons">
+            <list string="Downtime Reasons">
                 <field name="code"/>
                 <field name="name"/>
                 <field name="category"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_workorder_ng_tree" model="ir.ui.view">
         <field name="name">htplus.workorder.ng.tree</field>
         <field name="model">htplus.workorder.ng</field>
         <field name="arch" type="xml">
-            <tree string="NG Records">
+            <list string="NG Records">
                 <field name="workorder_id"/>
                 <field name="defect_id"/>
                 <field name="qty"/>
                 <field name="date"/>
                 <field name="employee_id"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_workorder_ng_form" model="ir.ui.view">
@@ -191,28 +193,28 @@
         <field name="name">htplus.machine.stop.tree</field>
         <field name="model">htplus.machine.stop</field>
         <field name="arch" type="xml">
-            <tree string="Machine Stops">
+            <list string="Machine Stops">
                 <field name="machine_id"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
                 <field name="reason_id"/>
                 <field name="type"/>
                 <field name="duration_minutes"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_issue_tree" model="ir.ui.view">
         <field name="name">htplus.issue.tree</field>
         <field name="model">htplus.issue</field>
         <field name="arch" type="xml">
-            <tree string="Issues">
+            <list string="Issues">
                 <field name="name"/>
                 <field name="workorder_id"/>
                 <field name="type"/>
                 <field name="severity"/>
                 <field name="date"/>
                 <field name="state"/>
-            </tree>
+            </list>
         </field>
     </record>
     <record id="view_htplus_issue_form" model="ir.ui.view">
@@ -221,11 +223,11 @@
         <field name="arch" type="xml">
             <form string="Issue">
                 <header>
-                    <button name="action_open" string="Reopen" type="object" states="resolved,closed"/>
-                    <button name="action_in_progress" string="In Progress" type="object" states="open"/>
-                    <button name="action_resolve" string="Resolve" type="object" states="open,in_progress"
+                    <button name="action_open" string="Reopen" type="object" invisible="state not in ['resolved', 'closed']"/>
+                    <button name="action_in_progress" string="In Progress" type="object" invisible="state != 'open'"/>
+                    <button name="action_resolve" string="Resolve" type="object" invisible="state not in ['open', 'in_progress']"
                         class="btn-primary"/>
-                    <button name="action_close" string="Close" type="object" states="resolved"/>
+                    <button name="action_close" string="Close" type="object" invisible="state != 'resolved'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -257,16 +259,18 @@
         <field name="name">htplus.shift.completion.tree</field>
         <field name="model">htplus.shift.completion</field>
         <field name="arch" type="xml">
-            <tree string="Shift Completion">
+            <list string="Shift Completion">
+                <field name="shift_id"/>
                 <field name="workorder_id"/>
-                <field name="shift_template_id"/>
                 <field name="date"/>
                 <field name="qty_target"/>
                 <field name="qty_done"/>
                 <field name="qty_good"/>
                 <field name="qty_ng"/>
                 <field name="downtime_minutes"/>
-            </tree>
+                <field name="achievement_rate"/>
+                <field name="yield_rate"/>
+            </list>
         </field>
     </record>
     <record id="view_htplus_shift_completion_form" model="ir.ui.view">
@@ -277,8 +281,8 @@
                 <sheet>
                     <group>
                         <group>
+                            <field name="shift_id"/>
                             <field name="workorder_id"/>
-                            <field name="shift_template_id"/>
                             <field name="date"/>
                         </group>
                         <group>
@@ -289,7 +293,12 @@
                         </group>
                     </group>
                     <group>
+                        <field name="achievement_rate" readonly="1"/>
+                        <field name="yield_rate" readonly="1"/>
+                    </group>
+                    <group>
                         <field name="downtime_minutes"/>
+                        <field name="overtime_minutes"/>
                         <field name="remarks"/>
                     </group>
                 </sheet>

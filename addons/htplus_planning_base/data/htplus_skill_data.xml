@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1">
+
+        <!-- ========== Production operations ========== -->
+        <record id="hr_skill_type_production" model="hr.skill.type">
+            <field name="name">Production</field>
+            <field name="color">4</field>
+        </record>
+        <record id="hr_skill_level_prod_trainee" model="hr.skill.level">
+            <field name="name">Trainee</field>
+            <field name="level_progress">20</field>
+            <field name="default_level">1</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_level_prod_operator" model="hr.skill.level">
+            <field name="name">Operator</field>
+            <field name="level_progress">50</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_level_prod_senior" model="hr.skill.level">
+            <field name="name">Senior</field>
+            <field name="level_progress">75</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_level_prod_leader" model="hr.skill.level">
+            <field name="name">Line Leader</field>
+            <field name="level_progress">100</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+
+        <record id="hr_skill_machine_operation" model="hr.skill">
+            <field name="name">Machine Operation</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_assembly" model="hr.skill">
+            <field name="name">Assembly</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_welding" model="hr.skill">
+            <field name="name">Welding</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_cnc" model="hr.skill">
+            <field name="name">CNC Operation</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_molding" model="hr.skill">
+            <field name="name">Molding / Injection</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_packaging" model="hr.skill">
+            <field name="name">Packaging</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_material_handling" model="hr.skill">
+            <field name="name">Material Handling</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+        <record id="hr_skill_forklift" model="hr.skill">
+            <field name="name">Forklift</field>
+            <field name="skill_type_id" ref="hr_skill_type_production"/>
+        </record>
+
+        <!-- ========== Quality ========== -->
+        <record id="hr_skill_type_quality" model="hr.skill.type">
+            <field name="name">Quality</field>
+            <field name="color">2</field>
+        </record>
+        <record id="hr_skill_level_qa_basic" model="hr.skill.level">
+            <field name="name">Basic</field>
+            <field name="level_progress">25</field>
+            <field name="default_level">1</field>
+            <field name="skill_type_id" ref="hr_skill_type_quality"/>
+        </record>
+        <record id="hr_skill_level_qa_inspector" model="hr.skill.level">
+            <field name="name">Inspector</field>
+            <field name="level_progress">60</field>
+            <field name="skill_type_id" ref="hr_skill_type_quality"/>
+        </record>
+        <record id="hr_skill_level_qa_senior" model="hr.skill.level">
+            <field name="name">Senior Inspector</field>
+            <field name="level_progress">100</field>
+            <field name="skill_type_id" ref="hr_skill_type_quality"/>
+        </record>
+
+        <record id="hr_skill_incoming_inspection" model="hr.skill">
+            <field name="name">Incoming Inspection</field>
+            <field name="skill_type_id" ref="hr_skill_type_quality"/>
+        </record>
+        <record id="hr_skill_inprocess_inspection" model="hr.skill">
+            <field name="name">In-Process Inspection</field>
+            <field name="skill_type_id" ref="hr_skill_type_quality"/>
+        </record>
+        <record id="hr_skill_final_inspection" model="hr.skill">
+            <field name="name">Final Inspection</field>
+            <field name="skill_type_id" ref="hr_skill_type_quality"/>
+        </record>
+        <record id="hr_skill_measuring" model="hr.skill">
+            <field name="name">Measuring Instruments</field>
+            <field name="skill_type_id" ref="hr_skill_type_quality"/>
+        </record>
+
+        <!-- ========== Maintenance ========== -->
+        <record id="hr_skill_type_maintenance" model="hr.skill.type">
+            <field name="name">Maintenance</field>
+            <field name="color">3</field>
+        </record>
+        <record id="hr_skill_level_mnt_helper" model="hr.skill.level">
+            <field name="name">Helper</field>
+            <field name="level_progress">25</field>
+            <field name="default_level">1</field>
+            <field name="skill_type_id" ref="hr_skill_type_maintenance"/>
+        </record>
+        <record id="hr_skill_level_mnt_tech" model="hr.skill.level">
+            <field name="name">Technician</field>
+            <field name="level_progress">60</field>
+            <field name="skill_type_id" ref="hr_skill_type_maintenance"/>
+        </record>
+        <record id="hr_skill_level_mnt_senior" model="hr.skill.level">
+            <field name="name">Senior Technician</field>
+            <field name="level_progress">100</field>
+            <field name="skill_type_id" ref="hr_skill_type_maintenance"/>
+        </record>
+
+        <record id="hr_skill_mechanical_maint" model="hr.skill">
+            <field name="name">Mechanical Maintenance</field>
+            <field name="skill_type_id" ref="hr_skill_type_maintenance"/>
+        </record>
+        <record id="hr_skill_electrical_maint" model="hr.skill">
+            <field name="name">Electrical Maintenance</field>
+            <field name="skill_type_id" ref="hr_skill_type_maintenance"/>
+        </record>
+        <record id="hr_skill_setup_changeover" model="hr.skill">
+            <field name="name">Setup / Changeover</field>
+            <field name="skill_type_id" ref="hr_skill_type_maintenance"/>
+        </record>
+
+        <!-- ========== Safety ========== -->
+        <record id="hr_skill_type_safety" model="hr.skill.type">
+            <field name="name">Safety</field>
+            <field name="color">1</field>
+        </record>
+        <record id="hr_skill_level_safety_aware" model="hr.skill.level">
+            <field name="name">Aware</field>
+            <field name="level_progress">50</field>
+            <field name="default_level">1</field>
+            <field name="skill_type_id" ref="hr_skill_type_safety"/>
+        </record>
+        <record id="hr_skill_level_safety_certified" model="hr.skill.level">
+            <field name="name">Certified</field>
+            <field name="level_progress">100</field>
+            <field name="skill_type_id" ref="hr_skill_type_safety"/>
+        </record>
+
+        <record id="hr_skill_safety_basic" model="hr.skill">
+            <field name="name">Shop Floor Safety</field>
+            <field name="skill_type_id" ref="hr_skill_type_safety"/>
+        </record>
+        <record id="hr_skill_chemical_handling" model="hr.skill">
+            <field name="name">Chemical Handling</field>
+            <field name="skill_type_id" ref="hr_skill_type_safety"/>
+        </record>
+        <record id="hr_skill_lockout_tagout" model="hr.skill">
+            <field name="name">Lockout / Tagout</field>
+            <field name="skill_type_id" ref="hr_skill_type_safety"/>
+        </record>
+
+    </data>
+</odoo>
