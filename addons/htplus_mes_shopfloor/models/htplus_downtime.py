@@ -72,7 +72,11 @@ class HtplusDowntime(models.Model):
             else:
                 rec.duration_minutes = 0.0
 
-    duration_minutes = fields.Float(compute='_compute_duration', string='Duration (minutes)')
+    duration_minutes = fields.Float(
+        compute='_compute_duration',
+        store=True,
+        string='Duration (minutes)',
+    )
 
     def _workcenter(self):
         """Resolve the work center from the work order or the machine.

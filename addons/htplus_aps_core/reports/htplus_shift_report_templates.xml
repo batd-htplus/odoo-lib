@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="htplus_shift_report_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="report">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2>Shift Report</h2>
+                        <div class="row">
+                            <div class="col-6">
+                                <strong>From:</strong> <span t-field="report.date_from"/>
+                            </div>
+                            <div class="col-6">
+                                <strong>To:</strong> <span t-field="report.date_to"/>
+                            </div>
+                        </div>
+                        <table class="table table-sm mt-4">
+                            <thead>
+                                <tr>
+                                    <th>Shift</th>
+                                    <th>Date</th>
+                                    <th>Line</th>
+                                    <th>Leader</th>
+                                    <th class="text-right">Target</th>
+                                    <th class="text-right">Done</th>
+                                    <th class="text-right">Good</th>
+                                    <th class="text-right">NG</th>
+                                    <th class="text-right">Downtime</th>
+                                    <th class="text-right">OT</th>
+                                    <th class="text-right">Achv %</th>
+                                    <th class="text-right">Yield %</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="report._get_lines()" t-as="line">
+                                    <tr>
+                                        <td t-esc="line['name']"/>
+                                        <td t-esc="line['date']"/>
+                                        <td t-esc="line['line']"/>
+                                        <td t-esc="line['leader']"/>
+                                        <td class="text-right" t-esc="line['qty_target']"/>
+                                        <td class="text-right" t-esc="line['qty_done']"/>
+                                        <td class="text-right" t-esc="line['qty_good']"/>
+                                        <td class="text-right" t-esc="line['qty_ng']"/>
+                                        <td class="text-right" t-esc="line['downtime_minutes']"/>
+                                        <td class="text-right" t-esc="line['overtime_minutes']"/>
+                                        <td class="text-right" t-esc="line['achievement_rate']"/>
+                                        <td class="text-right" t-esc="line['yield_rate']"/>
+                                    </tr>
+                                </t>
+                            </tbody>
+                            <t t-set="totals" t-value="report._get_totals()"/>
+                            <tfoot>
+                                <tr>
+                                    <th colspan="4">Total (<span t-esc="totals['count']"/> shifts)</th>
+                                    <th class="text-right" t-esc="totals['qty_target']"/>
+                                    <th class="text-right" t-esc="totals['qty_done']"/>
+                                    <th class="text-right" t-esc="totals['qty_good']"/>
+                                    <th class="text-right" t-esc="totals['qty_ng']"/>
+                                    <th class="text-right" t-esc="totals['downtime_minutes']"/>
+                                    <th class="text-right" t-esc="totals['overtime_minutes']"/>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

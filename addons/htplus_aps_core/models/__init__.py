@@ -5,3 +5,4 @@ from . import htplus_simulation
 from . import htplus_dashboard
 from . import htplus_demand_import
 from . import htplus_settings
+from . import htplus_shift_report

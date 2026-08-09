@@ -41,6 +41,17 @@
                         type="object"
                         invisible="state not in ['approved', 'locked']"
                         groups="htplus_planning_base.group_aps_planner"/>
+                    <button name="action_open_latest_schedule" string="Open Schedule"
+                        type="object"
+                        invisible="not schedule_run_count"
+                        groups="htplus_planning_base.group_aps_planner"/>
+                    <button name="action_open_gantt" string="Open Gantt"
+                        type="object"
+                        invisible="workorder_count == 0"
+                        groups="htplus_planning_base.group_aps_planner"/>
+                    <button name="action_use_on_dashboard" string="Use on Dashboard"
+                        type="object"
+                        invisible="state in ['draft', 'cancelled']"/>
                     <button name="action_lock" string="Lock" type="object"
                         invisible="state not in ['approved', 'confirmed']"
                         groups="htplus_planning_base.group_aps_manager"/>
@@ -50,6 +61,30 @@
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
+                    <div class="oe_button_box" name="button_box">
+                        <button name="action_open_demand_plan" type="object"
+                            class="oe_stat_button" icon="fa-list"
+                            invisible="not demand_plan_id">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Demand Plan</span>
+                            </div>
+                        </button>
+                        <button name="action_open_productions" type="object"
+                            class="oe_stat_button" icon="fa-wrench"
+                            invisible="production_count == 0">
+                            <field name="production_count" widget="statinfo" string="MOs"/>
+                        </button>
+                        <button name="action_open_schedule_runs" type="object"
+                            class="oe_stat_button" icon="fa-calendar"
+                            invisible="schedule_run_count == 0">
+                            <field name="schedule_run_count" widget="statinfo" string="Schedules"/>
+                        </button>
+                        <button name="action_open_gantt" type="object"
+                            class="oe_stat_button" icon="fa-tasks"
+                            invisible="workorder_count == 0">
+                            <field name="workorder_count" widget="statinfo" string="Work Orders"/>
+                        </button>
+                    </div>
                     <div class="oe_title">
                         <h1><field name="name"/></h1>
                     </div>
@@ -99,6 +134,29 @@
                     <field name="message_ids" widget="mail_thread"/>
                 </div>
             </form>
+        </field>
+    </record>
+
+    <record id="view_htplus_production_plan_search" model="ir.ui.view">
+        <field name="name">htplus.production.plan.search</field>
+        <field name="model">htplus.production.plan</field>
+        <field name="arch" type="xml">
+            <search string="Production Plans">
+                <field name="name"/>
+                <field name="demand_plan_id"/>
+                <field name="user_id"/>
+                <filter name="draft" string="Draft" domain="[('state','=','draft')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('state','=','confirmed')]"/>
+                <filter name="approved" string="Approved" domain="[('state','=','approved')]"/>
+                <filter name="locked" string="Locked" domain="[('state','=','locked')]"/>
+                <separator/>
+                <filter name="active" string="Active" domain="[('active','=',True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by':'state'}"/>
+                    <filter name="group_user" string="Planner" context="{'group_by':'user_id'}"/>
+                    <filter name="group_demand" string="Demand Plan" context="{'group_by':'demand_plan_id'}"/>
+                </group>
+            </search>
         </field>
     </record>
 

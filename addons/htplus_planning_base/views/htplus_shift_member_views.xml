@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_htplus_shift_member" model="ir.actions.act_window">
+        <field name="name">Shift Members</field>
+        <field name="res_model">htplus.shift.member</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_htplus_shift_member_search" model="ir.ui.view">
+        <field name="name">htplus.shift.member.search</field>
+        <field name="model">htplus.shift.member</field>
+        <field name="arch" type="xml">
+            <search string="Shift Members">
+                <field name="employee_id"/>
+                <field name="line_id"/>
+                <field name="factory_id"/>
+                <filter name="leaders" string="Line Leaders" domain="[('is_leader', '=', True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_line" string="Line" context="{'group_by': 'line_id'}"/>
+                    <filter name="group_by_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                    <filter name="group_by_leader" string="Leader" context="{'group_by': 'is_leader'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_shift_member_tree" model="ir.ui.view">
+        <field name="name">htplus.shift.member.tree</field>
+        <field name="model">htplus.shift.member</field>
+        <field name="arch" type="xml">
+            <list string="Shift Members">
+                <field name="employee_id"/>
+                <field name="factory_id"/>
+                <field name="plant_id"/>
+                <field name="line_id"/>
+                <field name="is_leader"/>
+                <field name="start_date"/>
+                <field name="active"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_htplus_shift_member_form" model="ir.ui.view">
+        <field name="name">htplus.shift.member.form</field>
+        <field name="model">htplus.shift.member</field>
+        <field name="arch" type="xml">
+            <form string="Shift Member">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="employee_id"/>
+                            <field name="factory_id"/>
+                            <field name="plant_id"/>
+                            <field name="line_id"/>
+                        </group>
+                        <group>
+                            <field name="is_leader"/>
+                            <field name="start_date"/>
+                            <field name="active"/>
+                        </group>
+                    </group>
+                    <group string="Notes">
+                        <field name="notes"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_shift_member"
+        parent="menu_htplus_shift_mgmt"
+        action="action_htplus_shift_member"
+        sequence="30"/>
+
+</odoo>

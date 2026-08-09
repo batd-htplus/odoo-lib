@@ -1,4 +1,4 @@
-from odoo import api, fields, models
+from odoo import api, fields, models, _
 
 
 class HtplusDashboardKpi(models.Model):
@@ -16,28 +16,26 @@ class HtplusDashboardKpi(models.Model):
     def _compute_shopfloor(self):
         """Compute the shop-floor KPIs for the selected date range."""
         for rec in self:
+            date_from = fields.Datetime.to_datetime(rec.date_from)
+            date_to = fields.Datetime.to_datetime(rec.date_to) + self._duration_delta()
             window = [
-                ('date_start', '>=', fields.Datetime.to_datetime(rec.date_from)),
-                ('date_start', '<=', fields.Datetime.to_datetime(rec.date_to) + self._duration_delta()),
+                ('date_start', '>=', date_from),
+                ('date_start', '<=', date_to),
             ]
             Actual = self.env['htplus.workorder.actual']
             Downtime = self.env['htplus.downtime']
             Stop = self.env['htplus.machine.stop']
             Issue = self.env['htplus.issue']
-            actual_totals = Actual.read_group(window, ['qty_good', 'qty_ng'], [])
-            if actual_totals:
-                qty_good = actual_totals[0]['qty_good'] or 0.0
-                qty_ng = actual_totals[0]['qty_ng'] or 0.0
-            else:
-                qty_good = qty_ng = 0.0
+
+            actuals = Actual.search(window)
+            qty_good = sum(actuals.mapped('qty_good'))
+            qty_ng = sum(actuals.mapped('qty_ng'))
             rec.qty_good = qty_good
             rec.qty_ng = qty_ng
             rec.yield_pct = qty_good * 100.0 / (qty_good + qty_ng) if (qty_good + qty_ng) else 0.0
-            downtime_totals = Downtime.read_group(window, ['duration_minutes'], [])
-            if downtime_totals:
-                rec.downtime_minutes = downtime_totals[0]['duration_minutes'] or 0.0
-            else:
-                rec.downtime_minutes = 0.0
+
+            # duration_minutes may be computed; sum in Python avoids read_group key issues
+            rec.downtime_minutes = sum(Downtime.search(window).mapped('duration_minutes'))
             rec.machine_stop_count = Stop.search_count(window)
             rec.open_issues = Issue.search_count([('state', 'in', ('open', 'in_progress'))])
             availability = 1.0 if not rec.downtime_minutes else max(0.0, 1.0 - rec.downtime_minutes / 480.0)
@@ -52,41 +50,102 @@ class HtplusDashboardKpi(models.Model):
         from datetime import timedelta
         return timedelta(days=1)
 
-    def action_open_actuals(self):
-        """Open the work order execution records.
+    def _dashboard_kpi_cards(self):
+        cards = super()._dashboard_kpi_cards()
+        cards.extend([
+            {'key': 'qty_good', 'label': _('Qty Good'), 'value': self.qty_good, 'tone': 'ok'},
+            {'key': 'qty_ng', 'label': _('Qty NG'), 'value': self.qty_ng, 'tone': 'danger'},
+            {'key': 'yield_pct', 'label': _('Yield %'), 'value': round(self.yield_pct, 1), 'tone': 'ok'},
+            {'key': 'oee_pct', 'label': _('OEE %'), 'value': round(self.oee_pct, 1), 'tone': 'info'},
+            {'key': 'downtime_minutes', 'label': _('Downtime (min)'), 'value': self.downtime_minutes, 'tone': 'warn'},
+            {'key': 'open_issues', 'label': _('Open Issues'), 'value': self.open_issues, 'tone': 'danger'},
+        ])
+        return cards
 
-        Returns:
-            the window action listing the actuals.
-        """
+    def _dashboard_charts(self):
+        charts = super()._dashboard_charts()
+        charts.extend([
+            self._chart_quality(),
+            self._chart_shopfloor(),
+        ])
+        return charts
+
+    def _chart_quality(self):
+        self.ensure_one()
+        has_data = bool(self.qty_good or self.qty_ng)
+        return {
+            'id': 'quality',
+            'title': _('Quality (Good vs NG)'),
+            'type': 'doughnut',
+            'labels': [_('Good'), _('NG')] if has_data else [_('No data')],
+            'datasets': [{
+                'data': [self.qty_good or 0.0, self.qty_ng or 0.0] if has_data else [1],
+                'backgroundColor': ['#16a34a', '#dc2626'] if has_data else ['#e2e8f0'],
+            }],
+        }
+
+    def _chart_shopfloor(self):
+        self.ensure_one()
+        return {
+            'id': 'shopfloor',
+            'title': _('Shop Floor Signals'),
+            'type': 'bar',
+            'labels': [_('Downtime min'), _('Machine stops'), _('Open issues')],
+            'datasets': [{
+                'label': _('Count'),
+                'data': [self.downtime_minutes, self.machine_stop_count, self.open_issues],
+                'backgroundColor': ['#f59e0b', '#ea580c', '#dc2626'],
+            }],
+        }
+
+    def _dashboard_shortcuts(self):
+        shortcuts = super()._dashboard_shortcuts()
+        shortcuts.extend([
+            {'key': 'actuals', 'label': _('Execution')},
+            {'key': 'downtime', 'label': _('Downtime')},
+            {'key': 'issues', 'label': _('Issues')},
+        ])
+        return shortcuts
+
+    @api.model
+    def get_dashboard_action(self, key, date_from=None, date_to=None, production_plan_id=False):
+        if key in ('actuals', 'downtime', 'issues'):
+            rec = self._dashboard_record(date_from, date_to, production_plan_id)
+            return {
+                'actuals': rec.action_open_actuals,
+                'downtime': rec.action_open_downtime,
+                'issues': rec.action_open_issues,
+            }[key]()
+        return super().get_dashboard_action(
+            key,
+            date_from=date_from,
+            date_to=date_to,
+            production_plan_id=production_plan_id,
+        )
+
+    def action_open_actuals(self):
+        """Open the work order execution records."""
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.workorder.actual',
-            'view_mode': 'tree,form',
-            'name': 'Work Order Execution',
+            'view_mode': 'list,form',
+            'name': _('Work Order Execution'),
         }
 
     def action_open_downtime(self):
-        """Open the downtime records.
-
-        Returns:
-            the window action listing downtimes.
-        """
+        """Open the downtime records."""
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.downtime',
-            'view_mode': 'tree,form',
-            'name': 'Downtime',
+            'view_mode': 'list,form',
+            'name': _('Downtime'),
         }
 
     def action_open_issues(self):
-        """Open the issue records.
-
-        Returns:
-            the window action listing issues.
-        """
+        """Open the issue records."""
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.issue',
-            'view_mode': 'tree,form',
-            'name': 'Issues',
+            'view_mode': 'list,form',
+            'name': _('Issues'),
         }

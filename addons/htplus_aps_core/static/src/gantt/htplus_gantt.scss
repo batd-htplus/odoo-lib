@@ -6,19 +6,35 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     margin-bottom: 12px;
 }
 .o_htplus_gantt_title {
     font-weight: 600;
 }
+.o_htplus_gantt_hint {
+    color: #888;
+    font-size: 12px;
+    flex: 1;
+    text-align: center;
+}
 .o_htplus_gantt_loading {
     color: #666;
     padding: 24px;
 }
+.o_htplus_gantt_scroll {
+    overflow-x: auto;
+}
+.o_htplus_gantt_inner {
+    min-width: 600px;
+}
 .o_htplus_gantt_row {
     display: flex;
     border-bottom: 1px solid #eee;
-    min-height: 40px;
+    min-height: 44px;
+}
+.o_htplus_gantt_gridhead {
+    background: #fafafa;
 }
 .o_htplus_gantt_side {
     width: 260px;
@@ -37,30 +53,67 @@
     position: relative;
     flex: 1;
     min-width: 0;
-    background: repeating-linear-gradient(
-        to right,
-        transparent,
-        transparent 59px,
-        #f3f4f6 59px,
-        #f3f4f6 60px
-    );
 }
-.o_htplus_gantt_axis_label {
-    position: absolute;
-    right: 8px;
-    top: 6px;
+.o_htplus_gantt_axishead {
+    display: flex;
+    border-bottom: 1px solid #eee;
+    min-height: 24px;
+}
+.o_htplus_gantt_daycell {
+    flex-shrink: 0;
     color: #999;
+    font-size: 11px;
+    padding: 4px 0;
+    text-align: center;
+    border-right: 1px solid #f3f4f6;
+    box-sizing: border-box;
 }
 .o_htplus_gantt_bar {
     position: absolute;
     top: 12px;
-    height: 20px;
+    height: 22px;
     border-radius: 4px;
     color: #fff;
     font-size: 12px;
     overflow: hidden;
     white-space: nowrap;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-left: 6px;
+}
+.o_htplus_gantt_bar:active {
+    cursor: grabbing;
+}
+.o_htplus_gantt_icon {
+    font-size: 10px;
+    opacity: 0.9;
 }
 .o_htplus_gantt_bar_label {
-    padding: 0 6px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.o_htplus_gantt_bar_sub {
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 11px;
+    margin-left: auto;
+    padding-right: 6px;
+}
+.o_htplus_gantt_handle {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    cursor: ew-resize;
+    background: rgba(255, 255, 255, 0.25);
+    border-radius: 2px;
+}
+.o_htplus_gantt_handle_left {
+    left: 0;
+}
+.o_htplus_gantt_handle_right {
+    right: 0;
 }

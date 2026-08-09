@@ -8,10 +8,13 @@ registry.category("components").add("HtplusGantt", HtplusGantt);
 class HtplusGanttClientAction extends Component {
     static template = "htplus_aps_core.HtplusGanttClientAction";
     static components = { HtplusGantt };
-    static props = { workorders: { type: Array, optional: true } };
+    static props = {
+        "*": true,
+    };
 
     setup() {
         this.actionService = useService("action");
+        this.actionContext = this.props.action?.context || {};
     }
 
     openWorkorder(record) {

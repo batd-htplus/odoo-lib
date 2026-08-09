@@ -3,27 +3,46 @@
         <div class="o_htplus_gantt">
             <div class="o_htplus_gantt_header">
                 <span class="o_htplus_gantt_title">HTPlus Schedule Gantt</span>
-                <button t-on-click="load" class="btn btn-secondary btn-sm">Reload</button>
+                <div class="o_htplus_gantt_hint" t-esc="strings.hint"/>
+                <button t-on-click="load" class="btn btn-secondary btn-sm" t-esc="strings.reload"/>
             </div>
-            <div t-if="state.loading" class="o_htplus_gantt_loading">Loading…</div>
-            <div t-else="" class="o_htplus_gantt_body">
-                <div class="o_htplus_gantt_row o_htplus_gantt_gridhead">
-                    <div class="o_htplus_gantt_side">Resource / Workorder</div>
-                    <div class="o_htplus_gantt_axis">
-                        <span class="o_htplus_gantt_axis_label" t-esc="gridLeft()"/>
+            <div t-if="state.loading" class="o_htplus_gantt_loading" t-esc="strings.loading"/>
+            <div t-elif="!state.rows.length" class="o_htplus_gantt_loading" t-esc="strings.noData"/>
+            <div t-else="" class="o_htplus_gantt_scroll">
+                <div class="o_htplus_gantt_inner" t-att-style="'width: ' + axisWidth() + 'px'">
+                    <div class="o_htplus_gantt_row o_htplus_gantt_gridhead">
+                        <div class="o_htplus_gantt_side" t-esc="strings.lineHeader"/>
+                        <div class="o_htplus_gantt_axis o_htplus_gantt_axishead">
+                            <t t-foreach="dayCells()" t-as="day" t-key="day.getTime()">
+                                <span class="o_htplus_gantt_daycell" t-att-style="'width: ' + 60 + 'px'"
+                                      t-esc="fmtDay(day)"/>
+                            </t>
+                        </div>
                     </div>
-                </div>
-                <div t-foreach="state.rows" t-as="row" t-key="row.id" class="o_htplus_gantt_row">
-                    <div class="o_htplus_gantt_side">
-                        <div class="o_htplus_gantt_side_name" t-esc="row.resource_id"/>
-                        <div class="o_htplus_gantt_side_sub" t-esc="row.workorder"/>
-                        <div class="o_htplus_gantt_side_sub" t-esc="row.product"/>
-                    </div>
-                    <div class="o_htplus_gantt_axis">
-                        <div class="o_htplus_gantt_bar"
-                             t-attf-style="left: {{ (row.start - state.start) / 86400000 * 60 }}px; width: {{ Math.max((row.end - row.start) / 86400000, 0.5) * 60 }}px; background: {{ row.color }};"
-                             t-att-title="row.locked ? 'Locked' : 'Scheduled'">
-                            <span class="o_htplus_gantt_bar_label" t-esc="row.product"/>
+                    <div t-foreach="state.rows" t-as="row" t-key="row.id"
+                         class="o_htplus_gantt_row" t-att-data-line-id="row.id">
+                        <div class="o_htplus_gantt_side">
+                            <div class="o_htplus_gantt_side_name" t-esc="row.name"/>
+                            <div class="o_htplus_gantt_side_sub" t-esc="row.machine"/>
+                            <div class="o_htplus_gantt_side_sub" t-esc="itemsLabel(row)"/>
+                        </div>
+                        <div class="o_htplus_gantt_axis">
+                            <t t-foreach="row.items" t-as="item" t-key="item.id">
+                                <div class="o_htplus_gantt_bar"
+                                     t-attf-style="left: {{ barLeft(item) }}px; width: {{ barWidth(item) }}px; background: {{ barColor(item) }};"
+                                     t-att-title="barTitle(item)"
+                                     t-on-pointerdown="(ev) => this.beginMove(ev, item)">
+                                    <span t-if="item.locked" class="o_htplus_gantt_icon fa fa-lock"/>
+                                    <span t-if="item.conflict" class="o_htplus_gantt_icon fa fa-exclamation-triangle"
+                                          t-att-title="strings.conflict"/>
+                                    <span class="o_htplus_gantt_bar_label" t-esc="item.product"/>
+                                    <span class="o_htplus_gantt_bar_sub" t-esc="item.workorder"/>
+                                    <span t-if="!item.locked" class="o_htplus_gantt_handle o_htplus_gantt_handle_left"
+                                          t-on-pointerdown="(ev) => this.beginResizeLeft(ev, item)"/>
+                                    <span t-if="!item.locked" class="o_htplus_gantt_handle o_htplus_gantt_handle_right"
+                                          t-on-pointerdown="(ev) => this.beginResizeRight(ev, item)"/>
+                                </div>
+                            </t>
                         </div>
                     </div>
                 </div>

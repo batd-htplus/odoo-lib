@@ -368,3 +368,14 @@ class HtplusProductionShift(models.Model):
             'domain': [('shift_id', '=', self.id)],
             'context': {'default_shift_id': self.id},
         }
+
+    def action_open_shift_actuals(self):
+        """Open the dedicated shift actual records for this shift."""
+        return {
+            'name': _('Shift Actual'),
+            'type': 'ir.actions.act_window',
+            'res_model': 'htplus.shift.actual',
+            'view_mode': 'list,form',
+            'domain': [('shift_id', '=', self.id)],
+            'context': {'default_shift_id': self.id},
+        }

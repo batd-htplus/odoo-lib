@@ -13,4 +13,10 @@
         <field name="prefix">WF/%(year)s/</field>
         <field name="padding">4</field>
     </record>
+    <record id="seq_htplus_shift_actual" model="ir.sequence">
+        <field name="name">Shift Actual</field>
+        <field name="code">htplus.shift.actual</field>
+        <field name="prefix">ACT/%(year)s/</field>
+        <field name="padding">4</field>
+    </record>
 </odoo>

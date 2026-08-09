@@ -150,6 +150,10 @@
                             class="oe_stat_button" icon="fa-check-circle" string="Actuals">
                             <field name="completion_ids" widget="statinfo"/>
                         </button>
+                        <button name="action_open_shift_actuals" type="object"
+                            class="oe_stat_button" icon="fa-clipboard-check" string="Shift Actual">
+                            <field name="state" invisible="1"/>
+                        </button>
                     </div>
                     <group>
                         <group>

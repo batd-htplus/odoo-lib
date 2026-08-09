@@ -1,6 +1,6 @@
 {
     "name": "HTPlus APS Planning Base",
-    "version": "18.0.1.5.1",
+    "version": "18.0.1.5.2",
     "summary": "Master data foundation for HTPlus APS/MES.",
     "description": """
 HTPlus APS Planning Base
@@ -27,10 +27,13 @@ planning, scheduling and shop floor modules.
         "security/ir.model.access.csv",
         "data/ir_sequence_data.xml",
         "data/htplus_skill_data.xml",
+        "data/htplus_admin_groups.xml",
         "views/htplus_planning_base_menus.xml",
         "views/htplus_factory_views.xml",
         "views/htplus_machine_views.xml",
         "views/htplus_shift_views.xml",
+        "views/htplus_shift_actual_views.xml",
+        "views/htplus_shift_member_views.xml",
         "views/htplus_rule_views.xml",
         "views/htplus_skill_views.xml",
     ],

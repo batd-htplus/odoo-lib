@@ -27,8 +27,16 @@ class HtplusDemandPlan(models.Model):
     ], default='manual', string='Source')
     planning_forecast_id = fields.Many2one('htplus.planning.forecast', string='Demand Forecast')
     line_ids = fields.One2many('htplus.demand.plan.line', 'plan_id', string='Lines')
+    production_plan_ids = fields.One2many(
+        'htplus.production.plan', 'demand_plan_id', string='Production Plans')
+    production_plan_count = fields.Integer(
+        compute='_compute_production_plan_count', string='Production Plans')
     notes = fields.Text()
     active = fields.Boolean(default=True)
+
+    def _compute_production_plan_count(self):
+        for rec in self:
+            rec.production_plan_count = len(rec.production_plan_ids)
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -51,6 +59,22 @@ class HtplusDemandPlan(models.Model):
         """Cancel the demand plan."""
         self._htplus_require_planner()
         self.state = 'cancelled'
+
+    def action_open_production_plans(self):
+        """Open production plans generated from this demand plan."""
+        self.ensure_one()
+        action = {
+            'type': 'ir.actions.act_window',
+            'name': _('Production Plans'),
+            'res_model': 'htplus.production.plan',
+            'view_mode': 'list,form',
+            'domain': [('demand_plan_id', '=', self.id)],
+            'context': {'default_demand_plan_id': self.id},
+        }
+        if len(self.production_plan_ids) == 1:
+            action['view_mode'] = 'form'
+            action['res_id'] = self.production_plan_ids.id
+        return action
 
     def _htplus_add_plan_line(self, plan, product, qty, deadline, demand_line=False, priority=0, seen=None):
         """Add a production plan line and explode manufactured components (multi-level).
@@ -131,9 +155,12 @@ class HtplusDemandPlan(models.Model):
         self.state = 'planned'
         return {
             'type': 'ir.actions.act_window',
+            'name': _('Production Plan'),
             'res_model': 'htplus.production.plan',
             'res_id': plan.id,
             'view_mode': 'form',
+            'target': 'current',
+            'context': {'default_demand_plan_id': self.id},
         }
 
     def action_export_excel(self):

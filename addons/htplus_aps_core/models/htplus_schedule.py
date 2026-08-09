@@ -399,6 +399,47 @@ class HtplusScheduleRun(models.Model):
             'res_model': 'htplus.workforce.assignment',
             'view_mode': 'list,form',
             'domain': [('id', 'in', created.ids)],
+            'context': {
+                'default_date_start': self[:1].date_start,
+            },
+        }
+
+    def action_open_production_plan(self):
+        self.ensure_one()
+        if not self.production_plan_id:
+            return False
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Production Plan'),
+            'res_model': 'htplus.production.plan',
+            'res_id': self.production_plan_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    def action_open_gantt(self):
+        self.ensure_one()
+        if not self.workorder_ids:
+            raise UserError(_('No work orders on this schedule run.'))
+        ctx = {'htplus_schedule_run_id': self.id}
+        if self.production_plan_id:
+            ctx['htplus_production_plan_id'] = self.production_plan_id.id
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'htplus_aps_core.gantt',
+            'name': _('Gantt — %s') % self.name,
+            'context': ctx,
+        }
+
+    def action_open_assignments(self):
+        """Open workforce assignments for work orders on this run."""
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Workforce Assignments'),
+            'res_model': 'htplus.workforce.assignment',
+            'view_mode': 'list,form',
+            'domain': [('workorder_id', 'in', self.workorder_ids.ids)],
         }
 
 
@@ -416,8 +457,6 @@ class MrpWorkorder(models.Model):
     schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
     line_id = fields.Many2one('htplus.line', string='Line')
     machine_id = fields.Many2one('htplus.machine', string='Machine')
-    # Planned window = Odoo date_start / date_finished (resource.calendar.leaves).
-    # Do not reintroduce schedule_start/schedule_end — that was a shadow schedule.
     schedule_state = fields.Selection([
         ('unscheduled', 'Unscheduled'),
         ('scheduled', 'Scheduled'),
@@ -431,29 +470,156 @@ class MrpWorkorder(models.Model):
     capacity_ok = fields.Boolean(string='Capacity OK')
     machine_ok = fields.Boolean(string='Machine OK')
 
+    @api.model
     def action_open_gantt(self):
-        """Build the gantt rows for the selected (or latest dated) work orders."""
-        workorders = self.filtered(lambda w: w.date_start or w.schedule_state != 'unscheduled')
+        """Build the gantt payload grouped by production line.
+
+        Optional context keys:
+            htplus_production_plan_id — limit to MOs of that production plan
+            htplus_schedule_run_id — limit to work orders on that schedule run
+        """
+        domain = [('date_start', '!=', False), ('state', '!=', 'cancel')]
+        plan_id = self.env.context.get('htplus_production_plan_id')
+        run_id = self.env.context.get('htplus_schedule_run_id')
+        if run_id:
+            domain.append(('schedule_run_id', '=', int(run_id)))
+        elif plan_id:
+            domain.append(('production_id.htplus_plan_id', '=', int(plan_id)))
+        workorders = self.search(domain, limit=500)
         if not workorders:
-            workorders = self.search([('date_start', '!=', False)], limit=500)
-        rows = []
-        for workorder in workorders.sorted(
-            lambda w: (w.date_start or w.create_date or fields.Datetime.now())
-        ):
+            return {'start': False, 'end': False, 'lines': [], 'workorders': []}
+        workorders = workorders.sorted(
+            lambda w: (w.date_start or w.create_date or fields.Datetime.now()))
+        lines = []
+        for line in workorders.mapped('line_id').filtered(lambda l: l.active).sorted('code'):
+            lines.append({
+                'id': line.id,
+                'name': line.display_name,
+                'machine': line.machine_ids[:1].name or '',
+            })
+        if any(not workorder.line_id for workorder in workorders):
+            lines.append({'id': 0, 'name': 'Unassigned', 'machine': ''})
+        bars = []
+        for workorder in workorders:
             if not workorder.date_start:
                 continue
             end = workorder.date_finished or workorder.date_start
-            rows.append({
+            bars.append({
                 'id': workorder.id,
+                'line_id': workorder.line_id.id or 0,
                 'workcenter_id': workorder.workcenter_id.name or '',
                 'workorder_ref': workorder.name or '',
                 'product_ref': workorder.product_id.display_name or '',
                 'date_start': workorder.date_start.isoformat(),
                 'date_finished': end.isoformat(),
                 'locked': workorder.locked,
+                'conflict': workorder.schedule_conflict,
                 'write_date': fields.Datetime.to_string(workorder.write_date),
             })
-        return rows
+        start = min(workorder.date_start for workorder in workorders)
+        end = max((workorder.date_finished or workorder.date_start)
+                  for workorder in workorders)
+        return {
+            'start': start.isoformat(),
+            'end': end.isoformat(),
+            'lines': lines,
+            'workorders': bars,
+        }
+
+    @api.model
+    def action_save_gantt_move(self, moves):
+        """Persist drag / resize / re-line moves sent by the gantt.
+
+        Args:
+            moves: List of dicts (or a single dict) with work order id, new
+                start/end, optional line_id and expected write_date.
+
+        Returns:
+            The refreshed gantt payload (respects htplus_* context filters).
+        """
+        if isinstance(moves, dict):
+            moves = [moves]
+        if not moves:
+            return self.action_open_gantt()
+        moves_by_id = {int(move['id']): move for move in moves}
+        workorders = self.browse(list(moves_by_id))
+        for workorder in workorders:
+            if workorder.locked:
+                raise UserError(_(
+                    'Work order "%s" is locked and cannot be rescheduled.'
+                ) % workorder.display_name)
+        for workorder in workorders:
+            expected = moves_by_id[workorder.id].get('write_date')
+            if not expected:
+                continue
+            expected_dt = fields.Datetime.to_datetime(expected)
+            if expected_dt and workorder.write_date.replace(microsecond=0) != expected_dt.replace(microsecond=0):
+                raise UserError(_(
+                    'Work order "%(wo)s" was modified by another user (%(when)s). '
+                    'Reload and try again.'
+                ) % {
+                    'wo': workorder.display_name,
+                    'when': fields.Datetime.to_string(workorder.write_date),
+                })
+        for workorder in workorders:
+            move = moves_by_id[workorder.id]
+            vals = {}
+            for field in ('date_start', 'date_finished'):
+                if move.get(field):
+                    raw = move[field].replace('T', ' ')
+                    # JS may send trailing Z / milliseconds.
+                    raw = raw.replace('Z', '').split('.')[0]
+                    vals[field] = fields.Datetime.to_datetime(raw)
+            if vals.get('date_start') and vals.get('date_finished'):
+                # The base mrp.workorder.write recomputes date_finished from the
+                # calendar when both dates are set; passing a consistent
+                # duration_expected keeps the requested window intact.
+                vals['duration_expected'] = workorder._calculate_duration_expected(
+                    date_start=vals['date_start'],
+                    date_finished=vals['date_finished'])
+            line_id = move.get('line_id')
+            if line_id is not None and int(line_id) and int(line_id) != workorder.line_id.id:
+                line = self.env['htplus.line'].browse(int(line_id))
+                if line.exists():
+                    vals['line_id'] = line.id
+                    if line.workcenter_ids:
+                        vals['workcenter_id'] = line.workcenter_ids[:1].id
+            if vals:
+                workorder.write(vals)
+        conflicted = self._htplus_refresh_conflicts(workorders)
+        payload = self.action_open_gantt()
+        payload['saved'] = len(workorders)
+        payload['conflicted'] = len(conflicted)
+        return payload
+
+    def _htplus_refresh_conflicts(self, workorders):
+        """Recompute schedule_conflict for the moved WOs and their neighbours."""
+        workorders.write({'schedule_conflict': False, 'capacity_ok': True})
+        candidates = self.env['mrp.workorder']
+        for workorder in workorders.filtered(lambda w: w.date_start and w.state != 'cancel'):
+            candidates |= workorder
+            candidates |= self.env['mrp.workorder'].search([
+                ('workcenter_id', '=', workorder.workcenter_id.id),
+                ('date_start', '!=', False),
+                ('state', '!=', 'cancel'),
+            ])
+        candidates = candidates.filtered(lambda w: w.date_start and w.state != 'cancel')
+        by_wc = {}
+        for workorder in candidates:
+            by_wc.setdefault(workorder.workcenter_id.id, self.env['mrp.workorder'])
+            by_wc[workorder.workcenter_id.id] |= workorder
+        conflicted = self.env['mrp.workorder']
+        for group in by_wc.values():
+            ordered = group.sorted(lambda w: (w.date_start, w.id))
+            for index, left in enumerate(ordered):
+                left_end = left.date_finished or left.date_start
+                for right in ordered[index + 1:]:
+                    if right.date_start >= left_end:
+                        break
+                    conflicted |= left | right
+        if conflicted:
+            conflicted.write({'schedule_conflict': True, 'capacity_ok': False})
+        return conflicted
 
     def _htplus_check_optimistic_lock(self):
         """Refuse stale writes when client sends expected write_date(s).

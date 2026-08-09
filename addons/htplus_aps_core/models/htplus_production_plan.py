@@ -24,8 +24,17 @@ class HtplusProductionPlan(models.Model):
     line_ids = fields.One2many('htplus.production.plan.line', 'plan_id', string='Lines')
     production_ids = fields.One2many('mrp.production', 'htplus_plan_id', string='Manufacturing Orders')
     schedule_run_ids = fields.One2many('htplus.schedule.run', 'production_plan_id', string='Schedule Runs')
+    schedule_run_count = fields.Integer(compute='_compute_link_counts', string='Schedule Runs')
+    production_count = fields.Integer(compute='_compute_link_counts', string='Manufacturing Orders')
+    workorder_count = fields.Integer(compute='_compute_link_counts', string='Work Orders')
     notes = fields.Text()
     active = fields.Boolean(default=True)
+
+    def _compute_link_counts(self):
+        for plan in self:
+            plan.schedule_run_count = len(plan.schedule_run_ids)
+            plan.production_count = len(plan.production_ids)
+            plan.workorder_count = len(plan.production_ids.mapped('workorder_ids'))
 
     @api.model_create_multi
     def create(self, vals_list):
@@ -60,6 +69,98 @@ class HtplusProductionPlan(models.Model):
         self._htplus_require_planner()
         self.line_ids.action_check_materials()
         return True
+
+    def action_open_demand_plan(self):
+        self.ensure_one()
+        if not self.demand_plan_id:
+            return False
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Demand Plan'),
+            'res_model': 'htplus.demand.plan',
+            'res_id': self.demand_plan_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
+
+    def action_open_productions(self):
+        self.ensure_one()
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Manufacturing Orders'),
+            'res_model': 'mrp.production',
+            'view_mode': 'list,form',
+            'domain': [('htplus_plan_id', '=', self.id)],
+            'context': {'default_htplus_plan_id': self.id},
+        }
+
+    def action_open_schedule_runs(self):
+        self.ensure_one()
+        action = {
+            'type': 'ir.actions.act_window',
+            'name': _('Schedule Runs'),
+            'res_model': 'htplus.schedule.run',
+            'view_mode': 'list,form',
+            'domain': [('production_plan_id', '=', self.id)],
+            'context': {
+                'default_production_plan_id': self.id,
+                'default_date_start': self.date_start,
+                'default_date_end': self.date_end,
+            },
+        }
+        if len(self.schedule_run_ids) == 1:
+            action['view_mode'] = 'form'
+            action['res_id'] = self.schedule_run_ids.id
+        return action
+
+    def action_open_gantt(self):
+        """Open Gantt filtered to this production plan's work orders."""
+        self.ensure_one()
+        workorders = self.production_ids.mapped('workorder_ids').filtered(
+            lambda w: w.state != 'cancel'
+        )
+        if not workorders:
+            raise UserError(_(
+                'No work orders on this plan. Create manufacturing orders first.'
+            ))
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'htplus_aps_core.gantt',
+            'name': _('Gantt — %s') % self.name,
+            'context': {'htplus_production_plan_id': self.id},
+        }
+
+    def action_open_latest_schedule(self):
+        """Open the newest schedule run, or create one when none exists."""
+        self.ensure_one()
+        if self.schedule_run_ids:
+            run = self.schedule_run_ids.sorted('id', reverse=True)[:1]
+            return {
+                'type': 'ir.actions.act_window',
+                'name': _('Schedule Run'),
+                'res_model': 'htplus.schedule.run',
+                'res_id': run.id,
+                'view_mode': 'form',
+                'target': 'current',
+            }
+        return self.action_create_schedule()
+
+    def action_use_on_dashboard(self):
+        """Set this plan as the working plan on the APS dashboard."""
+        self.ensure_one()
+        Dashboard = self.env['htplus.dashboard.kpi']
+        dash = Dashboard.search([], limit=1)
+        if not dash:
+            dash = Dashboard.create({'name': _('Production Dashboard')})
+        dash.production_plan_id = self.id
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Dashboard'),
+            'res_model': 'htplus.dashboard.kpi',
+            'res_id': dash.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }
 
     def action_create_productions(self):
         """Create and confirm a manufacturing order for each plan line."""
@@ -194,7 +295,9 @@ class HtplusProductionPlanLine(models.Model):
             ctx = {}
             if line.date_deadline:
                 ctx['to_date'] = line.date_deadline
-            warehouse_ids = company.warehouse_ids.ids
+            warehouse_ids = self.env['stock.warehouse'].search([
+                ('company_id', '=', company.id),
+            ]).ids
             if warehouse_ids:
                 ctx['warehouse'] = warehouse_ids
             for bom_line, line_data in lines_done:

@@ -14,14 +14,26 @@
             <form string="Production Dashboard">
                 <header>
                     <button name="action_refresh" string="Refresh" type="object" class="btn-primary"/>
+                    <button name="action_open_working_plan" string="Open Working Plan" type="object"/>
+                    <button name="action_open_gantt" string="Open Gantt" type="object"/>
+                    <button name="action_open_conflicts" string="Open Conflicts" type="object"
+                        invisible="conflict_count == 0"/>
+                    <button name="action_open_material_shortages" string="Material Shortages"
+                        type="object" invisible="material_shortage_count == 0"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
                         <h1><field name="name"/></h1>
                     </div>
                     <group>
-                        <field name="date_from"/>
-                        <field name="date_to"/>
+                        <group>
+                            <field name="production_plan_id"/>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group string="Alerts">
+                            <field name="alert_summary" nolabel="1" readonly="1"/>
+                        </group>
                     </group>
                     <div class="row">
                         <div class="col-4 mb-3">
@@ -36,7 +48,7 @@
                             <div class="card">
                                 <div class="card-body text-center">
                                     <h3 class="text-primary"><field name="demand_qty"/></h3>
-                                    <div>Today's Demand</div>
+                                    <div>Demand Qty</div>
                                 </div>
                             </div>
                         </div>
@@ -83,6 +95,14 @@
                         <div class="col-4 mb-3">
                             <div class="card">
                                 <div class="card-body text-center">
+                                    <h3 class="text-danger"><field name="material_shortage_count"/></h3>
+                                    <div>Material Shortages</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
                                     <h3 class="text-danger"><field name="machine_down"/></h3>
                                     <div>Machines Down</div>
                                 </div>
@@ -96,11 +116,29 @@
                                 </div>
                             </div>
                         </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning"><field name="assignment_conflict_count"/></h3>
+                                    <div>Assignment Conflicts</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning"><field name="shortage_shifts"/></h3>
+                                    <div>Shifts Short Manpower</div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                     <group>
                         <button name="action_open_schedule" string="Open Schedule Runs"
                             type="object"/>
                         <button name="action_open_workorders" string="Open Work Orders"
+                            type="object"/>
+                        <button name="action_open_shifts" string="Open Shifts"
                             type="object"/>
                     </group>
                 </sheet>
