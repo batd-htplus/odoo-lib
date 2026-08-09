@@ -26,6 +26,11 @@ class MenuBookmarkController(http.Controller):
         readonly=True,
     )
     def bookmark_data(self):
+        """Return the bookmarks visible to the calling user for the sidebar.
+
+        Returns:
+            list of dict: bookmark fields for the menu.
+        """
         return request.env['menu.bookmark'].search_read(
             domain=[],
             fields=BOOKMARK_FIELDS,
@@ -41,8 +46,8 @@ class MenuBookmarkController(http.Controller):
     def bookmark_add(self, name=None, url=None, target='_self'):
         """Create a bookmark for the calling user.
 
-        Returns a dict rather than a bare id so the client can show a proper
-        message instead of failing silently.
+        Returns:
+            dict: success flag with bookmark data, or an error for the client.
         """
         name = (name or '').strip()
         url = (url or '').strip()

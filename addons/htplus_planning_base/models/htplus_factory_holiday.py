@@ -21,11 +21,13 @@ class HtplusFactoryHoliday(models.Model):
 
     @api.constrains('date_from', 'date_to')
     def _check_dates(self):
+        """Validate that the holiday end is not before its start."""
         for rec in self:
             if rec.date_from and rec.date_to and rec.date_to < rec.date_from:
                 raise ValidationError(_('Holiday end must be on or after the start.'))
 
     def _sync_resource_leave(self):
+        """Create or update the matching resource calendar leave for each holiday."""
         Leave = self.env['resource.calendar.leaves']
         for rec in self:
             calendar = rec.factory_id._ensure_resource_calendar()
@@ -48,11 +50,13 @@ class HtplusFactoryHoliday(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create the holidays and sync their resource calendar leaves."""
         records = super().create(vals_list)
         records._sync_resource_leave()
         return records
 
     def write(self, vals):
+        """Re-sync the resource calendar leaves when holiday details change."""
         res = super().write(vals)
         if not self.env.context.get('htplus_skip_leave_sync'):
             if any(k in vals for k in ('name', 'factory_id', 'date_from', 'date_to', 'active')):
@@ -60,6 +64,7 @@ class HtplusFactoryHoliday(models.Model):
         return res
 
     def unlink(self):
+        """Delete the linked calendar leaves when the holidays are removed."""
         leaves = self.mapped('resource_leave_id')
         res = super().unlink()
         leaves.unlink()

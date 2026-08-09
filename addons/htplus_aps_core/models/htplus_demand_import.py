@@ -31,6 +31,11 @@ class HtplusDemandPlanImportWizard(models.TransientModel):
     ], default='import')
 
     def _parse_file(self):
+        """Parse the uploaded file into raw rows of product code, date and qty.
+
+        Returns:
+            list of row tuples extracted from the first three columns.
+        """
         if not self.file:
             raise UserError(_('Please select a file to import.'))
         data = base64.b64decode(self.file)
@@ -63,6 +68,7 @@ class HtplusDemandPlanImportWizard(models.TransientModel):
         return rows
 
     def action_preview(self):
+        """Fill the preview field with the first rows of the parsed file."""
         self.ensure_one()
         rows = self._parse_file()
         lines = ['product_code | date | qty']
@@ -71,6 +77,14 @@ class HtplusDemandPlanImportWizard(models.TransientModel):
         return True
 
     def _convert_row(self, row):
+        """Resolve a raw row to a product, date and quantity.
+
+        Args:
+            row: (product_code, date, qty) tuple from the parsed file.
+
+        Returns:
+            (product, date, qty) ready to create a demand plan line.
+        """
         product_code, date_str, qty_str = row
         product = self.env['product.product'].search(
             [('default_code', '=', product_code.strip())], limit=1)
@@ -84,6 +98,7 @@ class HtplusDemandPlanImportWizard(models.TransientModel):
         return product, date, qty
 
     def action_import(self):
+        """Import the parsed rows into a new demand plan and open it."""
         self.ensure_one()
         rows = self._parse_file()
         if not rows:

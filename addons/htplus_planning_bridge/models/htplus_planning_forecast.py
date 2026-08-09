@@ -23,6 +23,7 @@ class HtplusPlanningForecast(models.Model):
 
     @api.model
     def poll_pending_jobs(self):
+        """Poll the planning engine for finished jobs and store completed forecast lines."""
         pending = self.search([('state', '=', 'draft'), ('job_id', '!=', False)])
         for forecast in pending:
             result = self.env['htplus.planning.service'].poll_job(forecast.job_id)
@@ -40,12 +41,14 @@ class HtplusPlanningForecast(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Assign a sequence name to new forecasts that still hold the default label."""
         for vals in vals_list:
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('htplus.planning.forecast') or _('New')
         return super().create(vals_list)
 
     def action_run(self):
+        """Submit a demand forecast to the planning engine and store the resulting lines."""
         self.ensure_one()
         if not self.config_id:
             self.config_id = self.env['htplus.planning.config']._get_active()
@@ -71,6 +74,7 @@ class HtplusPlanningForecast(models.Model):
         return True
 
     def action_apply(self):
+        """Materialise the forecast lines into a demand plan and mark the forecast applied."""
         for forecast in self:
             plan = self.env['htplus.demand.plan'].create({
                 'date_start': self.date_start,

@@ -14,6 +14,7 @@ class HtplusDashboardKpi(models.Model):
 
     @api.depends('date_from', 'date_to')
     def _compute_shopfloor(self):
+        """Compute the shop-floor KPIs for the selected date range."""
         actuals = self.env['htplus.workorder.actual'].search([
             ('date_start', '>=', fields.Datetime.to_datetime(self.date_from)),
             ('date_start', '<=', fields.Datetime.to_datetime(self.date_to) + self._duration_delta()),
@@ -38,10 +39,20 @@ class HtplusDashboardKpi(models.Model):
             rec.oee_pct = rec.yield_pct * availability if rec.yield_pct else 0.0
 
     def _duration_delta(self):
+        """Return the delta that extends the search window to cover the whole end date.
+
+        Returns:
+            the timedelta to add to date_to.
+        """
         from datetime import timedelta
         return timedelta(days=1)
 
     def action_open_actuals(self):
+        """Open the work order execution records.
+
+        Returns:
+            the window action listing the actuals.
+        """
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.workorder.actual',
@@ -50,6 +61,11 @@ class HtplusDashboardKpi(models.Model):
         }
 
     def action_open_downtime(self):
+        """Open the downtime records.
+
+        Returns:
+            the window action listing downtimes.
+        """
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.downtime',
@@ -58,6 +74,11 @@ class HtplusDashboardKpi(models.Model):
         }
 
     def action_open_issues(self):
+        """Open the issue records.
+
+        Returns:
+            the window action listing issues.
+        """
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.issue',

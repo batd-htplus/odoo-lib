@@ -32,6 +32,7 @@ class HtplusDashboardKpi(models.Model):
 
     @api.depends('date_from', 'date_to')
     def _compute_planning(self):
+        """Aggregate planning KPIs within the selected window."""
         plans = self.env['htplus.production.plan'].search([
             ('state', 'in', ['approved', 'locked']),
         ])
@@ -50,6 +51,7 @@ class HtplusDashboardKpi(models.Model):
 
     @api.depends('date_from', 'date_to')
     def _compute_schedule(self):
+        """Aggregate scheduling KPIs (scheduled, locked, conflicts, late WOs)."""
         runs = self.env['htplus.schedule.run'].search([])
         workorders = self.env['mrp.workorder'].search([])
         now = datetime.now()
@@ -66,6 +68,7 @@ class HtplusDashboardKpi(models.Model):
 
     @api.depends('date_from', 'date_to')
     def _compute_shift(self):
+        """Aggregate shift KPIs (manpower, completion and overtime)."""
         shifts = self.env['htplus.production.shift'].search([
             ('date', '>=', self.date_from),
             ('date', '<=', self.date_to),
@@ -93,15 +96,18 @@ class HtplusDashboardKpi(models.Model):
 
     @api.depends()
     def _compute_machine(self):
+        """Count machines currently in 'down' status."""
         machines = self.env['htplus.machine'].search([('status', '=', 'down')])
         for rec in self:
             rec.machine_down = len(machines)
 
     def action_refresh(self):
+        """Invalidate caches so the dashboard recomputes its KPIs."""
         self.invalidate_recordset()
         return True
 
     def action_open_schedule(self):
+        """Open the schedule runs list."""
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.schedule.run',
@@ -110,6 +116,7 @@ class HtplusDashboardKpi(models.Model):
         }
 
     def action_open_workorders(self):
+        """Open the work orders list."""
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'mrp.workorder',
@@ -118,6 +125,7 @@ class HtplusDashboardKpi(models.Model):
         }
 
     def action_open_shifts(self):
+        """Open the shifts within the selected window."""
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.production.shift',

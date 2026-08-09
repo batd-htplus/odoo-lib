@@ -52,13 +52,17 @@ class HtplusIssue(models.Model):
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
 
     def action_open(self):
+        """Reopen the issue by setting its status to open."""
         self.state = 'open'
 
     def action_in_progress(self):
+        """Move the issue to in progress."""
         self.state = 'in_progress'
 
     def action_resolve(self):
+        """Resolve the issue."""
         self.state = 'resolved'
 
     def action_close(self):
+        """Close the issue."""
         self.state = 'closed'

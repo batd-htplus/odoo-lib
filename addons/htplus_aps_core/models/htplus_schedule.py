@@ -41,10 +41,12 @@ class HtplusScheduleRun(models.Model):
 
     @api.depends('workorder_ids.schedule_conflict')
     def _compute_conflict_count(self):
+        """Count work orders flagged as schedule conflicts."""
         for run in self:
             run.conflict_count = len(run.workorder_ids.filtered(lambda w: w.schedule_conflict))
 
     def _htplus_horizon_start(self):
+        """Earliest datetime of the scheduling horizon for this run."""
         self.ensure_one()
         if self.date_start:
             return fields.Datetime.to_datetime(self.date_start)
@@ -55,6 +57,14 @@ class HtplusScheduleRun(models.Model):
 
     @staticmethod
     def _htplus_duration_hours(workorder):
+        """Estimated duration in hours from the expected duration or order qty.
+
+        Args:
+            workorder: Work order to estimate.
+
+        Returns:
+            Duration in hours, at least 0.5.
+        """
         if workorder.duration_expected:
             return max(float(workorder.duration_expected) / 60.0, 0.5)
         qty = workorder.production_id.product_qty if workorder.production_id else 1.0
@@ -191,6 +201,7 @@ class HtplusScheduleRun(models.Model):
         return conflicted
 
     def action_calculate(self):
+        """Detect overlapping work orders and mark the run as calculated."""
         self._htplus_require_planner()
         for run in self:
             if run.state not in ('draft', 'calculated'):
@@ -211,6 +222,7 @@ class HtplusScheduleRun(models.Model):
         return True
 
     def action_confirm(self):
+        """Confirm the run once it has no conflicts and every work order is dated."""
         self._htplus_require_planner()
         for run in self:
             if run.conflict_count:
@@ -228,6 +240,7 @@ class HtplusScheduleRun(models.Model):
             run.state = 'confirmed'
 
     def action_lock(self):
+        """Lock the run and its work orders against further rescheduling."""
         self._htplus_require_manager()
         for run in self:
             run.workorder_ids.locked = True
@@ -235,6 +248,7 @@ class HtplusScheduleRun(models.Model):
             run.state = 'locked'
 
     def action_undo_change(self):
+        """Revert the most recent schedule change recorded on this run."""
         changes = self.env['htplus.schedule.change'].search([
             ('schedule_run_id', 'in', self.ids),
         ], order='id desc', limit=1)
@@ -252,6 +266,7 @@ class HtplusScheduleRun(models.Model):
         change.unlink()
 
     def action_run_solver(self):
+        """Run the solver, storing results in a simulation scenario."""
         self.ensure_one()
         self._htplus_require_planner()
         if not self.scenario_id:
@@ -389,6 +404,7 @@ class MrpWorkorder(models.Model):
     machine_ok = fields.Boolean(string='Machine OK')
 
     def action_open_gantt(self):
+        """Build the gantt rows for the selected (or latest dated) work orders."""
         workorders = self.filtered(lambda w: w.date_start or w.schedule_state != 'unscheduled')
         if not workorders:
             workorders = self.search([('date_start', '!=', False)], limit=500)
@@ -440,6 +456,14 @@ class MrpWorkorder(models.Model):
 
     @staticmethod
     def _htplus_change_value(value):
+        """Serialize a field value (datetime, record or scalar) for change logs.
+
+        Args:
+            value: Field value to serialize.
+
+        Returns:
+            A comparable string, or None for empty values.
+        """
         if value is False or value is None:
             return None
         if hasattr(value, 'id'):
@@ -447,6 +471,7 @@ class MrpWorkorder(models.Model):
         return str(value)
 
     def write(self, vals):
+        """Enforce locked work orders, optimistic locking and schedule-change logging."""
         tracked = ('date_start', 'date_finished', 'machine_id', 'line_id', 'priority', 'schedule_state', 'locked')
         if any(field in vals for field in tracked) or self.env.context.get('htplus_expected_write_date') \
                 or self.env.context.get('htplus_expected_write_dates'):

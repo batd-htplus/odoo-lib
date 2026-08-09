@@ -38,19 +38,32 @@ class HtplusDemandPlan(models.Model):
         return super().create(vals_list)
 
     def action_confirm(self):
+        """Confirm the demand plan for approval."""
         self._htplus_require_planner()
         self.state = 'confirmed'
 
     def action_approve(self):
+        """Approve the demand plan for planning."""
         self._htplus_require_manager()
         self.state = 'approved'
 
     def action_cancel(self):
+        """Cancel the demand plan."""
         self._htplus_require_planner()
         self.state = 'cancelled'
 
     def _htplus_add_plan_line(self, plan, product, qty, deadline, demand_line=False, priority=0, seen=None):
-        """Add a production plan line and explode manufactured components (multi-level)."""
+        """Add a production plan line and explode manufactured components (multi-level).
+
+        Args:
+            plan: Production plan to add the line to.
+            product: Product to produce.
+            qty: Quantity to produce.
+            deadline: Required completion date.
+            demand_line: Source demand line, if any.
+            priority: Line priority.
+            seen: Set of already-queued (product, deadline) keys.
+        """
         self.ensure_one()
         seen = seen if seen is not None else set()
         key = (product.id, fields.Date.to_string(deadline) if deadline else '')
@@ -102,6 +115,7 @@ class HtplusDemandPlan(models.Model):
                 )
 
     def action_generate_plan(self):
+        """Generate the production plan from the demand lines."""
         self.ensure_one()
         self._htplus_require_planner()
         plan = self.env['htplus.production.plan'].create({
@@ -123,6 +137,7 @@ class HtplusDemandPlan(models.Model):
         }
 
     def action_export_excel(self):
+        """Trigger the .xlsx export of this demand plan."""
         self.ensure_one()
         return {
             'type': 'ir.actions.act_url',

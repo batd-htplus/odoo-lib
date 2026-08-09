@@ -55,6 +55,7 @@ class HtplusShiftTemplate(models.Model):
 
     @api.depends('start_time', 'end_time', 'break_minutes')
     def _compute_total_hours(self):
+        """Compute the shift length in hours after subtracting the break."""
         for rec in self:
             total = rec.end_time - rec.start_time
             if total <= 0:
@@ -62,6 +63,11 @@ class HtplusShiftTemplate(models.Model):
             rec.total_hours = max(total - (rec.break_minutes or 0.0) / 60.0, 0.0)
 
     def _target_calendar(self):
+        """Resolve the calendar to sync into, falling back to the factory calendar.
+
+        Returns:
+            The target resource.calendar record, or False if none is configured.
+        """
         self.ensure_one()
         if self.resource_calendar_id:
             return self.resource_calendar_id
@@ -70,10 +76,23 @@ class HtplusShiftTemplate(models.Model):
         return False
 
     def _day_period_for(self, hour_from):
+        """Return 'morning' or 'afternoon' based on the shift start hour.
+
+        Args:
+            hour_from: The shift start time in hours.
+        """
         return 'morning' if (hour_from or 0.0) < 12.0 else 'afternoon'
 
     def _attendance_vals_for_day(self, calendar, dayofweek):
-        """Build attendance line vals. Overnight shifts split across midnight."""
+        """Build the attendance line values, splitting overnight shifts across midnight.
+
+        Args:
+            calendar: The target resource.calendar record.
+            dayofweek: The weekday key ('0' to '6') the lines belong to.
+
+        Returns:
+            List of attendance value dicts, including any break line.
+        """
         self.ensure_one()
         start = self.start_time or 0.0
         end = self.end_time or 0.0
@@ -127,6 +146,7 @@ class HtplusShiftTemplate(models.Model):
         return lines
 
     def action_sync_to_calendar(self):
+        """Sync the shift pattern into the target resource calendar."""
         Attendance = self.env['resource.calendar.attendance']
         for template in self:
             calendar = template._target_calendar()
@@ -157,11 +177,13 @@ class HtplusShiftTemplate(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create the shift templates and sync those linked to a factory or calendar."""
         templates = super().create(vals_list)
         templates.filtered(lambda t: t.factory_id or t.resource_calendar_id).action_sync_to_calendar()
         return templates
 
     def write(self, vals):
+        """Re-sync the shift templates when their pattern fields change."""
         res = super().write(vals)
         if self.env.context.get('htplus_skip_attendance_sync'):
             return res
@@ -218,6 +240,7 @@ class HtplusProductionShift(models.Model):
 
     @api.depends('date', 'template_id.start_time', 'template_id.end_time')
     def _compute_shift_time(self):
+        """Compute the shift start and end datetimes, rolling overnight ends to the next day."""
         for rec in self:
             if not rec.date or not rec.template_id:
                 rec.start_time = rec.end_time = False
@@ -234,6 +257,7 @@ class HtplusProductionShift(models.Model):
 
     @api.depends('assignment_ids', 'assignment_ids.state', 'assignment_ids.qty')
     def _compute_shift_totals(self):
+        """Total the confirmed assignments to derive assigned manpower and quantity."""
         for rec in self:
             confirmed = rec.assignment_ids.filtered(
                 lambda a: a.state == 'confirmed')
@@ -242,6 +266,7 @@ class HtplusProductionShift(models.Model):
 
     @api.onchange('template_id')
     def _onchange_template_id(self):
+        """Propagate the factory, plant, line and default manpower from the chosen template."""
         if self.template_id:
             self.factory_id = self.template_id.factory_id
             self.plant_id = self.template_id.plant_id
@@ -250,6 +275,7 @@ class HtplusProductionShift(models.Model):
                 self.manpower_required = self.template_id.default_manpower
 
     def _check_leader_conflict(self):
+        """Raise an error if the leader is already booked on another shift that day."""
         for rec in self:
             if not rec.leader_id:
                 continue
@@ -265,6 +291,7 @@ class HtplusProductionShift(models.Model):
                     % rec.leader_id.name)
 
     def _check_machine_availability(self):
+        """Raise an error if the work center is already scheduled on that date."""
         for rec in self:
             if not rec.workcenter_id:
                 continue
@@ -281,6 +308,7 @@ class HtplusProductionShift(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Number new shifts, inherit template defaults and run the conflict checks."""
         for vals in vals_list:
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code(
@@ -297,6 +325,7 @@ class HtplusProductionShift(models.Model):
         return shifts
 
     def write(self, vals):
+        """Re-run the conflict checks when the leader or work center changes."""
         res = super().write(vals)
         if vals.get('leader_id') or vals.get('workcenter_id'):
             self._check_leader_conflict()
@@ -304,18 +333,22 @@ class HtplusProductionShift(models.Model):
         return res
 
     def action_confirm(self):
+        """Confirm the shifts once the required manpower is set."""
         for rec in self:
             if not rec.manpower_required:
                 raise ValidationError(_('Required manpower must be set before confirming.'))
         self.state = 'confirmed'
 
     def action_complete(self):
+        """Mark the shifts as completed."""
         self.state = 'completed'
 
     def action_cancel(self):
+        """Cancel the shifts."""
         self.state = 'cancelled'
 
     def action_open_assignments(self):
+        """Open the workforce assignments for this shift."""
         return {
             'name': _('Shift Assignments'),
             'type': 'ir.actions.act_window',
@@ -326,6 +359,7 @@ class HtplusProductionShift(models.Model):
         }
 
     def action_open_actuals(self):
+        """Open the shift actuals (completion records) for this shift."""
         return {
             'name': _('Shift Actual'),
             'type': 'ir.actions.act_window',

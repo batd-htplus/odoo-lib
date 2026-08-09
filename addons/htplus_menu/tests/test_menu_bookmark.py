@@ -7,6 +7,7 @@ class TestMenuBookmark(TransactionCase):
 
     @classmethod
     def setUpClass(cls):
+        """Create Alice and Bob plus a bookmark owned by Alice."""
         super().setUpClass()
         Users = cls.env['res.users'].with_context(no_reset_password=True)
         group_user = cls.env.ref('base.group_user')
@@ -29,25 +30,28 @@ class TestMenuBookmark(TransactionCase):
     # --- Record rule ---------------------------------------------------------
 
     def test_owner_sees_own_bookmark(self):
+        """A user always sees their own bookmarks."""
         found = self.env['menu.bookmark'].with_user(self.alice).search([])
         self.assertIn(self.alice_bookmark, found)
 
     def test_other_user_cannot_read_bookmark(self):
-        """The regression this module shipped with: the ACL granted every
-        internal user full rights on menu.bookmark and there was no record
-        rule, so Bob could read and edit Alice's bookmarks."""
+        """Regression: with no record rule the ACL let Bob read and edit
+        Alice's bookmarks."""
         found = self.env['menu.bookmark'].with_user(self.bob).search([])
         self.assertNotIn(self.alice_bookmark, found)
 
     def test_other_user_cannot_write_bookmark(self):
+        """Bob cannot edit Alice's bookmark."""
         with self.assertRaises(AccessError):
             self.alice_bookmark.with_user(self.bob).write({'name': 'hijacked'})
 
     def test_other_user_cannot_unlink_bookmark(self):
+        """Bob cannot delete Alice's bookmark."""
         with self.assertRaises(AccessError):
             self.alice_bookmark.with_user(self.bob).unlink()
 
     def test_admin_sees_every_bookmark(self):
+        """Admins bypass the owner-only rule and see every bookmark."""
         found = self.env['menu.bookmark'].search([])
         self.assertIn(self.alice_bookmark, found)
 
@@ -71,6 +75,7 @@ class TestMenuBookmark(TransactionCase):
                 })
 
     def test_valid_urls_accepted(self):
+        """http(s) URLs and same-instance relative paths are accepted."""
         for good_url in (
             'https://example.com/report',
             'http://example.com',
@@ -94,19 +99,20 @@ class TestMenuBookmark(TransactionCase):
             })
 
     def test_url_is_stripped_on_write(self):
+        """Whitespace is stripped from URLs when a bookmark is updated."""
         self.alice_bookmark.write({'url': '  /odoo/purchase  '})
         self.assertEqual(self.alice_bookmark.url, '/odoo/purchase')
 
     # --- Model behaviour -----------------------------------------------------
 
     def test_deleting_user_cascades(self):
-        """user_id is required, which defaults to ondelete='restrict' and would
-        otherwise make the user undeletable."""
+        """Deleting a user cascades to their bookmarks (user_id defaults to ondelete='restrict')."""
         bookmark_id = self.alice_bookmark.id
         self.alice.unlink()
         self.assertFalse(self.env['menu.bookmark'].browse(bookmark_id).exists())
 
     def test_default_user_is_current_user(self):
+        """A bookmark created without user_id binds to the session user."""
         bookmark = self.env['menu.bookmark'].with_user(self.bob).create({
             'name': 'Bob bookmark',
             'url': '/odoo/settings',

@@ -20,6 +20,11 @@ class HtplusDowntimeReason(models.Model):
     active = fields.Boolean(default=True)
 
     def _mrp_loss_xmlid(self):
+        """Return the Odoo block reason XML id matching the reason category.
+
+        Returns:
+            the mrp block_reason XML id for the category.
+        """
         self.ensure_one()
         mapping = {
             'breakdown': 'mrp.block_reason1',
@@ -59,6 +64,7 @@ class HtplusDowntime(models.Model):
 
     @api.depends('date_start', 'date_end')
     def _compute_duration(self):
+        """Compute the downtime duration in minutes from start to end."""
         for rec in self:
             if rec.date_end and rec.date_start:
                 delta = rec.date_end - rec.date_start
@@ -69,6 +75,11 @@ class HtplusDowntime(models.Model):
     duration_minutes = fields.Float(compute='_compute_duration', string='Duration (minutes)')
 
     def _workcenter(self):
+        """Resolve the work center from the work order or the machine.
+
+        Returns:
+            the work center record, or an empty recordset if none.
+        """
         self.ensure_one()
         if self.workorder_id.workcenter_id:
             return self.workorder_id.workcenter_id
@@ -77,6 +88,7 @@ class HtplusDowntime(models.Model):
         return self.env['mrp.workcenter']
 
     def _sync_productivity(self):
+        """Mirror each downtime as an mrp.workcenter.productivity time log."""
         Productivity = self.env['mrp.workcenter.productivity']
         for rec in self:
             workcenter = rec._workcenter()
@@ -105,11 +117,13 @@ class HtplusDowntime(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create the downtime records and sync their productivity logs."""
         records = super().create(vals_list)
         records._sync_productivity()
         return records
 
     def write(self, vals):
+        """Update the downtime and resync productivity when timing or reason fields change."""
         res = super().write(vals)
         if self.env.context.get('htplus_skip_productivity_sync'):
             return res

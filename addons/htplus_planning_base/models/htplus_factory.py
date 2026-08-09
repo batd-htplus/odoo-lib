@@ -21,6 +21,11 @@ class HtplusFactory(models.Model):
     active = fields.Boolean(default=True)
 
     def _ensure_resource_calendar(self):
+        """Return the factory working-hours calendar, creating it if needed.
+
+        Returns:
+            The factory's resource.calendar record.
+        """
         self.ensure_one()
         if self.resource_calendar_id:
             return self.resource_calendar_id
@@ -35,6 +40,7 @@ class HtplusFactory(models.Model):
         return calendar
 
     def action_apply_calendar_to_workcenters(self):
+        """Apply the factory working-hours calendar to all its work centers."""
         for factory in self:
             calendar = factory._ensure_resource_calendar()
             factory.workcenter_ids.write({'resource_calendar_id': calendar.id})
@@ -42,6 +48,7 @@ class HtplusFactory(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create the factories and give each one a working-hours calendar."""
         factories = super().create(vals_list)
         for factory in factories:
             factory._ensure_resource_calendar()
@@ -85,12 +92,14 @@ class MrpWorkcenter(models.Model):
 
     @api.onchange('factory_id')
     def _onchange_htplus_factory_calendar(self):
+        """Carry the factory calendar onto the work center when the factory changes."""
         for wc in self:
             if wc.factory_id and wc.factory_id.resource_calendar_id:
                 wc.resource_calendar_id = wc.factory_id.resource_calendar_id
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Default the calendar from the factory when creating work centers without one."""
         for vals in vals_list:
             if vals.get('factory_id') and not vals.get('resource_calendar_id'):
                 factory = self.env['htplus.factory'].browse(vals['factory_id'])
@@ -99,6 +108,7 @@ class MrpWorkcenter(models.Model):
         return super().create(vals_list)
 
     def write(self, vals):
+        """Resync work center calendars whenever their factory changes."""
         res = super().write(vals)
         if self.env.context.get('htplus_skip_wc_calendar'):
             return res

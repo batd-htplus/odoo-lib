@@ -26,11 +26,13 @@ class HtplusSimulationScenario(models.Model):
 
     @api.depends('line_ids.delay_hours', 'line_ids.cost')
     def _compute_totals(self):
+        """Sum delay and cost across the scenario lines."""
         for scenario in self:
             scenario.total_delay_hours = sum(scenario.line_ids.mapped('delay_hours'))
             scenario.total_cost = sum(scenario.line_ids.mapped('cost'))
 
     def action_copy_from_base(self):
+        """Seed scenario lines from the base schedule run's work orders."""
         for scenario in self:
             if not scenario.base_schedule_run_id:
                 continue
@@ -46,6 +48,7 @@ class HtplusSimulationScenario(models.Model):
             scenario.state = 'computed'
 
     def action_run(self):
+        """Compute simulated dates for every scenario line."""
         for scenario in self:
             if not scenario.line_ids:
                 scenario.action_copy_from_base()
@@ -59,6 +62,7 @@ class HtplusSimulationScenario(models.Model):
         return True
 
     def action_apply(self):
+        """Write simulated dates onto the real work orders and mark the scenario applied."""
         # Materialise simulation lines onto real work orders only on apply.
         for scenario in self:
             for line in scenario.line_ids.filtered(lambda l: l.simulated_start):
@@ -83,6 +87,7 @@ class HtplusSimulationLine(models.Model):
 
     @api.depends('simulated_end', 'original_end')
     def _compute_delay(self):
+        """Delay in hours when the simulated end runs past the original end."""
         for line in self:
             delay = 0.0
             if line.simulated_end and line.original_end:

@@ -15,21 +15,33 @@ class HtplusPlanningService(models.AbstractModel):
     _description = 'AI Service Client'
 
     def _get_config(self):
+        """Return the active planning engine configuration, raising if none exists."""
         config = self.env['htplus.planning.config']._get_active()
         if not config:
             raise UserError('No active planning engine configuration found.')
         return config
 
     def _api_key(self, config):
+        """Return the API key from config or the environment, falling back to empty."""
         return (config.api_key or os.environ.get('HTPLUS_PLANNING_API_KEY') or '').strip()
 
     def _headers(self, config):
+        """Build the JSON authorization headers for planning engine requests."""
         return {
             'Authorization': 'Bearer %s' % self._api_key(config),
             'Content-Type': 'application/json',
         }
 
     def _call(self, path, payload):
+        """POST a payload to the planning engine endpoint and return the JSON response.
+
+        Args:
+            path: API endpoint path relative to the service URL.
+            payload: Dict of parameters sent to the planning engine.
+
+        Returns:
+            The JSON response dict from the planning engine.
+        """
         config = self._get_config()
         url = '%s%s' % (config.url.rstrip('/'), path)
         try:
@@ -43,6 +55,7 @@ class HtplusPlanningService(models.AbstractModel):
             raise UserError('Planning engine call failed: %s' % error) from error
 
     def forecast(self, product_ids, horizon_days, history):
+        """Submit a demand forecast request to the planning engine."""
         return self._call('/api/v1/forecast', {
             'product_ids': product_ids,
             'horizon_days': horizon_days,
@@ -51,6 +64,7 @@ class HtplusPlanningService(models.AbstractModel):
 
     def schedule_recommend(self, workorders, constraints, objective='min_tardiness',
                            algorithm='rule_engine'):
+        """Submit a schedule recommendation request to the planning engine."""
         return self._call('/api/v1/schedule/recommend', {
             'workorders': workorders,
             'constraints': constraints,
@@ -59,7 +73,7 @@ class HtplusPlanningService(models.AbstractModel):
         })
 
     def wait_job(self, job_id, timeout_sec=None, poll_interval=0.5):
-        """Poll /api/v1/job/{id} until success/failed or timeout."""
+        """Poll the planning engine job endpoint until it succeeds, fails, or times out."""
         config = self._get_config()
         timeout = timeout_sec if timeout_sec is not None else config.timeout_sec
         deadline = time.monotonic() + max(timeout, 1)
@@ -85,6 +99,7 @@ class HtplusPlanningService(models.AbstractModel):
         raise UserError('Planning engine job timed out (job_id=%s).' % job_id)
 
     def assignment_recommend(self, workorders, employees, skill_matrix, shifts):
+        """Submit an assignment recommendation request to the planning engine."""
         return self._call('/api/v1/assignment/recommend', {
             'workorders': workorders,
             'employees': employees,
@@ -93,18 +108,22 @@ class HtplusPlanningService(models.AbstractModel):
         })
 
     def bottleneck_predict(self, period):
+        """Ask the planning engine to predict bottlenecks for the given period."""
         return self._call('/api/v1/bottleneck/predict', {'period': period})
 
     def delay_predict(self, workorders):
+        """Ask the planning engine to predict delays for the given work orders."""
         return self._call('/api/v1/delay/predict', {'workorders': workorders})
 
     def root_cause(self, workorder_id, history):
+        """Ask the planning engine to analyse the root cause of a work order issue."""
         return self._call('/api/v1/root-cause', {
             'workorder_id': workorder_id,
             'history': history,
         })
 
     def chat(self, session_id, message, context=None):
+        """Send a chat message to the planning assistant for the given session."""
         return self._call('/api/v1/chat', {
             'session_id': session_id,
             'message': message,
@@ -112,6 +131,7 @@ class HtplusPlanningService(models.AbstractModel):
         })
 
     def poll_job(self, job_id):
+        """Fetch the current status of a planning engine job without waiting."""
         config = self._get_config()
         url = '%s/api/v1/job/%s' % (config.url.rstrip('/'), job_id)
         headers = {'Authorization': 'Bearer %s' % self._api_key(config)}

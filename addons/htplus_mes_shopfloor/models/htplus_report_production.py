@@ -9,6 +9,11 @@ class HtplusReportProductionDaily(models.TransientModel):
     date_to = fields.Date(required=True, default=fields.Date.context_today)
 
     def _get_lines(self):
+        """Build report lines grouping actuals and downtimes by work order.
+
+        Returns:
+            the list of report line dicts.
+        """
         self.ensure_one()
         lines = []
         actuals = self.env['htplus.workorder.actual'].search([
@@ -41,6 +46,11 @@ class HtplusReportProductionDaily(models.TransientModel):
         return lines
 
     def _get_totals(self):
+        """Sum the production figures across all report lines.
+
+        Returns:
+            the totals dict for the report.
+        """
         lines = self._get_lines()
         return {
             'qty_good': sum(line['qty_good'] for line in lines),
@@ -49,10 +59,20 @@ class HtplusReportProductionDaily(models.TransientModel):
         }
 
     def action_print_pdf(self):
+        """Open the daily production report as a PDF.
+
+        Returns:
+            the report action.
+        """
         report = self.env.ref('htplus_mes_shopfloor.action_report_htplus_production_daily')
         return report.report_action(self)
 
     def action_export_xlsx(self):
+        """Trigger the XLSX export for the selected period.
+
+        Returns:
+            the URL action to download the file.
+        """
         return {
             'type': 'ir.actions.act_url',
             'url': '/htplus/mes/report/production/export?date_from=%s&date_to=%s&wizard_id=%s'

@@ -35,28 +35,34 @@ class HtplusProductionPlan(models.Model):
         return super().create(vals_list)
 
     def action_confirm(self):
+        """Confirm the production plan."""
         self._htplus_require_planner()
         self.state = 'confirmed'
 
     def action_approve(self):
+        """Approve the plan after checking material availability."""
         self._htplus_require_manager()
         self.line_ids.action_check_materials()
         self.state = 'approved'
 
     def action_lock(self):
+        """Lock the plan so it can no longer be edited."""
         self._htplus_require_manager()
         self.state = 'locked'
 
     def action_cancel(self):
+        """Cancel the production plan."""
         self._htplus_require_planner()
         self.state = 'cancelled'
 
     def action_check_materials(self):
+        """Re-run the material availability check on all plan lines."""
         self._htplus_require_planner()
         self.line_ids.action_check_materials()
         return True
 
     def action_create_productions(self):
+        """Create and confirm a manufacturing order for each plan line."""
         self._htplus_require_planner()
         for plan in self:
             plan.line_ids.action_check_materials()
@@ -90,8 +96,7 @@ class HtplusProductionPlan(models.Model):
         return True
 
     def action_create_schedule(self):
-        """Create a schedule run and attach work orders from this plan's MOs.
-        """
+        """Create a schedule run and attach work orders from this plan's MOs."""
         self.ensure_one()
         self._htplus_require_planner()
         if self.state in ('draft', 'cancelled'):
@@ -159,6 +164,7 @@ class HtplusProductionPlanLine(models.Model):
     ], default='draft', string='Status')
 
     def _get_bom(self):
+        """Return the line BOM, falling back to the product default."""
         self.ensure_one()
         if self.bom_id:
             return self.bom_id
@@ -168,6 +174,7 @@ class HtplusProductionPlanLine(models.Model):
         return bom or self.env['mrp.bom']
 
     def action_check_materials(self):
+        """Check component stock against the BOM and flag shortages."""
         for line in self:
             bom = line._get_bom()
             if not bom:
@@ -197,6 +204,7 @@ class HtplusProductionPlanLine(models.Model):
 
     @api.onchange('product_id')
     def _onchange_product_id_bom(self):
+        """Default the UoM and BOM from the selected product."""
         if self.product_id:
             self.uom_id = self.product_id.uom_id
             self.bom_id = self._get_bom()

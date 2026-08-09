@@ -44,6 +44,7 @@ class MenuBookmark(models.Model):
 
     @api.constrains('url')
     def _check_url(self):
+        """Validate that bookmark URLs use an allowed http(s) scheme or a same-instance relative path."""
         for bookmark in self:
             url = (bookmark.url or '').strip()
             # A relative path stays inside this instance and is always safe.
@@ -59,12 +60,14 @@ class MenuBookmark(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Strip surrounding whitespace from new bookmark URLs."""
         for vals in vals_list:
             if 'url' in vals and vals['url']:
                 vals['url'] = vals['url'].strip()
         return super().create(vals_list)
 
     def write(self, vals):
+        """Strip surrounding whitespace from bookmark URLs when they are updated."""
         if vals.get('url'):
             vals['url'] = vals['url'].strip()
         return super().write(vals)

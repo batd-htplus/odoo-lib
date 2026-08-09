@@ -31,9 +31,11 @@ class HtplusPlanningRecommendation(models.Model):
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
 
     def action_apply(self):
+        """Mark the recommendation as applied and record the reviewing user."""
         self.state = 'applied'
         self.user_id = self.env.user
 
     def action_dismiss(self):
+        """Mark the recommendation as dismissed and record the reviewing user."""
         self.state = 'dismissed'
         self.user_id = self.env.user

@@ -12,6 +12,11 @@ class HtplusWorkforceAssignment(models.Model):
     )
 
     def action_confirm(self):
+        """Confirm the assignment and link it to a MES actual.
+
+        Returns:
+            the result of the parent confirmation action.
+        """
         res = super().action_confirm()
         self._htplus_open_mes_actual()
         return res
@@ -45,6 +50,11 @@ class HtplusWorkforceAssignment(models.Model):
             assignment.actual_id = actual.id
 
     def action_open_actual(self):
+        """Open the linked shop-floor actual for this assignment.
+
+        Returns:
+            the window action to open the actual, or False if none.
+        """
         self.ensure_one()
         if not self.actual_id:
             return False

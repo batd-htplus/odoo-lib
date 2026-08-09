@@ -18,4 +18,5 @@ class HtplusPlanningConfig(models.Model):
     ]
 
     def _get_active(self):
+        """Return the first active planning engine configuration."""
         return self.search([('active', '=', True)], limit=1)

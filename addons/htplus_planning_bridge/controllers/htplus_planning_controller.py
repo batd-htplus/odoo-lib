@@ -6,6 +6,7 @@ class HtplusPlanningWebhook(http.Controller):
 
     @http.route('/htplus_planning/webhook/forecast/<int:forecast_id>', type='json', auth='user', methods=['POST'])
     def forecast_webhook(self, forecast_id, **kwargs):
+        """Store the forecast payload sent by the planning engine on the given forecast."""
         forecast = request.env['htplus.planning.forecast'].browse(forecast_id)
         payload = request.jsonrequest or {}
         lines = [(0, 0, {

@@ -25,6 +25,7 @@ class HtplusWorkforceAssignment(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Number new assignments and default the timeframe from the linked shift."""
         for vals in vals_list:
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code(
@@ -37,11 +38,13 @@ class HtplusWorkforceAssignment(models.Model):
 
     @api.onchange('shift_id')
     def _onchange_shift_id(self):
+        """Set the assignment timeframe from the chosen shift."""
         if self.shift_id:
             self.date_start = self.shift_id.start_time
             self.date_end = self.shift_id.end_time
 
     def action_validate(self):
+        """Check skills, shift conflicts and overtime eligibility for each assignment."""
         production_type = self.env.ref(
             'htplus_planning_base.hr_skill_type_production', raise_if_not_found=False,
         )
@@ -72,6 +75,7 @@ class HtplusWorkforceAssignment(models.Model):
             assignment.ot_ok = not assignment.conflict
 
     def action_confirm(self):
+        """Validate and confirm assignments that pass the skill and conflict checks."""
         self.action_validate()
         for assignment in self:
             if assignment.conflict:
@@ -85,4 +89,5 @@ class HtplusWorkforceAssignment(models.Model):
         self.state = 'confirmed'
 
     def action_cancel(self):
+        """Cancel the assignments."""
         self.state = 'cancelled'

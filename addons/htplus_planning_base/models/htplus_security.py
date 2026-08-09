@@ -7,6 +7,12 @@ class HtplusSecurityMixin(models.AbstractModel):
     _description = 'HTPlus Role Checks'
 
     def _htplus_require_group(self, xmlid, message=None):
+        """Raise an access error if the current user lacks the given security group.
+
+        Args:
+            xmlid: The security group XML ID to check.
+            message: Optional error message to surface instead of the default.
+        """
         if self.env.su:
             return
         if not self.env.user.has_group(xmlid):
@@ -15,12 +21,14 @@ class HtplusSecurityMixin(models.AbstractModel):
             ))
 
     def _htplus_require_planner(self):
+        """Require the APS Planner (or Manager) role for the current user."""
         self._htplus_require_group(
             'htplus_planning_base.group_aps_planner',
             _('Only APS Planners (or Managers) can perform this action.'),
         )
 
     def _htplus_require_manager(self):
+        """Require the APS Manager role for the current user."""
         self._htplus_require_group(
             'htplus_planning_base.group_aps_manager',
             _('Only APS Managers can perform this action.'),

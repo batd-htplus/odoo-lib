@@ -13,6 +13,11 @@ class HtplusDemandExportController(http.Controller):
 
     @http.route('/htplus/aps/demand/export', type='http', auth='user')
     def export_demand_plan(self, plan_id=None, **kwargs):
+        """Stream the demand plan lines as an .xlsx download.
+
+        Args:
+            plan_id: Demand plan to export.
+        """
         if not xlsxwriter:
             return request.not_found()
         plan = request.env['htplus.demand.plan'].browse(int(plan_id or 0))

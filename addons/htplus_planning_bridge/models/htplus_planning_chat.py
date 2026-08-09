@@ -12,6 +12,15 @@ class HtplusPlanningChat(models.Model):
     session_id = fields.Char()
 
     def _send(self, message, context=None):
+        """Send a user message to the planning assistant and store its reply.
+
+        Args:
+            message: The user message text.
+            context: Optional dict passed to the planning engine.
+
+        Returns:
+            The dict response returned by the chat service.
+        """
         self.ensure_one()
         if not self.session_id:
             self.session_id = '%s-%s' % (self.id, self.user_id.id)

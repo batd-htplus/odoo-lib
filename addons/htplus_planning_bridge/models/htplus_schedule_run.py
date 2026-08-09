@@ -6,10 +6,10 @@ class HtplusScheduleRun(models.Model):
     _inherit = 'htplus.schedule.run'
 
     def action_run_solver(self):
-        """Call the planning service and store results in a simulation scenario.
+        """Call the planning engine and store the schedule result in a simulation scenario.
 
         Does not write mrp.workorder dates — apply via scenario.action_apply().
-        Manual algorithm keeps the local copy-from-base behaviour.
+        The manual algorithm keeps the local copy-from-base behaviour.
         """
         self.ensure_one()
         if self.algorithm == 'manual':
@@ -72,6 +72,7 @@ class HtplusScheduleRun(models.Model):
         }
 
     def _htplus_wo_payload(self, workorder):
+        """Build the work order payload dict sent to the planning engine."""
         production = workorder.production_id
         qty = production.product_qty if production else 1.0
         due = False
@@ -87,6 +88,7 @@ class HtplusScheduleRun(models.Model):
         }
 
     def _htplus_workcenter_constraints(self):
+        """Build the work center constraints dict for the schedule run's work orders."""
         centers = self.workorder_ids.mapped('workcenter_id')
         return [{
             'workcenter_id': center.id,
@@ -96,6 +98,7 @@ class HtplusScheduleRun(models.Model):
 
     @staticmethod
     def _htplus_parse_dt(value):
+        """Convert a string datetime from the planning engine to a datetime value."""
         if not value:
             return False
         return fields.Datetime.to_datetime(value)

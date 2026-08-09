@@ -14,6 +14,16 @@ class HtplusReportController(http.Controller):
 
     @http.route('/htplus/mes/report/production/export', type='http', auth='user')
     def export_production_report(self, date_from=None, date_to=None, wizard_id=None, **kwargs):
+        """Export the production report for the selected period as an XLSX download.
+
+        Args:
+            date_from: Start of the reporting period.
+            date_to: End of the reporting period.
+            wizard_id: Existing report wizard to reuse, if any.
+
+        Returns:
+            HTTP response carrying the XLSX file.
+        """
         if not xlsxwriter:
             return request.not_found()
         wizard = request.env['htplus.report.production.daily'].browse(int(wizard_id or 0))

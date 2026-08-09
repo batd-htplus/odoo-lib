@@ -31,6 +31,7 @@ class HtplusWorkorderActual(models.Model):
 
     @api.constrains('workorder_id', 'state')
     def _check_single_running(self):
+        """Ensure a work order has at most one running actual."""
         for rec in self:
             if rec.state == 'running':
                 running = self.search([
@@ -43,9 +44,15 @@ class HtplusWorkorderActual(models.Model):
                         _('A work order can have at most one running actual record.'))
 
     def _productive_loss(self):
+        """Return the fully productive time loss used for the productivity log.
+
+        Returns:
+            the mrp.block_reason7 loss recordset.
+        """
         return self.env.ref('mrp.block_reason7', raise_if_not_found=False)
 
     def _sync_productivity(self):
+        """Mirror each actual as an mrp.workcenter.productivity fully productive time log."""
         Productivity = self.env['mrp.workcenter.productivity']
         loss = self._productive_loss()
         for rec in self:
@@ -74,11 +81,13 @@ class HtplusWorkorderActual(models.Model):
 
     @api.model_create_multi
     def create(self, vals_list):
+        """Create the actuals and sync productivity logs for running records."""
         records = super().create(vals_list)
         records.filtered(lambda r: r.state == 'running')._sync_productivity()
         return records
 
     def write(self, vals):
+        """Update the actual and resync productivity when timing or status fields change."""
         res = super().write(vals)
         if self.env.context.get('htplus_skip_productivity_sync'):
             return res
@@ -87,7 +96,11 @@ class HtplusWorkorderActual(models.Model):
         return res
 
     def action_start(self):
-        """Resume / start shop-floor execution (from paused or after assignment)."""
+        """Resume or start shop-floor execution from a paused state or after assignment.
+
+        Returns:
+            True once the actual is running.
+        """
         for rec in self:
             if rec.state == 'finished':
                 continue
@@ -109,6 +122,7 @@ class HtplusWorkorderActual(models.Model):
         return True
 
     def action_finish(self):
+        """Finish the actual and post the good quantity to the work order."""
         for rec in self:
             rec.date_finished = fields.Datetime.now()
             rec.state = 'finished'
@@ -116,6 +130,7 @@ class HtplusWorkorderActual(models.Model):
             rec._sync_productivity()
 
     def action_pause(self):
+        """Pause the actual and record the pause time."""
         self.write({
             'state': 'paused',
             'date_finished': fields.Datetime.now(),
