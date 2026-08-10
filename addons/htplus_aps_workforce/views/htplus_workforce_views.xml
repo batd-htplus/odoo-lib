@@ -3,6 +3,6 @@
     <!-- Assignments appear in the APS menu only when APS is installed. -->
     <menuitem id="menu_htplus_workforce_assignment"
         parent="htplus_aps_core.htplus_aps_menu_workforce"
-        action="action_htplus_workforce_assignment"
+        action="htplus_workforce.action_htplus_workforce_assignment"
         sequence="10"/>
 </odoo>

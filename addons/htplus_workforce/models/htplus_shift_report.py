@@ -70,7 +70,7 @@ class HtplusShiftReportWizard(models.TransientModel):
 
     def action_print_pdf(self):
         """Open the shift report as a PDF."""
-        report = self.env.ref('htplus_aps_core.action_report_htplus_shift')
+        report = self.env.ref('htplus_workforce.action_report_htplus_shift')
         return report.report_action(self)
 
     def action_export_xlsx(self):

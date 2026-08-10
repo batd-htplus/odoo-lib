@@ -11,15 +11,16 @@ class HtplusWorkforceAssignment(models.Model):
         readonly=True,
     )
 
-    def action_confirm(self):
-        """Confirm the assignment and link it to a MES actual.
+    def _htplus_after_confirm(self):
+        """Open the matching shop-floor actual once the assignment is confirmed.
 
-        Returns:
-            the result of the parent confirmation action.
+        Hooked into the transition rather than wrapping action_confirm, so the
+        actual is created on exactly the records that really changed state.
         """
-        res = super().action_confirm()
+        parent = getattr(super(), '_htplus_after_confirm', None)
+        if parent:
+            parent()
         self._htplus_open_mes_actual()
-        return res
 
     def _htplus_open_mes_actual(self):
         """Link confirmed assignment to a MES actual for the assigned employee."""

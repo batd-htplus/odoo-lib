@@ -62,3 +62,17 @@ class HtplusDashboardKpi(models.Model):
             'name': _('Shifts'),
             'domain': [('date', '>=', self.date_from), ('date', '<=', self.date_to)],
         }
+
+    def _htplus_alert_lines(self):
+        """Add the manning alerts, which only exist when Workforce is installed."""
+        lines = super()._htplus_alert_lines()
+        if self.shortage_shifts:
+            lines.append(_('%s shift(s) short on manpower') % self.shortage_shifts)
+        if self.assignment_conflict_count:
+            lines.append(_('%s workforce assignment conflict(s)') % self.assignment_conflict_count)
+        return lines
+
+    @api.depends('shortage_shifts', 'assignment_conflict_count')
+    def _compute_alert_summary(self):
+        """Recompute the summary when a manning KPI moves."""
+        return super()._compute_alert_summary()

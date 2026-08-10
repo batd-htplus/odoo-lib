@@ -119,3 +119,15 @@ class ResUsers(models.Model):
     def SELF_READABLE_FIELDS(self):
         """Let a user see their own factory scope without admin rights."""
         return super().SELF_READABLE_FIELDS + ['htplus_factory_ids']
+
+    def write(self, vals):
+        """Clear cached record-rule domains when a user's factory scope changes.
+
+        ir.rule domains are cached per user. Without this, granting or revoking
+        a factory has no effect until something else happens to clear the
+        cache - access silently keeps following the old scope.
+        """
+        result = super().write(vals)
+        if 'htplus_factory_ids' in vals:
+            self.env.registry.clear_cache()
+        return result

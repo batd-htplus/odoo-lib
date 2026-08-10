@@ -4,3 +4,4 @@ from . import htplus_planning_forecast
 from . import htplus_planning_chat
 from . import htplus_planning_recommendation
 from . import htplus_schedule_run
+from . import htplus_demand_plan

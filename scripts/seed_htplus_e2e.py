@@ -1,11 +1,11 @@
 from datetime import timedelta
 
-from odoo import fields  # noqa: F821 — provided by odoo shell
+from odoo import fields
 
 CODE = 'HTPLUS-E2E'
 today = fields.Date.today()
 
-Factory = env['htplus.factory']  # noqa: F821
+Factory = env['htplus.factory'] 
 Plant = env['htplus.plant']
 Line = env['htplus.line']
 Machine = env['htplus.machine']
@@ -45,7 +45,7 @@ employee = Employee.search([('name', '=', 'HTPlus E2E Operator')], limit=1) or E
     'name': 'HTPlus E2E Operator',
 })
 # Production skill so assignment confirm → MES actual is not blocked
-skill_type = env.ref('htplus_planning_base.hr_skill_type_production', raise_if_not_found=False)
+skill_type = env.ref('htplus_workforce_skills.hr_skill_type_production', raise_if_not_found=False)
 skill = env['hr.skill']
 if skill_type:
     skill = env['hr.skill'].search([('skill_type_id', '=', skill_type.id)], limit=1)
@@ -112,6 +112,7 @@ demand = Demand.create({
     'date_start': today,
     'date_end': today + timedelta(days=7),
     'source': 'manual',
+    'factory_id': factory.id,
     'line_ids': [(0, 0, {
         'product_id': fg.id,
         'date': today + timedelta(days=5),
@@ -128,7 +129,7 @@ plan.action_approve()
 plan.action_check_materials()
 try:
     plan.action_create_productions()
-except Exception as err:  # noqa: BLE001
+except Exception as err:
     print('[seed] create_productions warning:', err)
     for line in plan.line_ids.filtered(lambda l: l.state == 'draft'):
         line.material_ok = True
@@ -151,7 +152,7 @@ try:
     assignments.write({'employee_id': employee.id})
     assignments.action_confirm()
     print('[seed] mes actuals from assignments:', len(assignments.mapped('actual_id')))
-except Exception as err:  # noqa: BLE001
+except Exception as err: 
     print('[seed] workforce/mes:', err)
 
 env.cr.commit()

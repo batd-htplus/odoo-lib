@@ -16,7 +16,9 @@ belongs to MES. Installs itself as soon as both sides are present.
     "category": "HTPlus",
     "depends": ["htplus_mes_shopfloor", "htplus_workforce"],
     "data": [
-        "security/ir.model.access.csv","views/htplus_workforce_views.xml"],
+        "views/htplus_workforce_views.xml",
+        "views/htplus_shift_completion_views.xml",
+    ],
     "auto_install": True,
     "application": False,
     "installable": True,

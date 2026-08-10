@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The forecast link only exists when the planning engine bridge is installed. -->
+    <record id="view_htplus_demand_plan_form_bridge" model="ir.ui.view">
+        <field name="name">htplus.demand.plan.form.bridge</field>
+        <field name="model">htplus.demand.plan</field>
+        <field name="inherit_id" ref="htplus_aps_core.view_htplus_demand_plan_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='source']" position="after">
+                <field name="planning_forecast_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

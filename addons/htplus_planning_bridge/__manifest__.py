@@ -18,6 +18,7 @@ assignment and the planning assistant.
         "htplus_aps_core",
     ],
     "data": [
+        "views/htplus_demand_plan_views.xml",
         "security/ir.model.access.csv",
         "views/htplus_planning_menus.xml",
         "views/htplus_planning_views.xml",

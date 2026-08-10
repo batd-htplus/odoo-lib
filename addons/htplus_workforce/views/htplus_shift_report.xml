@@ -4,8 +4,8 @@
         <field name="name">Shift Report</field>
         <field name="model">htplus.shift.report.wizard</field>
         <field name="report_type">qweb-pdf</field>
-        <field name="report_name">htplus_aps_core.htplus_shift_report_template</field>
-        <field name="report_file">htplus_aps_core.htplus_shift_report_template</field>
+        <field name="report_name">htplus_workforce.htplus_shift_report_template</field>
+        <field name="report_file">htplus_workforce.htplus_shift_report_template</field>
     </record>
 
     <record id="action_htplus_shift_report" model="ir.actions.act_window">

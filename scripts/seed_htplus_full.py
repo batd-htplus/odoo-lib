@@ -1,51 +1,32 @@
-"""Seed a realistic HTPlus APS/MES demo dataset.
-
-Run from inside the Odoo shell:
-
-    docker compose exec -T odoo odoo shell -d htplus_dev \\
-        --db_host db --db_port 5432 --db_user odoo \\
-        --db_password CHANGE_ME_dev_only --no-http < scripts/seed_htplus_full.py
-
-What it seeds (prefix ``HTPLUS-DEMO``):
-  - 1 factory / 2 plants / 4 lines / 4 work centers / 4 machines
-  - 3 shift templates (Day / Evening / Night), Day synced to the factory calendar
-  - 10 employees with skills + 5 portal users (manager, planner, 3 operators)
-  - shift members per line (incl. leaders)
-  - 6 finished/semi/raw products with a multi-level BOM (FG -> semi -> raw)
-  - raw material stock, a demand plan, a production plan with MOs, a schedule run
-  - workforce assignments (confirmed), MES actuals, shift actuals & completions
-  - the working production plan set on the dashboard
-
-The script is re-runnable: existing DEMO records are cleaned up first.
-"""
 from datetime import timedelta
 
-from odoo import fields  # noqa: F821 — provided by odoo shell
+from odoo import fields
+from odoo.exceptions import ValidationError
 
 CODE = 'HTPLUS-DEMO'
 PASSWORD = 'htplus123'
 today = fields.Date.today()
-company = env.company  # noqa: F821
+company = env.company
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
 
 def get_or_create(model, domain, vals):
-    rec = env[model].search(domain, limit=1)  # noqa: F821
+    rec = env[model].search(domain, limit=1)
     if not rec:
-        rec = env[model].create(vals)  # noqa: F821
+        rec = env[model].create(vals)
     return rec
 
 
 def _cleanup():
     """Remove the transactional records from a previous DEMO run."""
     notes_like = [('notes', 'like', 'HTPLUS-DEMO%')]
-    Demand = env['htplus.demand.plan']  # noqa: F821
-    ProductionPlan = env['htplus.production.plan']  # noqa: F821
-    templates = env['htplus.shift.template'].search([('code', 'like', CODE + '%')])  # noqa: F821
-    lines = env['htplus.line'].search([('code', 'like', CODE + '%')])  # noqa: F821
-    wcs = env['mrp.workcenter'].search([('code', 'like', CODE + '%')])  # noqa: F821
+    Demand = env['htplus.demand.plan']
+    ProductionPlan = env['htplus.production.plan']
+    templates = env['htplus.shift.template'].search([('code', 'like', CODE + '%')])
+    lines = env['htplus.line'].search([('code', 'like', CODE + '%')])
+    wcs = env['mrp.workcenter'].search([('code', 'like', CODE + '%')])
 
     demands = Demand.search(notes_like)
     plans = ProductionPlan.search(notes_like) | demands.mapped('production_plan_ids')
@@ -54,33 +35,33 @@ def _cleanup():
             run.workorder_ids.write({'schedule_run_id': False})
             try:
                 run.unlink()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
         for production in plan.production_ids:
             try:
                 production.action_cancel()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
             try:
                 production.unlink()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
         try:
             plan.unlink()
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
     demands.unlink()
 
-    demo_shifts = env['htplus.production.shift'].search(  # noqa: F821
+    demo_shifts = env['htplus.production.shift'].search( 
         [('template_id', 'in', templates.ids)])
-    demo_wos = env['mrp.workorder'].search([('workcenter_id', 'in', wcs.ids)])  # noqa: F821
-    env['htplus.shift.completion'].search([  # noqa: F821
+    demo_wos = env['mrp.workorder'].search([('workcenter_id', 'in', wcs.ids)]) 
+    env['htplus.shift.completion'].search([ 
         ('shift_id', 'in', demo_shifts.ids)]).unlink()
-    env['htplus.shift.actual'].search([  # noqa: F821
+    env['htplus.shift.actual'].search([ 
         ('shift_id', 'in', demo_shifts.ids)]).unlink()
-    env['htplus.workorder.actual'].search([  # noqa: F821
+    env['htplus.workorder.actual'].search([ 
         ('workorder_id', 'in', demo_wos.ids)]).unlink()
-    env['htplus.workforce.assignment'].search([  # noqa: F821
+    env['htplus.workforce.assignment'].search([ 
         ('shift_id', 'in', demo_shifts.ids)]).unlink()
     demo_shifts.unlink()
 
@@ -90,11 +71,11 @@ print('[cleanup] done')
 # ---------------------------------------------------------------------------
 # 1. Factory structure
 # ---------------------------------------------------------------------------
-Factory = env['htplus.factory']  # noqa: F821
-Plant = env['htplus.plant']  # noqa: F821
-Line = env['htplus.line']  # noqa: F821
-Machine = env['htplus.machine']  # noqa: F821
-WC = env['mrp.workcenter']  # noqa: F821
+Factory = env['htplus.factory'] 
+Plant = env['htplus.plant'] 
+Line = env['htplus.line'] 
+Machine = env['htplus.machine'] 
+WC = env['mrp.workcenter'] 
 
 factory = get_or_create('htplus.factory', [('code', '=', CODE)], {
     'name': 'HTPlus Manufacturing VN', 'code': CODE,
@@ -141,7 +122,7 @@ factory.action_apply_calendar_to_workcenters()
 # ---------------------------------------------------------------------------
 # 2. Shift templates (Day synced to the factory calendar; Evening/Night are UI)
 # ---------------------------------------------------------------------------
-Template = env['htplus.shift.template']  # noqa: F821
+Template = env['htplus.shift.template'] 
 day_tpl = get_or_create('htplus.shift.template', [('code', '=', CODE + '-DAY')], {
     'name': 'Day Shift', 'code': CODE + '-DAY', 'shift_type': 'day',
     'start_time': 8.0, 'end_time': 17.0, 'break_minutes': 60,
@@ -164,21 +145,21 @@ if not day_tpl.resource_calendar_id:
 # ---------------------------------------------------------------------------
 # 3. Employees, users, skills, shift members
 # ---------------------------------------------------------------------------
-Employee = env['hr.employee']  # noqa: F821
-User = env['res.users']  # noqa: F821
-Member = env['htplus.shift.member']  # noqa: F821
-Skill = env['hr.skill']  # noqa: F821
-EmpSkill = env['hr.employee.skill']  # noqa: F821
+Employee = env['hr.employee'] 
+User = env['res.users'] 
+Member = env['htplus.shift.member'] 
+Skill = env['hr.skill'] 
+EmpSkill = env['hr.employee.skill'] 
 
-prod_type = env.ref('htplus_planning_base.hr_skill_type_production', raise_if_not_found=False)
-qa_type = env.ref('htplus_planning_base.hr_skill_type_quality', raise_if_not_found=False)
+prod_type = env.ref('htplus_workforce_skills.hr_skill_type_production', raise_if_not_found=False)
+qa_type = env.ref('htplus_workforce_skills.hr_skill_type_quality', raise_if_not_found=False)
 L = {
-    'leader': env.ref('htplus_planning_base.hr_skill_level_prod_leader', raise_if_not_found=False),
-    'senior': env.ref('htplus_planning_base.hr_skill_level_prod_senior', raise_if_not_found=False),
-    'operator': env.ref('htplus_planning_base.hr_skill_level_prod_operator', raise_if_not_found=False),
-    'trainee': env.ref('htplus_planning_base.hr_skill_level_prod_trainee', raise_if_not_found=False),
-    'inspector': env.ref('htplus_planning_base.hr_skill_level_qa_inspector', raise_if_not_found=False),
-    'basic': env.ref('htplus_planning_base.hr_skill_level_qa_basic', raise_if_not_found=False),
+    'leader': env.ref('htplus_workforce_skills.hr_skill_level_prod_leader', raise_if_not_found=False),
+    'senior': env.ref('htplus_workforce_skills.hr_skill_level_prod_senior', raise_if_not_found=False),
+    'operator': env.ref('htplus_workforce_skills.hr_skill_level_prod_operator', raise_if_not_found=False),
+    'trainee': env.ref('htplus_workforce_skills.hr_skill_level_prod_trainee', raise_if_not_found=False),
+    'inspector': env.ref('htplus_workforce_skills.hr_skill_level_qa_inspector', raise_if_not_found=False),
+    'basic': env.ref('htplus_workforce_skills.hr_skill_level_qa_basic', raise_if_not_found=False),
 }
 
 def skill_by(name):
@@ -210,9 +191,9 @@ employees_spec = [
     ('Phan Minh Chau', None, False, 'planner@htplus.demo', []),
 ]
 G = {
-    'manager': env.ref('htplus_planning_base.group_aps_manager').id,
-    'planner': env.ref('htplus_planning_base.group_aps_planner').id,
-    'operator': env.ref('htplus_planning_base.group_mes_operator').id,
+    'manager': env.ref('htplus_factory.group_aps_manager').id,
+    'planner': env.ref('htplus_factory.group_aps_planner').id,
+    'operator': env.ref('htplus_factory.group_mes_operator').id,
 }
 employees = {}
 for name, line_code, is_leader, login, skills in employees_spec:
@@ -268,10 +249,10 @@ leader_of = {code: employees[name] for name, code, is_leader, *_ in employees_sp
 # ---------------------------------------------------------------------------
 # 4. Products, BOMs and raw material stock
 # ---------------------------------------------------------------------------
-Product = env['product.product']  # noqa: F821
-Bom = env['mrp.bom']  # noqa: F821
-Quants = env['stock.quant']  # noqa: F821
-location = env.ref('stock.stock_location_stock')  # noqa: F821
+Product = env['product.product'] 
+Bom = env['mrp.bom'] 
+Quants = env['stock.quant'] 
+location = env.ref('stock.stock_location_stock') 
 
 
 def product(code, name, qty=False):
@@ -336,12 +317,13 @@ get_or_create_bom(fg02,
 # ---------------------------------------------------------------------------
 # 5. Demand plan
 # ---------------------------------------------------------------------------
-Demand = env['htplus.demand.plan']  # noqa: F821
-ProductionPlan = env['htplus.production.plan']  # noqa: F821
+Demand = env['htplus.demand.plan'] 
+ProductionPlan = env['htplus.production.plan'] 
 demand = Demand.create({
     'date_start': today,
     'date_end': today + timedelta(days=7),
     'source': 'manual',
+    'factory_id': factory.id,
     'notes': 'HTPLUS-DEMO seeded demand',
     'line_ids': [(0, 0, {
         'product_id': fg01.id, 'date': today + timedelta(days=3), 'qty': 60.0,
@@ -366,7 +348,7 @@ plan.action_approve()
 plan.action_check_materials()
 try:
     plan.action_create_productions()
-except Exception as err:  # noqa: BLE001 — force material flag like the e2e seed
+except Exception as err:  # force material flag like the e2e seed
     print('[seed] create_productions warning:', err)
     for line in plan.line_ids.filtered(lambda l: l.state == 'draft'):
         line.material_ok = True
@@ -377,17 +359,17 @@ except Exception as err:  # noqa: BLE001 — force material flag like the e2e se
 # 6. Schedule run
 # ---------------------------------------------------------------------------
 run = plan.action_create_schedule()
-run = env['htplus.schedule.run'].browse(run['res_id'])  # noqa: F821
+run = env['htplus.schedule.run'].browse(run['res_id']) 
 try:
     run.action_confirm()
     run_state = run.state
-except Exception as err:  # noqa: BLE001
+except Exception as err:
     run_state = 'calculated (%s)' % err
 
 # ---------------------------------------------------------------------------
 # 7. Workforce assignments (redistribute employees, confirm non-conflicting)
 # ---------------------------------------------------------------------------
-Assignment = env['htplus.workforce.assignment']  # noqa: F821
+Assignment = env['htplus.workforce.assignment'] 
 wf_action = run.action_propose_workforce()
 assign_ids = wf_action.get('domain', [[]])[0][2] if wf_action else []
 assignments = Assignment.browse(assign_ids)
@@ -396,16 +378,22 @@ line_staff = [employees[name] for name, code, *_ in employees_spec
 for index, assignment in enumerate(assignments.sorted('date_start')):
     assignment.employee_id = line_staff[index % len(line_staff)]
 assignments.action_validate()
-ok = assignments.filtered(lambda a: a.skill_ok and not a.conflict)
 conflicted = assignments.filtered(lambda a: a.conflict)
-ok.action_confirm()
+confirmed = Assignment.browse()
+for assignment in assignments.filtered(lambda a: a.skill_ok and not a.conflict).sorted('date_start'):
+    try:
+        assignment.action_confirm()
+        confirmed |= assignment
+    except ValidationError as err:  # skip conflicts raised mid-loop
+        print('[seed] skip assignment %s (%s): %s' % (
+            assignment.name, assignment.employee_id.name, err))
 print('[seed] assignments total=%s confirmed=%s conflicts=%s' % (
-    len(assignments), len(ok), len(conflicted)))
+    len(assignments), len(confirmed), len(conflicted)))
 
 # ---------------------------------------------------------------------------
 # 8. Production shifts: set leaders on the shifts proposed by the run
 # ---------------------------------------------------------------------------
-Shift = env['htplus.production.shift']  # noqa: F821
+Shift = env['htplus.production.shift'] 
 demo_shifts = Shift.search([
     ('template_id', 'in', (day_tpl | evening_tpl | night_tpl).ids),
     ('date', '>=', today), ('date', '<=', today + timedelta(days=7)),
@@ -423,7 +411,7 @@ print('[seed] production shifts:', len(demo_shifts), 'lines=',
 # ---------------------------------------------------------------------------
 # 9. MES actuals: finish a few with real quantities
 # ---------------------------------------------------------------------------
-Actual = env['htplus.workorder.actual']  # noqa: F821
+Actual = env['htplus.workorder.actual'] 
 actuals = Actual.search([
     ('workorder_id', 'in', run.workorder_ids.ids),
     ('state', 'in', ('running', 'paused')),
@@ -443,8 +431,8 @@ print('[seed] mes actuals total=%s finished=%s' % (len(actuals), finished))
 # ---------------------------------------------------------------------------
 # 10. Shift actuals + completions
 # ---------------------------------------------------------------------------
-ShiftActual = env['htplus.shift.actual']  # noqa: F821
-Completion = env['htplus.shift.completion']  # noqa: F821
+ShiftActual = env['htplus.shift.actual'] 
+Completion = env['htplus.shift.completion'] 
 for shift in demo_shifts.filtered(
         lambda s: s.assignment_ids.filtered(lambda a: a.state == 'confirmed'))[:2]:
     actual = ShiftActual.create({'shift_id': shift.id})

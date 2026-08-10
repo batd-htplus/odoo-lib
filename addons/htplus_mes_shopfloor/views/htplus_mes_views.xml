@@ -35,11 +35,6 @@
         <field name="res_model">htplus.issue</field>
         <field name="view_mode">list,form</field>
     </record>
-    <record id="action_htplus_shift_completion" model="ir.actions.act_window">
-        <field name="name">Shift Completion</field>
-        <field name="res_model">htplus.shift.completion</field>
-        <field name="view_mode">list,form</field>
-    </record>
 
     <record id="view_htplus_workorder_actual_tree" model="ir.ui.view">
         <field name="name">htplus.workorder.actual.tree</field>
@@ -343,60 +338,6 @@
             </form>
         </field>
     </record>
-    <record id="view_htplus_shift_completion_tree" model="ir.ui.view">
-        <field name="name">htplus.shift.completion.tree</field>
-        <field name="model">htplus.shift.completion</field>
-        <field name="arch" type="xml">
-            <list string="Shift Completion">
-                <field name="shift_id"/>
-                <field name="workorder_id"/>
-                <field name="date"/>
-                <field name="qty_target"/>
-                <field name="qty_done"/>
-                <field name="qty_good"/>
-                <field name="qty_ng"/>
-                <field name="downtime_minutes"/>
-                <field name="achievement_rate"/>
-                <field name="yield_rate"/>
-            </list>
-        </field>
-    </record>
-    <record id="view_htplus_shift_completion_form" model="ir.ui.view">
-        <field name="name">htplus.shift.completion.form</field>
-        <field name="model">htplus.shift.completion</field>
-        <field name="arch" type="xml">
-            <form string="Shift Completion">
-                <sheet>
-                    <group string="Shift">
-                        <group>
-                            <field name="shift_id"/>
-                            <field name="workorder_id"/>
-                            <field name="date"/>
-                        </group>
-                        <group>
-                            <field name="qty_target"/>
-                            <field name="qty_done"/>
-                            <field name="qty_good"/>
-                            <field name="qty_ng"/>
-                        </group>
-                    </group>
-                    <group string="Rates">
-                        <group>
-                            <field name="achievement_rate" readonly="1"/>
-                            <field name="yield_rate" readonly="1"/>
-                        </group>
-                        <group>
-                            <field name="downtime_minutes"/>
-                            <field name="overtime_minutes"/>
-                        </group>
-                    </group>
-                    <group string="Notes">
-                        <field name="remarks"/>
-                    </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
 
     <menuitem id="menu_htplus_workorder_actual"
         parent="htplus_mes_menu_shopfloor"
@@ -426,8 +367,4 @@
         parent="htplus_mes_menu_shopfloor"
         action="action_htplus_issue"
         sequence="70"/>
-    <menuitem id="menu_htplus_shift_completion"
-        parent="htplus_mes_menu_shopfloor"
-        action="action_htplus_shift_completion"
-        sequence="80"/>
 </odoo>

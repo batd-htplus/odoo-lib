@@ -4,6 +4,13 @@ from odoo.exceptions import ValidationError
 
 class HtplusWorkforceAssignment(models.Model):
     _name = 'htplus.workforce.assignment'
+    _inherit = ['htplus.workflow.mixin']
+
+    _htplus_transitions = {
+        'confirm': {'from': ('draft',), 'to': 'confirmed', 'role': 'planner'},
+        'cancel': {'from': ('draft', 'confirmed'), 'to': 'cancelled', 'role': 'planner'},
+        'reset': {'from': ('cancelled',), 'to': 'draft', 'role': 'manager'},
+    }
     _description = 'Workforce Assignment'
 
     name = fields.Char(required=True)
@@ -87,20 +94,12 @@ class HtplusWorkforceAssignment(models.Model):
                 assignment.conflict = False
             assignment.ot_ok = not assignment.conflict
 
-    def action_confirm(self):
-        """Validate and confirm assignments that pass the skill and conflict checks."""
+    def _htplus_guard_confirm(self):
+        """Refuse an assignment the employee cannot actually take."""
         self.action_validate()
-        for assignment in self:
-            if assignment.conflict:
-                raise ValidationError(
-                    _('Shift conflict detected for %s.')
-                    % assignment.employee_id.name)
-            if assignment.workorder_id and not assignment.skill_ok:
-                raise ValidationError(
-                    _('Employee %s has no skill for this work order.')
-                    % assignment.employee_id.name)
-        self.state = 'confirmed'
-
-    def action_cancel(self):
-        """Cancel the assignments."""
-        self.state = 'cancelled'
+        if self.conflict:
+            raise ValidationError(
+                _('Shift conflict detected for %s.') % self.employee_id.name)
+        if self.workorder_id and not self.skill_ok:
+            raise ValidationError(
+                _('Employee %s has no skill for this work order.') % self.employee_id.name)

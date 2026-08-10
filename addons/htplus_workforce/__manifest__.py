@@ -27,7 +27,6 @@ worked. Neither of them owns the assignment.
         "security/ir.model.access.csv",
         "security/htplus_factory_rules.xml",
         "data/ir_sequence_data.xml",
-        "data/htplus_admin_groups.xml",
         "views/htplus_workforce_views.xml",
         "views/htplus_shift_views.xml",
         "views/htplus_shift_actual_views.xml",

@@ -5,19 +5,16 @@
         <field name="res_model">htplus.planning.rule</field>
         <field name="view_mode">list,form</field>
     </record>
+
     <record id="action_htplus_priority_rule" model="ir.actions.act_window">
         <field name="name">Priority Rule</field>
         <field name="res_model">htplus.priority.rule</field>
         <field name="view_mode">list,form</field>
     </record>
+
     <record id="action_htplus_capacity_rule" model="ir.actions.act_window">
         <field name="name">Capacity Rule</field>
         <field name="res_model">htplus.capacity.rule</field>
-        <field name="view_mode">list,form</field>
-    </record>
-    <record id="action_htplus_planning_parameter" model="ir.actions.act_window">
-        <field name="name">Planning Parameter</field>
-        <field name="res_model">htplus.planning.parameter</field>
         <field name="view_mode">list,form</field>
     </record>
 
@@ -26,13 +23,14 @@
         <field name="model">htplus.planning.rule</field>
         <field name="arch" type="xml">
             <list string="Planning Rule">
-                <field name="code"/>
-                <field name="name"/>
-                <field name="objective"/>
-                <field name="capacity_limit_pct"/>
+                <field name="code" />
+                <field name="name" />
+                <field name="objective" />
+                <field name="capacity_limit_pct" />
             </list>
         </field>
     </record>
+
     <record id="view_htplus_planning_rule_form" model="ir.ui.view">
         <field name="name">htplus.planning.rule.form</field>
         <field name="model">htplus.planning.rule</field>
@@ -41,44 +39,46 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="code"/>
-                            <field name="name"/>
-                            <field name="objective"/>
+                            <field name="code" />
+                            <field name="name" />
+                            <field name="objective" />
                         </group>
                         <group>
-                            <field name="active"/>
+                            <field name="active" />
                         </group>
                     </group>
                     <group string="Parameters">
                         <group>
-                            <field name="capacity_limit_pct"/>
-                            <field name="buffer_before"/>
-                            <field name="buffer_after"/>
+                            <field name="capacity_limit_pct" />
+                            <field name="buffer_before" />
+                            <field name="buffer_after" />
                         </group>
                         <group>
-                            <field name="batch_size"/>
-                            <field name="max_concurrent"/>
+                            <field name="batch_size" />
+                            <field name="max_concurrent" />
                         </group>
                     </group>
                     <group string="Work Centers">
-                        <field name="workcenter_ids"/>
+                        <field name="workcenter_ids" />
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
+
     <record id="view_htplus_priority_rule_tree" model="ir.ui.view">
         <field name="name">htplus.priority.rule.tree</field>
         <field name="model">htplus.priority.rule</field>
         <field name="arch" type="xml">
             <list string="Priority Rule">
-                <field name="sequence"/>
-                <field name="name"/>
-                <field name="priority_field"/>
-                <field name="weight"/>
+                <field name="sequence" />
+                <field name="name" />
+                <field name="priority_field" />
+                <field name="weight" />
             </list>
         </field>
     </record>
+
     <record id="view_htplus_priority_rule_form" model="ir.ui.view">
         <field name="name">htplus.priority.rule.form</field>
         <field name="model">htplus.priority.rule</field>
@@ -87,32 +87,34 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="code"/>
-                            <field name="name"/>
-                            <field name="sequence"/>
+                            <field name="code" />
+                            <field name="name" />
+                            <field name="sequence" />
                         </group>
                         <group>
-                            <field name="priority_field"/>
-                            <field name="weight"/>
-                            <field name="active"/>
+                            <field name="priority_field" />
+                            <field name="weight" />
+                            <field name="active" />
                         </group>
                     </group>
                 </sheet>
             </form>
         </field>
     </record>
+
     <record id="view_htplus_capacity_rule_tree" model="ir.ui.view">
         <field name="name">htplus.capacity.rule.tree</field>
         <field name="model">htplus.capacity.rule</field>
         <field name="arch" type="xml">
             <list string="Capacity Rule">
-                <field name="name"/>
-                <field name="workcenter_id"/>
-                <field name="max_units_per_day"/>
-                <field name="max_hours_per_day"/>
+                <field name="name" />
+                <field name="workcenter_id" />
+                <field name="max_units_per_day" />
+                <field name="max_hours_per_day" />
             </list>
         </field>
     </record>
+
     <record id="view_htplus_capacity_rule_form" model="ir.ui.view">
         <field name="name">htplus.capacity.rule.form</field>
         <field name="model">htplus.capacity.rule</field>
@@ -121,66 +123,24 @@
                 <sheet>
                     <group>
                         <group>
-                            <field name="name"/>
-                            <field name="workcenter_id"/>
-                            <field name="active"/>
+                            <field name="name" />
+                            <field name="workcenter_id" />
+                            <field name="active" />
                         </group>
                         <group>
-                            <field name="max_units_per_day"/>
-                            <field name="max_hours_per_day"/>
+                            <field name="max_units_per_day" />
+                            <field name="max_hours_per_day" />
                         </group>
                     </group>
-                </sheet>
-            </form>
-        </field>
-    </record>
-    <record id="view_htplus_planning_parameter_tree" model="ir.ui.view">
-        <field name="name">htplus.planning.parameter.tree</field>
-        <field name="model">htplus.planning.parameter</field>
-        <field name="arch" type="xml">
-            <list string="Planning Parameter">
-                <field name="key"/>
-                <field name="name"/>
-                <field name="value"/>
-            </list>
-        </field>
-    </record>
-    <record id="view_htplus_planning_parameter_form" model="ir.ui.view">
-        <field name="name">htplus.planning.parameter.form</field>
-        <field name="model">htplus.planning.parameter</field>
-        <field name="arch" type="xml">
-            <form string="Planning Parameter">
-                <sheet>
-                    <group>
-                        <group>
-                            <field name="key"/>
-                            <field name="name"/>
-                        </group>
-                        <group>
-                            <field name="value"/>
-                            <field name="active"/>
-                        </group>
-                    </group>
-                    <field name="description"/>
                 </sheet>
             </form>
         </field>
     </record>
 
-    <menuitem id="menu_htplus_planning_rule"
-        parent="htplus_factory.htplus_aps_menu_master_data"
-        action="action_htplus_planning_rule"
-        sequence="80"/>
-    <menuitem id="menu_htplus_priority_rule"
-        parent="htplus_factory.htplus_aps_menu_master_data"
-        action="action_htplus_priority_rule"
-        sequence="90"/>
-    <menuitem id="menu_htplus_capacity_rule"
-        parent="htplus_factory.htplus_aps_menu_master_data"
-        action="action_htplus_capacity_rule"
-        sequence="100"/>
-    <menuitem id="menu_htplus_planning_parameter"
-        parent="htplus_factory.htplus_aps_menu_master_data"
-        action="action_htplus_planning_parameter"
-        sequence="110"/>
+    <menuitem id="menu_htplus_planning_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_planning_rule" sequence="80" />
+
+    <menuitem id="menu_htplus_priority_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_priority_rule" sequence="90" />
+
+    <menuitem id="menu_htplus_capacity_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_capacity_rule" sequence="100" />
+
 </odoo>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Manning KPIs only exist when Workforce is installed. -->
+    <record id="view_htplus_dashboard_kpi_form_workforce" model="ir.ui.view">
+        <field name="name">htplus.dashboard.kpi.form.workforce</field>
+        <field name="model">htplus.dashboard.kpi</field>
+        <field name="inherit_id" ref="htplus_aps_core.view_htplus_dashboard_kpi_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='machine_down']/ancestor::div[hasclass('col-4')]" position="after">
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning"><field name="assignment_conflict_count"/></h3>
+                            <div>Assignment Conflicts</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-4 mb-3">
+                    <div class="card">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning"><field name="shortage_shifts"/></h3>
+                            <div>Shifts Short Manpower</div>
+                        </div>
+                    </div>
+                </div>
+            </xpath>
+            <xpath expr="//button[@name='action_open_workorders']" position="after">
+                <button name="action_open_shifts" string="Open Shifts" type="object"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

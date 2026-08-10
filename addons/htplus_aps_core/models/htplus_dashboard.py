@@ -95,29 +95,36 @@ class HtplusDashboardKpi(models.Model):
         for rec in self:
             rec.machine_down = self.env['htplus.machine'].search_count([('status', '=', 'down')])
 
+    def _htplus_alert_lines(self):
+        """Return the alert lines shown on the dashboard.
+
+        HOOK - bridge modules append the alerts belonging to their capability
+        by extending this rather than by editing the summary compute, so the
+        dashboard never references a field that may not be installed.
+        """
+        self.ensure_one()
+        lines = []
+        if self.production_plan_id:
+            lines.append(_('Working plan: %s (%s)') % (
+                self.production_plan_id.name, self.production_plan_id.state))
+        if self.conflict_count:
+            lines.append(_('%s schedule conflict(s)') % self.conflict_count)
+        if self.late_wo:
+            lines.append(_('%s late work order(s)') % self.late_wo)
+        if self.material_shortage_count:
+            lines.append(_('%s material shortage line(s)') % self.material_shortage_count)
+        if self.machine_down:
+            lines.append(_('%s machine(s) down') % self.machine_down)
+        return lines
+
     @api.depends(
-        'conflict_count', 'late_wo', 'material_shortage_count',
-        'shortage_shifts', 'assignment_conflict_count', 'machine_down',
+        'conflict_count', 'late_wo', 'material_shortage_count', 'machine_down',
         'production_plan_id',
     )
     def _compute_alert_summary(self):
+        """Render the alert lines collected from this module and any bridges."""
         for rec in self:
-            lines = []
-            if rec.production_plan_id:
-                lines.append(_('Working plan: %s (%s)') % (
-                    rec.production_plan_id.name, rec.production_plan_id.state))
-            if rec.conflict_count:
-                lines.append(_('%s schedule conflict(s)') % rec.conflict_count)
-            if rec.late_wo:
-                lines.append(_('%s late work order(s)') % rec.late_wo)
-            if rec.material_shortage_count:
-                lines.append(_('%s material shortage line(s)') % rec.material_shortage_count)
-            if rec.shortage_shifts:
-                lines.append(_('%s shift(s) short on manpower') % rec.shortage_shifts)
-            if rec.assignment_conflict_count:
-                lines.append(_('%s workforce assignment conflict(s)') % rec.assignment_conflict_count)
-            if rec.machine_down:
-                lines.append(_('%s machine(s) down') % rec.machine_down)
+            lines = rec._htplus_alert_lines()
             rec.alert_summary = '\n'.join(lines) if lines else _('No alerts')
 
     def action_refresh(self):

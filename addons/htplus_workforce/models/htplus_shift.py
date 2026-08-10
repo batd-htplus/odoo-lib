@@ -198,6 +198,14 @@ class HtplusShiftTemplate(models.Model):
 
 class HtplusProductionShift(models.Model):
     _name = 'htplus.production.shift'
+    _inherit = ['htplus.workflow.mixin']
+
+    _htplus_transitions = {
+        'confirm': {'from': ('draft',), 'to': 'confirmed', 'role': 'planner'},
+        'complete': {'from': ('confirmed',), 'to': 'completed', 'role': 'planner'},
+        'cancel': {'from': ('draft', 'confirmed'), 'to': 'cancelled', 'role': 'planner'},
+        'reset': {'from': ('cancelled',), 'to': 'draft', 'role': 'manager'},
+    }
     _description = 'Production Shift'
     _order = 'date desc, template_id'
     _rec_name = 'display_name'
@@ -332,20 +340,14 @@ class HtplusProductionShift(models.Model):
             self._check_machine_availability()
         return res
 
-    def action_confirm(self):
-        """Confirm the shifts once the required manpower is set."""
-        for rec in self:
-            if not rec.manpower_required:
-                raise ValidationError(_('Required manpower must be set before confirming.'))
-        self.state = 'confirmed'
+    def _htplus_guard_confirm(self):
+        """A shift cannot be confirmed until its manning target is known."""
+        if not self.manpower_required:
+            raise ValidationError(_('Required manpower must be set before confirming.'))
 
     def action_complete(self):
-        """Mark the shifts as completed."""
-        self.state = 'completed'
-
-    def action_cancel(self):
-        """Cancel the shifts."""
-        self.state = 'cancelled'
+        """Run the 'complete' transition."""
+        return self._htplus_apply_transition('complete')
 
     def action_open_assignments(self):
         """Open the workforce assignments for this shift."""

@@ -18,6 +18,8 @@ belongs to Workforce. Installs itself as soon as both sides are present.
     "depends": ["htplus_aps_core", "htplus_workforce"],
     "data": [
         "views/htplus_workforce_views.xml",
+        "views/htplus_dashboard_views.xml",
+        "views/htplus_shift_dashboard_views.xml",
         "views/htplus_schedule_button.xml",
     ],
     "auto_install": True,

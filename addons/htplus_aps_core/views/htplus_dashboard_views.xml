@@ -116,29 +116,11 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <h3 class="text-warning"><field name="assignment_conflict_count"/></h3>
-                                    <div>Assignment Conflicts</div>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-4 mb-3">
-                            <div class="card">
-                                <div class="card-body text-center">
-                                    <h3 class="text-warning"><field name="shortage_shifts"/></h3>
-                                    <div>Shifts Short Manpower</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                     <group>
                         <button name="action_open_schedule" string="Open Schedule Runs"
                             type="object"/>
                         <button name="action_open_workorders" string="Open Work Orders"
-                            type="object"/>
-                        <button name="action_open_shifts" string="Open Shifts"
                             type="object"/>
                     </group>
                 </sheet>

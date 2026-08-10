@@ -40,9 +40,6 @@
                     <button name="action_run_solver" string="Run Solver" type="object"
                         invisible="state not in ['draft', 'calculated']"
                         groups="htplus_factory.group_aps_planner"/>
-                    <button name="action_open_assignments" string="Open Assignments"
-                        type="object"
-                        invisible="not workorder_ids"/>
                     <button name="action_open_gantt" string="Open Gantt"
                         type="object"
                         invisible="not workorder_ids"
@@ -64,12 +61,6 @@
                             invisible="not production_plan_id">
                             <div class="o_stat_info">
                                 <span class="o_stat_text">Production Plan</span>
-                            </div>
-                        </button>
-                        <button name="action_open_assignments" type="object"
-                            class="oe_stat_button" icon="fa-users">
-                            <div class="o_stat_info">
-                                <span class="o_stat_text">Assignments</span>
                             </div>
                         </button>
                         <button name="action_open_gantt" type="object"

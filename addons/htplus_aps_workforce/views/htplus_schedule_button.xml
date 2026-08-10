@@ -11,6 +11,17 @@
                         type="object"
                         invisible="state not in ['draft', 'calculated', 'confirmed']"
                         groups="htplus_factory.group_aps_planner"/>
+                    <button name="action_open_assignments" string="Open Assignments"
+                        type="object"
+                        invisible="not workorder_ids"/>
+            </xpath>
+            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+                        <button name="action_open_assignments" type="object"
+                            class="oe_stat_button" icon="fa-users">
+                            <div class="o_stat_info">
+                                <span class="o_stat_text">Assignments</span>
+                            </div>
+                        </button>
             </xpath>
         </field>
     </record>

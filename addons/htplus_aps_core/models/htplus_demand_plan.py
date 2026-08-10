@@ -40,7 +40,6 @@ class HtplusDemandPlan(models.Model):
         ('forecast', 'Forecast'),
         ('ai', 'Demand Forecast'),
     ], default='manual', string='Source')
-    planning_forecast_id = fields.Many2one('htplus.planning.forecast', string='Demand Forecast')
     line_ids = fields.One2many('htplus.demand.plan.line', 'plan_id', string='Lines')
     production_plan_ids = fields.One2many(
         'htplus.production.plan', 'demand_plan_id', string='Production Plans')
@@ -176,6 +175,7 @@ class HtplusDemandPlan(models.Model):
         self._htplus_guard_plan()
         plan = self.env['htplus.production.plan'].create({
             'demand_plan_id': self.id,
+            'factory_id': self.factory_id.id,
             'date_start': self.date_start,
             'date_end': self.date_end,
         })

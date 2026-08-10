@@ -61,7 +61,6 @@
                             <field name="date_start"/>
                             <field name="date_end"/>
                             <field name="source"/>
-                            <field name="planning_forecast_id"/>
                         </group>
                         <group>
                             <field name="user_id"/>

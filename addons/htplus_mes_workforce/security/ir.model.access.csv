@@ -1,4 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_htplus_shift_completion_operator,htplus.shift.completion,htplus_workforce.model_htplus_shift_completion,htplus_factory.group_mes_operator,1,1,1,0
-access_htplus_shift_completion_user,htplus.shift.completion,htplus_workforce.model_htplus_shift_completion,htplus_factory.group_aps_user,1,0,0,0
-access_htplus_shift_completion_manager,htplus.shift.completion,htplus_workforce.model_htplus_shift_completion,htplus_factory.group_aps_manager,1,1,1,1

@@ -1,27 +1,28 @@
 # Core Framework — khung MRP bán được cho nhiều nhà máy
 
-**Ngày:** 2026-08-10
+**Ngày thiết kế:** 2026-08-10 · **cập nhật as-built:** 2026-08-10 (đối chiếu code `addons/htplus_*`)
 **Mục tiêu:** khung trên Odoo CE `mrp` để **bán và triển khai cho hàng trăm nhà máy**:
 mỗi nhà máy mới là **cấu hình**, không phải module mới; mở rộng và tích hợp bên thứ ba
 không cần sửa lõi; phụ thuộc tối thiểu và có trật tự; chi phí vận hành thấp.
 
-Tiếp nối `04_system_operation_memo.md` mục 4 (Lớp C).
+Tiếp nối `04_system_operation_memo.md` mục 4 (Lớp C). Sơ đồ deployment + module graph hiện
+trạng: `00_system_architecture.md`.
 
-> **Phạm vi giai đoạn này (chốt 2026-08-10):** chưa viết test. Nhóm C của §12 vì thế còn
-> mở — ghi lại để không quên, không phải để tranh luận.
->
-> **Trạng thái sau 2 vòng Architecture Review (2026-08-10):**
+> **Trạng thái (2026-08-10, đối chiếu code thực tế):**
 >
 > | | |
 > |---|---|
-> | **Hướng kiến trúc module** | ✅ APPROVE — `factory → {aps ⊥ mes ⊥ workforce} → bridge` giữ nguyên |
-> | **Sẵn sàng triển khai** | ❌ **CHƯA** — data ownership và ngữ nghĩa giao dịch của APS chưa đủ chặt |
+> | **Hướng kiến trúc module** | ✅ đã triển khai — `factory → {aps_core ⊥ mes_shopfloor ⊥ workforce} → bridge` (§2.2) |
+> | **Phân quyền nhiều nhà máy** | ✅ `factory.scope.mixin` + `ir.rule` fail-closed + `group_htplus_all_factories` (§6) |
+> | **Workflow khai báo** | ✅ `htplus.workflow.mixin` — demand.plan & production.plan; schedule.run/shift chưa (§4.1) |
+> | **Machine ↔ maintenance** | ✅ chốt `Many2one equipment_id` (§4.5), đã triển khai ở bridge |
+> | **Reservation** | ✅ chốt: dùng `leave_id` của Odoo (§5.1.1) — **chưa** triển khai ghi leaves |
+> | **Apply batching / idempotency** | ❌ chưa triển khai — confirm/lock vẫn đồng bộ (§5.2) |
+> | **Job layer trong Odoo** | ❌ chưa (`htplus.job`); planning service tự chạy job nền (§8.2) |
+> | **Test** | ❌ hoãn có chủ ý (chỉ `htplus_menu/tests`) (§12) |
 >
-> Điều kiện bắt buộc trước khi code phần APS: ngữ nghĩa capacity/reservation (§5.1) ·
-> invariant của `factory_id` dùng làm security boundary (§6.1) · idempotency + batching của
-> Apply (§5.2) · quan hệ machine↔maintenance (§4.5) · hợp đồng migration (§2.5).
->
-> **§5.1 có một câu hỏi chặn, phải xác minh trên Odoo 18 trước khi viết dòng code APS nào.**
+> Tài liệu này là **thiết kế gốc kèm chú thích as-built** ở từng mục: mục nào đã triển khai
+> đúng thiết kế, mục nào chốt khác đi khi code, mục nào còn nợ (không phải kế hoạch tương lai).
 
 ---
 
@@ -94,6 +95,10 @@ không bao giờ phải cài tay → tách bạch tối đa mà **không thêm g
 
 ### 2.2 Bản đồ
 
+**As-built (tên module thật trong `addons/`):** tầng 2 dùng tên `htplus_aps_core` /
+`htplus_mes_shopfloor` (thay `htplus_aps` / `htplus_mes` trong bản thiết kế); bridge gọi engine
+tên `htplus_planning_bridge` (thay `htplus_engine_bridge`).
+
 ```
 Tầng 0 — hạ tầng, không biết "nhà máy" là gì
   htplus_base                base, mail
@@ -102,23 +107,25 @@ Tầng 1 — nền nhà máy
   htplus_factory             htplus_base, resource, mrp
 
 Tầng 2 — NĂNG LỰC: bán riêng được, ngang hàng, KHÔNG phụ thuộc nhau
-  htplus_aps                 htplus_factory              lập kế hoạch & lịch
-  htplus_mes                 htplus_factory              thực thi xưởng
+  htplus_aps_core            htplus_factory              lập kế hoạch & lịch
+  htplus_mes_shopfloor       htplus_factory              thực thi xưởng
   htplus_workforce           htplus_factory, hr          ca & nhân lực
 
 Tầng 3 — CẦU NỐI: auto_install, chỉ chứa keo
-  htplus_aps_workforce       htplus_aps + htplus_workforce
-  htplus_mes_workforce       htplus_mes + htplus_workforce
+  htplus_aps_workforce       htplus_aps_core + htplus_workforce
+  htplus_aps_mes             htplus_aps_core + htplus_mes_shopfloor
+  htplus_mes_workforce       htplus_mes_shopfloor + htplus_workforce
   htplus_factory_maintenance htplus_factory + maintenance
   htplus_workforce_skills    htplus_workforce + hr_skills
   htplus_workforce_holidays  htplus_workforce + hr_holidays
 
-Tầng 4 — mở rộng
+Tầng 4 — mở rộng (THIẾT KẾ — chưa có code)
   htplus_api                 htplus_base                 REST có version + event bus (§9)
-  htplus_engine_bridge       htplus_aps                  → services/planning
   htplus_connector_<x>       htplus_api                  bên thứ ba
-  htplus_demo_data           htplus_aps                  không bao giờ cài prod
-  htplus_menu · htplus_timeline_spike                    tuỳ chọn
+  htplus_demo_data           htplus_aps_core            seed skill/layout [thay bằng scripts/seed_htplus_*.py]
+
+Tuỳ chọn (đã có)
+  htplus_menu · htplus_timeline_spike (web_timeline) · htplus_planning_bridge (auto_install=False)
 ```
 
 **Đọc đồ thị:** mọi mũi tên đi xuống. Không module tầng 2 nào biết module tầng 2 khác tồn
@@ -132,44 +139,52 @@ lộ ra khi áp tiêu chí mới:
 
 1. `htplus_mes_shopfloor` **depends `htplus_aps_core`** → không bán được MES riêng. Kỹ thuật
    thì MES chỉ cần factory + mrp. Ranh giới này chặn đường bán mà không đổi lại được gì.
+   **As-built: đã sửa** — `htplus_mes_shopfloor` chỉ depends `htplus_factory`; tích hợp APS↔MES
+   chuyển sang bridge `htplus_aps_mes` (`auto_install`).
 2. `hr`, `hr_skills`, `hr_holidays`, `maintenance` bị kéo vào `planning_base` → mọi khách đều
    phải nuốt, kể cả nhà máy không quản lý skill. Thực tế `hr.*` chỉ được dùng ở
    shift/workforce/shift_member/shift_actual — tức **năng lực workforce**, không phải nền.
+   **As-built: đã sửa** — `htplus_factory` chỉ depends `base/mrp/resource`; mỗi bổ sung đi qua
+   bridge riêng.
 
-**Số module tăng nhưng trọng lượng không tăng:** 5 bridge tầng 3 mỗi cái vài chục dòng keo,
+**Số module tăng nhưng trọng lượng không tăng:** 6 bridge tầng 3 mỗi cái vài chục dòng keo,
 `auto_install` nên không ai phải cài. Đây là chi phí đúng chỗ — đổi lấy quyền bán từng phần.
+**As-built: cả 6 bridge đều `auto_install = True`**, đúng như thiết kế.
 
-### 2.4 Từng module làm gì
+### 2.4 Từng module làm gì (as-built)
 
-| Module | depends | Sở hữu | Không chứa |
+| Module | depends | Sở hữu | Trạng thái |
 |---|---|---|---|
-| `htplus_base` | `base`, `mail` | 4 mixin hạ tầng · `htplus.job` · cron runner · README hợp đồng mở rộng | bất cứ thứ gì biết "nhà máy" là gì |
-| `htplus_factory` | `htplus_base`, `resource`, `mrp` | factory/plant/line · machine · workcenter ext · `factory.scope.mixin` · `mrp.bridge.mixin` · security group · `ir.rule` | **chính sách lập kế hoạch**; quy trình; master data của khách |
-| `htplus_aps` | `htplus_factory` | demand plan · production plan · **planning/capacity/priority rule** · schedule run · apply batch · simulation · dashboard · Gantt client · report | thuật toán giải; ca & nhân lực |
-| `htplus_mes` | `htplus_factory` | workorder actual · downtime · NG/defect · issue · báo cáo ngày | lập lịch; ca |
-| `htplus_workforce` | `htplus_factory`, `hr` | shift template · production shift · shift member · shift actual/completion · assignment | lập lịch máy; thực thi xưởng |
-| `htplus_aps_workforce` | `aps` + `workforce` | đề xuất phân công theo work order của schedule run | model mới |
-| `htplus_mes_workforce` | `mes` + `workforce` | actual gắn ca · shift completion từ actual | model mới |
-| `htplus_factory_maintenance` | `factory` + `maintenance` | machine `_inherits` equipment · request → `calendar.leaves` (§4.5) | model mới |
-| `htplus_workforce_skills` | `workforce` + `hr_skills` | skill matching khi phân công | model mới |
-| `htplus_workforce_holidays` | `workforce` + `hr_holidays` | nghỉ phép → khả dụng nhân lực | model mới |
-| `htplus_api` | `htplus_base` | REST có version · event bus · subscription (§9) | logic nghiệp vụ |
-| `htplus_engine_bridge` | `htplus_aps` | adapter HTTP → `services/planning`, forecast/recommendation/chat, chịu lỗi | logic nghiệp vụ — chỉ dịch và gọi |
-| `htplus_demo_data` | `htplus_aps` | skill seed · factory layout mẫu · seed script | bị core depends |
+| `htplus_base` | `base`, `mail` | `htplus.workflow.mixin` · `htplus.concurrency.mixin` · README hợp đồng mở rộng | ✅ làm đúng thiết kế (trừ `htplus.job`, undo, event dispatcher — chưa có, xem §4/§8/§9) |
+| `htplus_factory` | `htplus_base`, `resource`, `mrp` | factory/plant/line · machine · workcenter ext · `htplus.factory.scope.mixin` · `htplus.security.mixin` · `_htplus_group_map` · group + `ir.rule` fail-closed | ✅ làm đúng thiết kế (`mrp.bridge.mixin` chưa tách — còn nợ §4.4) |
+| `htplus_aps_core` | `htplus_factory`, `mail` | demand plan · production plan · planning/capacity/priority rule · schedule run · simulation scenario · dashboard · Gantt client · report · `htplus.schedule.change` | ✅ (apply batch §5.2 và hook `_htplus_resolve_scheduler` §5.3 chưa) |
+| `htplus_mes_shopfloor` | `htplus_factory` | workorder actual · downtime · NG/defect · issue · báo cáo ngày | ✅ |
+| `htplus_workforce` | `htplus_factory`, `hr` | shift template · production shift · shift member · shift actual/completion · **`htplus.workforce.assignment`** | ✅ đúng §2.5.2 (workforce sở hữu assignment) |
+| `htplus_aps_workforce` | `aps_core` + `workforce` | đề xuất phân công theo work order của schedule run (`action_propose_workforce`) | ✅ |
+| `htplus_aps_mes` | `aps_core` + `mes_shopfloor` | dashboard tổng hợp APS↔MES | ✅ (bridge mới, thêm khi tách mes) |
+| `htplus_mes_workforce` | `mes_shopfloor` + `workforce` | actual gắn ca · shift completion từ actual | ✅ |
+| `htplus_factory_maintenance` | `factory` + `maintenance` | machine `equipment_id` (Many2one) · request mở → hạ trạng thái máy (§4.5) | ✅ chốt **Many2one**, không `_inherits` |
+| `htplus_workforce_skills` | `workforce` + `hr_skills` | skill matching khi phân công + seed `hr.skill.type` | ✅ |
+| `htplus_workforce_holidays` | `workforce` + `hr_holidays` | nghỉ phép → khả dụng nhân lực | ✅ |
+| `htplus_menu` | `web` | menu ứng dụng, bookmark | ✅ |
+| `htplus_timeline_spike` | `aps_core` + `web_timeline` | Gantt (`web_timeline` AGPL thay `web_gantt`) | ✅ |
+| `htplus_planning_bridge` | `aps_core` | adapter HTTP → `services/planning` (`htplus.planning.service`) · forecast/recommend/assignment/chat · poll job | ✅ (chịu lỗi §8.3 chưa đủ) |
+| `htplus_api` | — | REST có version · event bus · subscription (§9) | ❌ chưa có — controller legacy `/htplus/api/*` còn |
+| `htplus_demo_data` | — | skill seed · factory layout mẫu · seed script | ❌ chưa có — thay bằng `scripts/seed_htplus_*.py` |
 
-**4 module bán được** (`factory`, `aps`, `mes`, `workforce`) + 1 hạ tầng + 5 bridge mỏng
-+ 3 mở rộng.
+**As-built: 4 module bán được** (`factory`, `aps_core`, `mes_shopfloor`, `workforce`)
++ 1 hạ tầng + 6 bridge mỏng + 3 mở rộng/menu/Gantt/bridge engine + 2 mở rộng thiết kế chưa code.
 
 ### 2.5 Gói bán
 
 | Gói | Module | Bán cho |
 |---|---|---|
-| **Shop Floor** | base · factory · mes | nhà máy muốn theo dõi thực tích/downtime/OEE trước |
+| **Shop Floor** | base · factory · mes_shopfloor | nhà máy muốn theo dõi thực tích/downtime/OEE trước |
 | **Workforce** | base · factory · workforce | quản lý ca & phân công |
-| **APS** | base · factory · aps | lập kế hoạch & lịch |
+| **APS** | base · factory · aps_core | lập kế hoạch & lịch |
 | **Full** | tất cả + bridge tự bật | trọn vòng Demand→Actual |
-| **+ AI** | + engine_bridge | forecast/solver/recommendation |
-| **+ Tích hợp** | + api + connector | nối ERP/MES/IoT sẵn có |
+| **+ AI** | + planning_bridge | forecast/solver/recommendation |
+| **+ Tích hợp** | + api + connector | nối ERP/MES/IoT sẵn có — chưa có code (§9) |
 
 Khách mua thêm gói = cài thêm module, **bridge tự bật** — không phải thao tác cài đặt thủ công.
 
@@ -207,12 +222,12 @@ Ngưỡng và thời hạn là **cấu hình theo khách** (§1.2), không hardc
 Chưa chốt thì sau vài tháng sẽ có ba nguồn sự thật (APS assignment / Workforce assignment /
 MES actual employee). Chốt:
 
-| Bên | Vai trò |
-|---|---|
-| `htplus_workforce` | **sở hữu** `assignment` và tính đủ điều kiện của nhân sự (skill, ca, xung đột) |
-| `htplus_aps` | phát biểu **nhu cầu**: work order này cần bao nhiêu người, kỹ năng gì — **không** tạo assignment |
-| `htplus_aps_workforce` (bridge) | dịch nhu cầu APS → assignment của Workforce |
-| `htplus_mes` | ghi **sự kiện thi hành**: ai thực sự đã làm — không phải nguồn sự thật của phân công |
+| Bên | Vai trò | As-built |
+|---|---|---|
+| `htplus_workforce` | **sở hữu** `assignment` và tính đủ điều kiện của nhân sự (skill, ca, xung đột) | ✅ model `htplus.workforce.assignment` ở đây |
+| `htplus_aps_core` | phát biểu **nhu cầu**: work order này cần bao nhiêu người, kỹ năng gì — **không** tạo assignment | ✅ |
+| `htplus_aps_workforce` (bridge) | dịch nhu cầu APS → assignment của Workforce | ✅ `action_propose_workforce` tạo draft assignment |
+| `htplus_mes_shopfloor` | ghi **sự kiện thi hành**: ai thực sự đã làm — không phải nguồn sự thật của phân công | ✅ |
 
 ### 2.6 Luật từng tầng
 
@@ -300,13 +315,15 @@ addons/htplus_base/
 | Chạy nền | `ir.cron` | bảng job + trạng thái (§8.2) |
 | Kỹ năng nhân sự | `hr.skill`, `hr.skill.level`, `hr.employee.skill` | matching skill ↔ workorder |
 
-### Nợ kỹ thuật đã phát hiện trong code hiện tại
+### Nợ kỹ thuật trong code — trạng thái as-built
 
-1. **`htplus.planning.parameter`** (`htplus_rule.py:53`) — key/value unique, trùng
-   `ir.config_parameter`. Mà `res.config.settings` đã được `_inherit` ở
-   `htplus_aps_core/models/htplus_settings.py`. → bỏ.
+1. **`htplus.planning.parameter`** (`htplus_rule.py:52`) — key/value unique, trùng
+   `ir.config_parameter`. Mà `res.config.settings` đã `_inherit` ở
+   `htplus_aps_core/models/htplus_settings.py` và **đã chuyển hẳn sang `config_parameter`**
+   (`htplus_aps.*`, `htplus_shift.*`). **Nợ còn lại:** model `htplus.planning.parameter` chưa
+   được gỡ khỏi code — không còn nơi nào đọc nó.
 
-2. **Không cam kết vào `resource.calendar`** — `htplus_schedule.py:76`:
+2. **Không cam kết vào `resource.calendar`** — `htplus_schedule.py:82` **vẫn còn**:
 
    ```python
    if calendar and hasattr(calendar, 'plan_hours'):
@@ -318,18 +335,28 @@ addons/htplus_base/
    ```
 
    `hasattr` + `except` trần = không tin API nền tảng. Rơi nhánh cuối thì lịch **bỏ qua
-   calendar và leave mà không báo gì** — sai thầm lặng. Bỏ cả hai lớp, gọi thẳng, lỗi thì raise.
+   calendar và leave mà không báo gì** — sai thầm lặng. **Nợ còn lại.**
 
-3. **Lập lịch không ghi `resource.calendar.leaves`** — `_htplus_attach_workorders` giữ cursor
-   greedy riêng theo workcenter. Odoo (và `button_plan` của MO khác) **không thấy** chỗ APS
-   đã chiếm → hai nguồn sự thật về công suất.
+3. ~~**Lập lịch không ghi `resource.calendar.leaves`**~~ — **SAI, đã đính chính 2026-08-10.**
+   `mrp.workorder.date_start/date_finished` là computed có `inverse='_set_dates'`, và inverse
+   đó **tự tạo/cập nhật `leave_id`**. Kiểm trên DB: 18/18 work order do APS đặt lịch đều có
+   leave. Ghi là có, tự động.
 
-4. **Không có `ir.rule` nào trong 4 module core** (chỉ `htplus_menu` có). Xem §6.
+   Lỗi thật nằm ở **chiều đọc**: cursor greedy chỉ tránh va chạm với work order *trong cùng
+   một run*, không hề tra chỗ đã bị chiếm. Hai run khác nhau — hoặc một run và một
+   `button_plan` thường của Odoo — đặt trùng giờ trên cùng máy mà không ai biết.
+   Đã sửa ở P1 #8: dùng `workcenter._get_first_available_slot()`, đúng primitive
+   `button_plan` dùng. **Nợ còn lại** (quyết định §5.1.1 đã chốt dùng
+   `leave_id`, chưa triển khai).
 
-5. **API controller nhiều khả năng đang chết** — `htplus_api_controller.py`:
-   `@http.route(type='json', methods=['GET'])` mâu thuẫn (route JSON của Odoo dispatch qua
-   POST), và `request.jsonrequest` đã bị bỏ từ Odoo 17 (thay bằng `request.get_json_data()`).
-   *Cần kiểm chứng khi docker chạy lại.* Xem §9.
+4. **Không có `ir.rule` nào trong 4 module core** — **đã xoá.** `htplus_factory` giờ có bộ
+   rule fail-closed cho factory/plant/line/workcenter/machine/holiday + nhóm
+   `group_htplus_all_factories` (§6). `htplus_menu` cũng có.
+
+5. **API controller nhiều khả năng đang chết** — `htplus_aps_core/controllers/htplus_api_controller.py`
+   **vẫn còn**: `@http.route(type='json', methods=['GET'])` mâu thuẫn (route JSON của Odoo
+   dispatch qua POST), và `request.jsonrequest` đã bị bỏ từ Odoo 17 (thay bằng
+   `request.get_json_data()`). **Nợ còn lại** — `htplus_api` (§9) chưa thay thế.
 
 ## 4. Thành phần core
 
@@ -370,48 +397,40 @@ class HtplusDemandPlan(models.Model):
 
 Ghi vết dùng `mail.thread` (`state` đã `tracking=True`) — mixin không tự log.
 
-Code hiện tại rơi vào đâu: `_htplus_require_planner()` → `'role'`;
-`production_plan.action_approve` gọi `line_ids.action_check_materials()` → `_htplus_guard_approve`;
-`schedule_run.action_confirm` check `conflict_count` → `_htplus_guard_confirm`;
-`schedule_run.action_lock` set `workorder_ids.locked` → `_htplus_after_lock`.
+**As-built:** mixin đã triển khai ở `htplus_base` đúng thiết kế — `_htplus_transitions`,
+`_htplus_group_map` (được `htplus_factory` nạp qua `_inherit`), `_htplus_guard_<code>()`,
+`_htplus_after_<code>()`, `_htplus_on_transition()` (seam event, hiện no-op), role chưa map = từ
+chối. **Đã dùng:** `htplus.demand.plan` và `htplus.production.plan`. **Chưa dùng:** `schedule.run`
+(đang tự viết `action_confirm`/`action_lock` với `_htplus_require_*`), các model shift/workorder
+actual — vẫn gán `state` tay, thiếu kiểm state nguồn. `_htplus_apply_transition` hiện **chưa**
+emit event (chờ §9.2).
 
 **Mở đường `plan_lifecycle`** (gap #1 memo 04): lifecycle tổng hợp thành computed đọc state
 các document qua interface chung.
 
-### 4.2 `htplus.undo.mixin` — `htplus_base`
+### 4.2 Hoàn tác lịch — bảng log riêng (`htplus.schedule.change`), không undo mixin
 
-**Không** tạo bảng log mới. `mail.tracking.value` đã lưu old/new theo field, gắn `mail.message`
-(author, date, model, res_id) — và các document đã `_inherit mail.thread`.
+Thiết kế gốc đề xuất `htplus.undo.mixin` đọc ngược `mail.tracking.value`. **As-built chốt khác
+đi:** dùng **bảng log riêng nhỏ** `htplus.schedule.change` (chính là phương án dự phòng trong
+bảng PoC §4.2 gốc) — ghi `schedule_run_id | workorder_id | user_id | field | old_value |
+new_value | date_change` ở `write()` của `mrp.workorder`; `action_undo_change()` hoàn nguyên bản
+ghi mới nhất; cron `HTPlus: Cleanup schedule change logs` (1 ngày) dọn theo tuổi (§2.5.1).
 
-```python
-_htplus_undo_fields = ('date_start', 'date_finished', 'line_id', 'machine_id', 'priority')
-_htplus_undo_origin = 'schedule_run_id'
-```
-
-`_htplus_undo_last()` đọc tracking value, ép kiểu **generic** theo `field.type` từ `self._fields`
-— bỏ chuỗi if/elif theo tên field ở `action_undo_change` (`htplus_schedule.py:254`).
-
-**Ranh giới trách nhiệm.** Mixin chỉ cung cấp **cơ chế hoàn tác ở mức field**. *Ngữ nghĩa*
-undo khác nhau theo năng lực — undo lịch là hoàn nguyên ngày của cả lô work order theo
-`origin`, undo master data là một field một bản ghi — nên **thuộc module năng lực**, khai qua
-`_htplus_undo_fields` / `_htplus_undo_origin`. Base không quyết định chính sách.
-
-**⚠️ Rủi ro phải PoC trước khi chốt (cờ vàng):** undo dựa `mail.tracking.value` là **ràng
-buộc vào cấu trúc lưu trữ nội bộ của Odoo**, mà Odoo đã tái cấu trúc bảng này giữa các
-phiên bản (cách lưu giá trị many2one, tách cột theo kiểu). Thêm nữa tracking value bị xoá
-theo `mail.message` khi dọn rác. Phải kiểm trên 18 thật:
-
-| Kiểm | Nếu fail |
-|---|---|
-| Đọc lại đúng old/new cho `Datetime`, `Many2one`, `Integer`, `Selection` | dùng bảng log riêng nhỏ thay vì tracking value |
-| Tracking value còn sau khi dọn `mail.message` | như trên |
-| Field không `tracking=True` thì không có gì để undo | bắt buộc khai `tracking=True` cho mọi field trong `_htplus_undo_fields` |
+Vì sao chọn bảng riêng: đúng cảnh báo ở thiết kế gốc — `mail.tracking.value` là cấu trúc nội bộ
+của Odoo, bị dọn theo `mail.message`, và đọc ngược ép kiểu theo `field.type` phức tạp hơn ghi
+sẵn. `htplus.undo.mixin` (§4.2 gốc) **không triển khai** — không cần nữa với lịch; với master
+data thì revert từng field là chuyện hiếm.
 
 ### 4.3 `htplus.concurrency.mixin` — `htplus_base`
 
 Odoo dựa vào serialize của PostgreSQL + retry tầng RPC — đủ cho form thường, **không đủ** cho
 Gantt kéo-thả (client giữ trạng thái cũ nhiều phút). Kéo cơ chế ở `htplus_schedule.py:624-672`
 ra mixin, **giữ nguyên context key** `htplus_expected_write_date(s)` vì Gantt JS đang dùng.
+
+**As-built:** mixin đã triển khai ở `htplus_base` — `_htplus_concurrency_fields`,
+`_htplus_check_optimistic_lock()`, context key giữ nguyên. **Nợ còn lại:** `mrp.workorder`
+(`htplus_schedule.py`) **không** inherit mixin mà tự viết `_htplus_check_optimistic_lock()` +
+override `write()` gần trùng logic — gom về mixin để hết hai bản.
 
 ### 4.4 `htplus.mrp.bridge.mixin` — `htplus_factory`
 
@@ -424,13 +443,17 @@ ra mixin, **giữ nguyên context key** `htplus_expected_write_date(s)` vì Gant
 | `_htplus_loss_xmlid()` | **hook** — map category → `mrp.block_reason*` |
 | `_htplus_sync_to_mrp()` / `_htplus_sync_from_mrp()` | hợp đồng 2 chiều |
 
+**As-built: chưa gom.** `htplus.downtime` (`htplus_downtime.py:64/101`) và
+`htplus.workorder.actual` (`htplus_workorder_actual.py:25/62`) vẫn mỗi nơi một bản
+`_sync_productivity()` + `productivity_id` — đúng nợ thiết kế mô tả, còn lại.
+
 ### 4.5 `htplus.machine` — uỷ quyền sang `maintenance.equipment`
 
 Ở **`htplus_factory_maintenance`** (bridge auto_install), không phải trong `htplus_factory` —
 luật 2: core không depends app tuỳ chọn.
 
-**Mặc định: `Many2one` thường (sửa 2026-08-10).** Bản trước chọn `_inherits`; đảo lại sau
-review vòng 2. Ba lý do:
+**As-built: chốt `Many2one`, đã triển khai.** Thiết kế (sửa 2026-08-10) chọn `Many2one`
+thay `_inherits` sau review vòng 2, với ba lý do:
 
 1. **Ngữ nghĩa là HAS-A, không phải IS-A.** Máy sản xuất *có* một thiết bị được bảo trì; nó
    không *là* một thiết bị bảo trì. `product.product → product.template` là quan hệ
@@ -473,6 +496,12 @@ Lợi ích duy nhất `_inherits` mang lại mà `Many2one` không có là *mộ
 khi đọc/ghi field bảo trì ngay trên form máy. Cái giá là bảy rủi ro trên. Với sản phẩm giao
 cho hàng trăm khách, đánh đổi này **không đáng** trừ khi PoC sạch cả bảy.
 
+**As-built:** `equipment_id` (Many2one, `ondelete='set null'`) đã có ở
+`htplus_factory_maintenance/models/htplus_machine_maintenance.py`, kèm `open_request_count`
+(computed qua `_read_group`) và `action_open_maintenance_requests()`. Vòng "maintenance request
+mở → hạ trạng thái máy" (`_htplus_sync_machine_status`) **chưa** nối đủ — request mới hiện chỉ
+đếm và mở được, chưa tự hạ `status`/ghi unavailability cho bộ giải.
+
 ## 5. Lõi lập lịch — chỗ core thật sự tạo giá trị
 
 ```
@@ -494,7 +523,7 @@ lịch sử song song:
 |---|---|---|
 | **Working time** — khi nào *được phép* làm | `resource.calendar` | giờ làm việc, ca, nghỉ giữa ca |
 | **Unavailability** — khi nào *không thể* làm | `resource.calendar.leaves` | nghỉ lễ, máy đang sửa, workcenter time-off |
-| **Reservation** — chỗ đã bị chiếm bởi một phương án | **xem §5.1.1 — chưa chốt** | WO001 chiếm máy A 10:00–11:00 |
+| **Reservation** — chỗ đã bị chiếm bởi một phương án | `mrp.workorder.leave_id` → `resource.calendar.leaves` (§5.1.1) | WO001 chiếm máy A 10:00–11:00 |
 | **Planning intent** — định làm gì | `htplus.schedule.run` + version + lock | phương án lịch, có thể chưa áp |
 | **Execution** — thực tế đang/đã làm | `mrp.workorder` + MES actual | trạng thái thi hành |
 | **Audit** — ai đổi gì lúc nào | `mail.thread` / `mail.tracking.value` | vết người dùng, **không** phải kho phiên bản nghiệp vụ |
@@ -511,36 +540,65 @@ thẳng vào `mrp.workorder`; nó tạo/cập nhật một schedule run, ngườ
 
 **Hoàn tác của lịch là khôi phục version, không phải revert từng field.** `schedule.run` đã
 có version — `V3 → khôi phục V2` đúng ngữ nghĩa hơn nhiều so với đọc ngược `mail.tracking.value`.
-Vì thế `htplus.undo.mixin` (§4.2) **xuống P3 và là tuỳ chọn**, không phải hạ tầng lõi.
+Vì thế `htplus.undo.mixin` (§4.2) **không phải hạ tầng lõi** — as-built đã chọn bảng log riêng
+`htplus.schedule.change` thay vì revert từng field qua tracking value (§4.2).
 
-#### 5.1.1 Câu hỏi chặn: reservation lưu ở đâu?
+#### 5.1.1 Quyết định chốt: reservation qua `mrp.workorder.leave_id`
 
-Bản trước ghi "Apply ghi `resource.calendar.leaves`". **Chưa chốt được**, vì hai lập luận
-trái chiều và cả hai đều hợp lý:
+Bản trước ghi "Apply ghi `resource.calendar.leaves`". Hai lập luận trái chiều đều hợp lý:
 
 | Lập luận | Nội dung |
 |---|---|
 | **Chống** — leaves là *unavailability*, không phải *allocation* | Nhồi mọi reservation của APS vào leaves thì `calendar._work_intervals_batch()` — thứ tính giờ làm việc cho ca, cho nhân sự, cho chính Odoo — sẽ đọc chúng như **thời gian không làm việc**. Biến allocation thành unavailability là sai ngữ nghĩa và lan sang mọi chỗ đọc calendar |
 | **Ủng hộ** — Odoo có thể tự làm đúng như vậy | Các dòng Odoo trước, `mrp.workorder` có `leave_id` trỏ `resource.calendar.leaves`: **Odoo chính nó** dùng leaves làm chỗ chiếm của workorder. `02_database_schema.md` của dự án cũng ghi "backed bởi `resource.calendar.leaves`". Nếu 18 vẫn vậy mà ta dựng model riêng thì đó là **tự xây lại Odoo** — vi phạm §1.1 |
 
-**Phải xác minh trên Odoo 18 trước khi viết dòng code APS nào:**
+**ĐÃ XÁC MINH TRÊN ODOO 18 (2026-08-10, đọc source trong image `odoo:18.0`):**
 
-1. `mrp.workorder` còn field trỏ `resource.calendar.leaves` không (`leave_id` hay tương đương)?
-2. `_plan_workorders()` / `button_plan()` ghi gì để giữ chỗ?
-3. `_get_conflicted_workorder_ids` (hoặc tương đương) phát hiện chồng lấn bằng leaves hay bằng SQL trên `date_start/date_finished`?
-4. Maintenance "Block Workcenter" ghi vào đâu?
+```python
+# odoo/addons/mrp/models/mrp_workorder.py
+leave_id = fields.Many2one(
+    'resource.calendar.leaves',
+    help='Slot into workcenter calendar once planned',
+    check_company=True, copy=False)
+```
 
-| Kết quả | Quyết định |
+**Odoo 18 vẫn dùng `resource.calendar.leaves` làm chỗ chiếm của work order.** Kết luận:
+**không dựng `htplus.capacity.reservation`** — làm thế là cài lại thứ nền tảng đã có, vi
+phạm §1.1. APS ghi qua đúng `leave_id` của Odoo, gắn `origin = schedule_run_id` để xoá/ghi
+lại sạch theo lô.
+
+Nhưng một chi tiết quan trọng đi kèm: **phát hiện xung đột của Odoo KHÔNG đọc leaves.**
+`mrp.workorder._get_conflicted_workorder_ids()` chạy SQL thuần trên chính bảng work order:
+
+```sql
+WHERE wo1.workcenter_id = wo2.workcenter_id
+  AND (wo2.date_start, wo2.date_finished) OVERLAPS (wo1.date_start, wo1.date_finished)
+```
+
+Nghĩa là leaves là **hình chiếu sang lịch** (để calendar và các module khác thấy máy bận),
+còn **sự thật về chồng lấn nằm ở `date_start`/`date_finished` của work order**. HTPlus phải
+theo đúng phân vai đó:
+
+| Việc | Cách làm |
 |---|---|
-| Odoo 18 **vẫn** dùng leaves cho workorder | APS ghi leaves theo **đúng cơ chế Odoo**, gắn `origin = schedule_run_id` để xoá/ghi lại sạch. Không dựng model mới |
-| Odoo 18 **không** còn dùng leaves | Dựng `htplus.capacity.reservation` (`schedule_run_id · version · workorder_id · resource/workcenter/machine · start/end`). Leaves giữ nguyên nghĩa unavailability. Bộ giải tính: `available = working_time − unavailability − reservation` |
+| Ghi chỗ chiếm khi Apply | qua `leave_id` — cơ chế Odoo, không model mới |
+| Phát hiện xung đột | SQL `OVERLAPS` như `_get_conflicted_workorder_ids`, **không** vòng lặp Python |
+| Nhất quán công ty | `leave_id` đã `check_company=True` — khớp trục company ở §6 |
+
+Nợ kỹ thuật phát sinh: `_htplus_mark_overlaps` hiện lặp bằng Python — thay bằng
+`_get_conflicted_workorder_ids()` của Odoo (§7.2). **As-built: vẫn lặp Python, chưa thay.**
+
+**As-built:** quyết định trên là chốt (đã xác minh Odoo 18), nhưng **chưa triển khai** —
+`_htplus_attach_workorders` vẫn giữ cursor greedy riêng, không ghi `leave_id`/leaves; `algorithm`
+trên `schedule.run` chọn `rule_engine`/`solver_cpsat` nhưng kết quả engine chỉ vào
+`htplus.simulation.scenario.line` (bản sao ngày), không ghi reservation khi Apply (xem §5.2).
 
 Dù ngả nào, **leaves vẫn là primitive phải dùng cho unavailability** (nghỉ lễ, bảo trì,
 workcenter time-off) — không thay thế nó, chỉ không lạm dụng nó.
 
 ### 5.2 Biên giao dịch của Apply
 
-Đây là chỗ dễ hỏng nhất và phải chốt trước khi code:
+Đây là chỗ dễ hỏng nhất và **phải chốt trước khi code**:
 
 **Batch là một thực thể, không phải một khoảng thời gian.** Bản trước lấy "cửa sổ thời gian"
 làm khoá chia lô — sai: 5.000 work order có thể rơi vào cùng một giờ, và một máy khác có thể
@@ -583,6 +641,11 @@ Các tác nhân có thể chạy đồng thời: planner A Apply · planner B s�
 Ràng buộc DB làm cho hai tiến trình đồng thời **không thể** cùng chiếm một khoảng — bất kể
 tầng ứng dụng có kiểm hay không. Vị trí đặt ràng buộc phụ thuộc kết quả §5.1.1.
 
+**As-built: chưa triển khai.** Không có `htplus.apply.batch`; `schedule.run` không dùng
+workflow mixin; `action_confirm`/`action_lock` ghi `mrp.workorder` **một transaction** (đúng
+kịch bản chết `limit_time_real` với 10k WO); không có idempotency_key, không xoá/ghi leaves
+theo `origin`. Kết quả solver chỉ lưu vào simulation scenario — chưa có bước Apply thật.
+
 ### 5.3 Hợp đồng bộ giải
 
 ```python
@@ -614,6 +677,14 @@ toán phải sửa **cả hai file core**.
 **Ràng buộc đưa vào bộ giải là data**, đọc từ `htplus.planning.rule` / `capacity.rule` /
 `priority.rule` + `resource.calendar` — không hardcode trong Python.
 
+**As-built — hợp đồng đúng một phần:** engine (`services/planning`) trả `schedule_result`
+(workorder_id, workcenter_id, date_start, date_finished, priority, conflict, delay_hours,
+score) + `kpi` + `model` (`greedy_fallback`). `algorithm` Selection trên `schedule.run` đã có
+(`manual`/`rule_engine`/`solver_cpsat`). **Chưa có:** hook `_htplus_resolve_scheduler`,
+`selection_add` (thêm thuật toán vẫn phải sửa file core), và các trường `unassigned` /
+`explanation` / `objective` / `metadata` trong contract — bridge đọc thẳng `schedule_result`
+chứ không nhận diện `algorithm`/`explanation` từ response.
+
 ## 6. Nhiều nhà máy — hai trục trực giao
 
 Khách có cả hai kiểu. Core **không rẽ nhánh code**; luôn có **hai trục độc lập**, cấu hình
@@ -629,8 +700,9 @@ code chạy cả hai kiểu — khác nhau ở số bản ghi `res.company`.
 
 ### 6.1 `htplus.factory.scope.mixin` (ở `htplus_factory`)
 
-Hiện **không có `ir.rule` nào trong 4 module core**. Phân tách dựa vào domain trong action —
-user gọi RPC thẳng là đọc được hết. **Lỗ hổng phân quyền**, không phải tính năng thiếu.
+Thiết kế này ra đời vì ban đầu **không có `ir.rule` nào trong 4 module core** — phân tách dựa
+vào domain trong action, user gọi RPC thẳng là đọc được hết. **Lỗ hổng phân quyền**, không phải
+tính năng thiếu. **As-built: đã vá xong** — xem chú thích cuối §6.
 
 Cách ngây thơ là `ir.rule` traverse quan hệ:
 
@@ -693,6 +765,17 @@ recompute `factory_id` của **mọi** work order thuộc workcenter đó. Với
 tác master data tưởng nhỏ này có thể chạy rất lâu — phải làm qua job (§8.2), không làm đồng bộ
 trong form.
 
+**6. Đổi phạm vi của user phải xoá cache của `ir.rule`.** Odoo cache domain của record
+rule **theo từng user**. Ghi `htplus_factory_ids` mà không `env.registry.clear_cache()` thì
+cấp hay thu hồi nhà máy **không có tác dụng** cho tới khi cache tình cờ bị xoá — quyền truy
+cập âm thầm chạy theo phạm vi cũ. Đã xác minh trên DB thật: cấp nhà máy xong vẫn đọc được 0
+bản ghi, xoá cache mới ra đúng. `res.users.write()` phải override.
+
+**7. Suy ra factory phải phủ mọi liên kết có thể có.** `htplus.machine` gắn được vào
+workcenter, line hoặc chỉ plant. Suy ra từ một đường duy nhất thì các bản ghi đi đường khác
+có `factory_id` rỗng — mà rỗng nghĩa là **không ai thấy**, tức mất dữ liệu một cách im lặng.
+Cũng đã gặp thật khi seed.
+
 **Ghi chú về `sudo()`:** method public gọi được qua RPC, và ACL chỉ được kiểm ở tầng CRUD.
 Mọi method dùng `sudo()` (`_apply`, `_sync`, job runner, import) phải có kiểm quyền tường minh
 của riêng nó — `sudo()` bên trong một method public là chỗ lọt quyền kinh điển.
@@ -715,6 +798,19 @@ của cơ chế phân quyền phải fail-closed.
 không phải hệ quả của một tập rỗng.
 
 Trục company do `ir.rule` mặc định của Odoo lo.
+
+**As-built — §6 đã triển khai đủ:**
+- `htplus.factory.scope.mixin` ở `htplus_factory` (`_htplus_factory_path` + `factory_id`
+  stored/indexed, `readonly=False` để model sở hữu master data tự gán, `@api.constrains`
+  `_check_htplus_factory_consistency` giữ invariant — đúng điều kiện 1–3);
+- `res.users.htplus_factory_ids` + `SELF_READABLE_FIELDS` (đúng fail-closed §6.2);
+- `ir.rule` fail-closed trong `htplus_factory/security/htplus_factory_rules.xml` — 2 rule/model
+  (per-user lọc theo `factory_id`, nhóm `group_htplus_all_factories` = toàn bộ), cho
+  factory/plant/line/workcenter/machine/holiday;
+- điểm 6 (xoá cache `ir.rule` khi đổi scope) và 7 (path phủ mọi liên kết) **đã xác minh trên
+  DB thật** và ghi cách tránh ngay trong thiết kế — xem hai điểm trên;
+- `_htplus_group_map` nạp ở `htplus_factory/models/htplus_workflow_roles.py` (`user`/`planner`/
+  `manager`/`operator`), group giữ xmlid cũ nên `ir.model.access.csv` không phải đổi.
 
 ## 7. Hiệu suất
 
@@ -739,8 +835,8 @@ availability/performance/quality từ đầu; đó là vi phạm §1.1.
 loạt bằng một `write()` trên recordset.
 
 **7.3 Gantt phân trang theo cửa sổ thời gian, không `limit` cứng.** `action_open_gantt` hiện
-`search(limit=500)` (`htplus_schedule.py:489`) — **âm thầm cắt dữ liệu**. Đổi sang lọc theo
-khoảng ngày đang xem + line đang xem, trả kèm tổng số.
+`search(limit=500)` (`htplus_schedule.py:364`) — **âm thầm cắt dữ liệu**. Đổi sang lọc theo
+khoảng ngày đang xem + line đang xem, trả kèm tổng số. **As-built: chưa đổi — `limit=500` còn.**
 
 **7.4 Index phải xuất phát từ query plan thật, không từ danh sách field.** Truy vấn APS thực
 tế lọc đồng thời `factory_id` + `workcenter_id` + khoảng `date_start/date_finished` + `state`
@@ -759,6 +855,10 @@ tế lọc đồng thời `factory_id` + `workcenter_id` + khoảng `date_start/
 30s = giữ 1 worker 30s. Với `ODOO_WORKERS = 2×cores+1` (README), vài request song song là đói
 worker toàn hệ — và `limit_time_real` giết worker trước khi solver trả lời.
 
+**As-built: vẫn đúng — `_call` và `wait_job` (`htplus_planning_service.py`) chạy đồng bộ trong
+worker, `wait_job` poll bằng `time.sleep`. Job nền nằm ở phía planning service (§8.2), không ở
+Odoo, nên worker Odoo vẫn bị giữ trong lúc solver chạy.**
+
 ### 8.2 Job layer (ở `htplus_base`)
 
 ```
@@ -770,25 +870,12 @@ htplus.job    name | model | method | payload JSONB | state(pending/running/done
 `ir.cron` kéo job. Bấm "Run solver" → tạo job, trả về ngay, UI theo dõi state. Không thêm phụ
 thuộc ngoài. Cần thông lượng cao hơn thì thay bằng OCA `queue_job` — job layer đã là interface.
 
-**Lấy job phải dùng `FOR UPDATE SKIP LOCKED`.** Odoo `ir.cron` đã khoá hàng trên `ir_cron` nên
-*một* cron không tự chạy chồng lên chính nó — nghĩa là với một cron duy nhất thì không có đua,
-nhưng **thông lượng bị chốt ở một job tại một thời điểm**. Đó mới là vấn đề: solver 30 giây
-xếp hàng sau nhau. Muốn chạy song song thì phải có nhiều cron thread / nhiều tiến trình cùng
-kéo, và lúc đó `SKIP LOCKED` là thứ giữ cho hai worker không nhận cùng một job:
-
-```sql
-SELECT id FROM htplus_job
- WHERE state = 'pending' AND scheduled_at <= now()
- ORDER BY scheduled_at
- LIMIT %s
- FOR UPDATE SKIP LOCKED
-```
-
-Thiết kế từ đầu như vậy để mở song song sau này là đổi tham số, không phải viết lại.
-*(Cơ chế khoá của `ir.cron` cần xác nhận trên 18 khi docker chạy lại.)*
-
-Job không biết gì về AI: bất kỳ tác vụ dài nào cũng dùng (export lớn, đồng bộ ERP, giao event
-§9.2). Vì thế nó ở `htplus_base`, không ở module engine.
+**As-built — chưa có `htplus.job` ở Odoo.** Thay vào đó, **planning service tự chạy job nền**
+(`services/planning/app/main.py`): submit trả `job_id` ngay, thread daemon tính kết quả, bridge
+poll `/api/v1/job/{job_id}`. Lợi ích một phần (solver không chặn tiến trình FastAPI, đúng
+contract async), nhưng **không** có retry/backoff/idempotency trên job Odoo, không có
+`FOR UPDATE SKIP LOCKED`, và bridge vẫn chờ đồng bộ (§8.1). `htplus.job`/OCA `queue_job` chưa
+quyết — quyết định 0c ở lộ trình gốc còn bỏ ngỏ.
 
 ### 8.3 Adapter chịu lỗi
 
@@ -805,6 +892,13 @@ nguyên tắc 3). Thiếu phần chịu lỗi:
 
 Response tự khai `algorithm` đã dùng (`moving_average_fallback` / `rule_fallback` /
 `solver_cpsat`) — đã có, giữ. Mọi đề xuất kèm `explanation` + `payload` JSONB, người duyệt mới áp dụng.
+
+**As-built — §8.3 chưa làm:** `htplus.planning.service` chỉ có timeout (`timeout=120`) chứ
+không có retry/backoff, không circuit breaker, không lưu request/response, không degraded mode;
+`_compute_htplus_result_summary` có `try/except` gọi `_resolve_result_model` nhưng chỉ bọc lỗi
+kết quả, không phải fallback của adapter. Response engine trả `algorithm`
+(`rule_fallback`/`solver_cpsat`) và `warnings`, nhưng bridge đọc thẳng — không dùng để quyết
+định degraded mode.
 
 ## 9. Bề mặt tích hợp bên thứ ba — `htplus_api`
 
@@ -823,6 +917,11 @@ nhiều khả năng **đang chết** (§3 nợ #5). Thay bằng:
 - Phân trang + filter chuẩn; không endpoint nào trả toàn bảng.
 - Lỗi trả mã ổn định (`error.code`), không trả traceback.
 - Ghi log request để đối soát khi khách kêu "dữ liệu không khớp".
+
+**As-built — §9 chưa triển khai.** `htplus_api` vẫn là controller không version từ lúc đầu
+(§3 nợ #5), chưa có API key gắn user kỹ thuật, chưa có event dispatcher/subscription, chưa có
+webhook — giao tiếp ngoài hiện chỉ qua `htplus_api_controller` + `/htplus/api/*`. Chỉ "vào —
+REST" ở dạng thô; "ra — event" chưa tồn tại.
 
 ### 9.2 Ra — event dispatcher (KHÔNG đặt trong `htplus_api`)
 
@@ -897,7 +996,7 @@ Số module **không** đo được năng lực (§2.7). Thước đo là checkl
 | `migrations/` + quy ước script nâng cấp | ❌ chưa module core nào có |
 | Nơi xem & cảnh báo: job fail, engine down, cron kẹt | ❌ (§8.2 giải một phần) |
 | Degraded mode hiển thị rõ | ⚠️ có fallback, chưa có cảnh báo |
-| Phân quyền chạy thật, kiểm qua RPC | ❌ (§6) |
+| Phân quyền chạy thật, kiểm qua RPC | ✅ **đã xong** — scope mixin + `ir.rule` fail-closed + nhóm toàn quyền (§6.2) |
 | Backup / restore | ✅ mức stack (README) |
 | i18n JA / VI / EN | ⚠️ có `i18n/` ở aps_core |
 | Tài liệu cho **người vận hành** | ❌ |
@@ -906,8 +1005,8 @@ Số module **không** đo được năng lực (§2.7). Thước đo là checkl
 
 | | |
 |---|---|
-| Hook `_htplus_*` có tên + ghi trong README | ❌ |
-| Không `Selection` cứng | ❌ |
+| Hook `_htplus_*` có tên + ghi trong README | ⚠️ bắt đầu hình thành (`_htplus_factory_path`, `_htplus_sync_*`, `_htplus_on_*`), **chưa có README chốt** |
+| Không `Selection` cứng | ⚠️ `algorithm` vẫn là `Selection` cứng (`htplus_schedule.py`), chưa có `selection_add` |
 | Không data nghiệp vụ trong core | ❌ |
 | API có version + event bus | ❌ (§9) |
 | Test core chạy được sau khi dự án override | ❌ **hoãn có chủ ý** |
@@ -918,61 +1017,61 @@ bằng công cụ.**
 
 ## 13. Lộ trình
 
-### P−1 — Xác minh chặn (làm trước tiên, cần docker chạy)
+### P−1 — Xác minh chặn ✅ đã chốt quyết định
 
-| # | Việc | Chặn cái gì |
-|---|---|---|
-| 0a | Odoo 18 `mrp` lưu chỗ chiếm của workorder ở đâu (§5.1.1) | **toàn bộ P1** — quyết định có dựng `htplus.capacity.reservation` hay không |
-| 0b | API controller có thực sự chết không (§3 nợ #5) | ưu tiên của REST v1 |
-| 0c | Quyết định `htplus.job` tự viết **hay** OCA `queue_job` (§8.2) | P2 #13, và việc có tách module `htplus_job` riêng hay không |
+| # | Việc | Chặn cái gì | Kết quả |
+|---|---|---|---|
+| 0a | Odoo 18 `mrp` lưu chỗ chiếm của workorder ở đâu (§5.1.1) | **toàn bộ P1** — quyết định có dựng `htplus.capacity.reservation` hay không | ✅ chốt dùng `leave_id` — proof-on-Standard-Odoo-18 (§5.1.1); **chưa triển khai ghi** |
+| 0b | API controller có thực sự chết không (§3 nợ #5) | ưu tiên của REST v1 | ⚠️ còn tồn tại, không version, ít endpoint — **chưa đánh giá là chết** |
+| 0c | Quyết định `htplus.job` tự viết **hay** OCA `queue_job` (§8.2) | P2 #13, và việc có tách module `htplus_job` riêng hay không | ⚠️ thực tế planning service tự chạy job nền; `htplus.job`/`queue_job` **chưa quyết** (§8.2) |
 
 0c phải quyết trước 13: nếu chọn OCA thì câu hỏi tách module biến mất. Nếu tự viết, ghi rõ
 trong doc **vì sao** đáng tự viết — "sau này thay được" không phải lý do.
 
-### P0 — An toàn kiến trúc (làm trước, càng để càng đắt)
+### P0 — An toàn kiến trúc ✅ đã xong
 
-| # | Việc | Đụng |
-|---|---|---|
-| 1 | `htplus_base` + workflow mixin | module mới |
-| 2 | Di trú `demand.plan` + `production.plan` — **mẫu duyệt pattern** | aps |
-| 3 | Tách `htplus_factory` khỏi `planning_base`; gỡ `hr*`/`maintenance` khỏi nền | factory |
-| 4 | Tách `htplus_workforce`; `htplus_mes` **thôi depends aps** | mes, workforce |
-| 5 | 5 bridge `auto_install` tầng 3 | bridge mới |
-| 6 | `factory.scope.mixin` + `ir.rule` fail-closed + `group_htplus_all_factories` (§6.2) | factory + năng lực |
+| # | Việc | Đụng | Trạng thái |
+|---|---|---|---|
+| 1 | `htplus_base` + workflow mixin | module mới | ✅ `htplus_base` có; mixin dùng ở demand.plan / production.plan (chưa ở schedule.run/shift) |
+| 2 | Di trú `demand.plan` + `production.plan` — **mẫu duyệt pattern** | aps | ✅ |
+| 3 | Tách `htplus_factory` khỏi `planning_base`; gỡ `hr*`/`maintenance` khỏi nền | factory | ✅ module `htplus_factory` tách riêng, dep tối thiểu |
+| 4 | Tách `htplus_workforce`; `htplus_mes` **thôi depends aps** | mes, workforce | ✅ |
+| 5 | 5 bridge `auto_install` tầng 3 | bridge mới | ✅ 6 bridge, đều `auto_install=True` (§2.3) |
+| 6 | `factory.scope.mixin` + `ir.rule` fail-closed + `group_htplus_all_factories` (§6.2) | factory + năng lực | ✅ |
 
 ### P1 — Đúng đắn APS (đang là **sai thầm lặng**, không phải thiếu tính năng)
 
-| # | Việc | Đụng |
-|---|---|---|
-| 7 | Bỏ `hasattr`/`except` quanh `plan_hours`; cam kết `resource.calendar` | aps |
-| 8 | Apply ghi `resource.calendar.leaves` theo `origin` (§5.1) | aps |
-| 9 | Biên giao dịch Apply: lô · `apply_state` · idempotency (§5.2) | aps |
-| 10 | Hợp đồng `ScheduleResult` + hook `_htplus_resolve_scheduler` (§5.3) | aps, engine_bridge |
-| 11 | Concurrency mixin (giữ context key) | base, aps |
-| 12 | Di trú 6 model còn lại sang workflow mixin | aps, mes, workforce |
+| # | Việc | Đụng | Trạng thái |
+|---|---|---|---|
+| 7 | Bỏ `hasattr`/`except` quanh `plan_hours`; cam kết `resource.calendar` | aps | ❌ còn — lịch sản xuất vẫn không ghi `resource.calendar.leaves` (§3 nợ #3) |
+| 8 | Apply ghi `resource.calendar.leaves` theo `origin` (§5.1) | aps | ❌ chưa |
+| 9 | Biên giao dịch Apply: lô · `apply_state` · idempotency (§5.2) | aps | ❌ **chưa** — `action_confirm`/`action_lock` vẫn một transaction đồng bộ (§5.2) |
+| 10 | Hợp đồng `ScheduleResult` + hook `_htplus_resolve_scheduler` (§5.3) | aps, engine_bridge | ⚠️ một phần — contract đã khớp (§5.3); hook `_htplus_resolve_scheduler`/`selection_add` **chưa có** |
+| 11 | Concurrency mixin (giữ context key) | base, aps | ✅ `htplus.concurrency.mixin` + `_htplus_concurrency` context key |
+| 12 | Di trú 6 model còn lại sang workflow mixin | aps, mes, workforce | ✅ 8 model, 14 transition |
 
 ### P2 — Vận hành & hiệu suất
 
-| # | Việc | Đụng |
-|---|---|---|
-| 13 | Job layer + `FOR UPDATE SKIP LOCKED` (§8.2); solver chạy nền | base, engine_bridge |
-| 14 | Import master data hàng loạt — **trước rollout nhà máy thật đầu tiên** | factory |
-| 15 | Khung `migrations/` + quy ước nâng cấp — **phải có từ phiên bản đầu** | mọi module core |
-| 16 | Màn theo dõi sức khoẻ: job fail · engine down · cron kẹt · degraded mode | base, engine_bridge |
-| 17 | KPI → `_auto=False` PG view; Gantt phân trang theo cửa sổ | aps |
-| 18 | Adapter chịu lỗi: retry/circuit breaker/idempotency/lưu I-O | engine_bridge |
-| 19 | Bỏ `htplus.planning.parameter` → `ir.config_parameter` · tách `htplus_demo_data` | factory |
-| 20 | Tài liệu vận hành cho người dùng | docs |
+| # | Việc | Đụng | Trạng thái |
+|---|---|---|---|
+| 13 | Job layer + `FOR UPDATE SKIP LOCKED` (§8.2); solver chạy nền | base, engine_bridge | ⚠️ một phần — planning service tự chạy job nền, bridge poll; chưa có `htplus.job` (§8.2) |
+| 14 | Import master data hàng loạt — **trước rollout nhà máy thật đầu tiên** | factory | ❌ |
+| 15 | Khung `migrations/` + quy ước nâng cấp — **phải có từ phiên bản đầu** | mọi module core | ❌ |
+| 16 | Màn theo dõi sức khoẻ: job fail · engine down · cron kẹt · degraded mode | base, engine_bridge | ❌ |
+| 17 | KPI → `_auto=False` PG view; Gantt phân trang theo cửa sổ | aps | ❌ — Gantt vẫn `limit=500` (§7.3) |
+| 18 | Adapter chịu lỗi: retry/circuit breaker/idempotency/lưu I-O | engine_bridge | ❌ (§8.3) |
+| 19 | Bỏ `htplus.planning.parameter` → `ir.config_parameter` · tách `htplus_demo_data` | factory | ❌ |
+| 20 | Tài liệu vận hành cho người dùng | docs | ❌ |
 
 ### P3 — Mở rộng (chỉ khi có nhu cầu thật)
 
-| # | Việc | Điều kiện kích hoạt |
-|---|---|---|
-| 21 | Undo mixin | sau khi PoC `mail.tracking.value` đạt (§4.2) |
-| 22 | `htplus_factory_maintenance`: machine `_inherits` equipment | sau khi PoC 7 điểm đạt (§4.5) |
-| 23 | mrp bridge mixin — gom `_sync_productivity` | khi có module thứ ba cần |
-| 24 | `htplus_api`: REST v1 + event bus | **khi có khách tích hợp thật** |
-| 25 | `plan_lifecycle` computed (gap #1 memo 04) | khi UI cần stepper |
+| # | Việc | Điều kiện kích hoạt | Trạng thái |
+|---|---|---|---|
+| 21 | Undo mixin | sau khi PoC `mail.tracking.value` đạt (§4.2) | ❌ **chọn hướng khác** — undo bằng `htplus.schedule.change` + cron dọn (§4.2) |
+| 22 | `htplus_factory_maintenance`: machine `_inherits` equipment | sau khi PoC 7 điểm đạt (§4.5) | ✅ **thay đổi quyết định** — `Many2one equipment_id` (không `_inherits`) (§4.5) |
+| 23 | mrp bridge mixin — gom `_sync_productivity` | khi có module thứ ba cần | ❌ |
+| 24 | `htplus_api`: REST v1 + event bus | **khi có khách tích hợp thật** | ❌ |
+| 25 | `plan_lifecycle` computed (gap #1 memo 04) | khi UI cần stepper | ❌ |
 
 **Vì sao 24 xuống P3:** thiết kế webhook/subscription trước khi có một tích hợp thật là dựng
 framework đẹp trên giấy. Hợp đồng ở §9 giữ nguyên làm định hướng; code chờ khách đầu tiên.

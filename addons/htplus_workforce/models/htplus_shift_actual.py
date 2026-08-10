@@ -4,6 +4,14 @@ from odoo.exceptions import UserError
 
 class HtplusShiftActual(models.Model):
     _name = 'htplus.shift.actual'
+    _inherit = ['htplus.workflow.mixin']
+
+    _htplus_transitions = {
+        'confirm': {'from': ('draft',), 'to': 'in_progress', 'role': 'planner'},
+        'done': {'from': ('in_progress',), 'to': 'done', 'role': 'planner'},
+        'cancel': {'from': ('draft', 'in_progress'), 'to': 'cancelled', 'role': 'planner'},
+        'reset': {'from': ('cancelled',), 'to': 'draft', 'role': 'manager'},
+    }
     _description = 'Shift Actual'
     _order = 'date desc, shift_id'
     _rec_name = 'display_name'
@@ -103,20 +111,14 @@ class HtplusShiftActual(models.Model):
             self.line_ids = [(0, 0, vals) for vals in vals_list]
         return True
 
-    def action_confirm(self):
-        """Move the actual to In Progress once it has lines."""
-        for rec in self:
-            if not rec.line_ids:
-                raise UserError(_('Add at least one actual line before starting.'))
-        self.state = 'in_progress'
+    def _htplus_guard_confirm(self):
+        """There is nothing to record until at least one line exists."""
+        if not self.line_ids:
+            raise UserError(_('Add at least one actual line before starting.'))
 
     def action_done(self):
-        """Mark the shift actual as done."""
-        self.state = 'done'
-
-    def action_cancel(self):
-        """Cancel the shift actual."""
-        self.state = 'cancelled'
+        """Run the 'done' transition."""
+        return self._htplus_apply_transition('done')
 
     def action_open_shift(self):
         """Open the linked production shift."""

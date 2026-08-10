@@ -8,7 +8,15 @@ class HtplusScheduleRun(models.Model):
     _name = 'htplus.schedule.run'
     _htplus_factory_path = 'production_plan_id.factory_id'
     _description = 'Schedule Run'
-    _inherit = ['mail.thread', 'htplus.security.mixin', 'htplus.factory.scope.mixin']
+    _inherit = ['mail.thread', 'htplus.security.mixin', 'htplus.factory.scope.mixin',
+                'htplus.workflow.mixin']
+
+    _htplus_transitions = {
+        'calculate': {'from': ('draft', 'calculated'), 'to': 'calculated', 'role': 'planner'},
+        'confirm': {'from': ('calculated',), 'to': 'confirmed', 'role': 'planner'},
+        'lock': {'from': ('confirmed',), 'to': 'locked', 'role': 'manager'},
+        'reset': {'from': ('confirmed', 'locked'), 'to': 'calculated', 'role': 'manager'},
+    }
     _order = 'id desc'
 
     name = fields.Char(required=True, default=lambda self: _('New'))
@@ -78,14 +86,81 @@ class HtplusScheduleRun(models.Model):
         return max(float(qty or 1.0) / 10.0, 0.5)
 
     def _htplus_plan_end(self, start, hours, workcenter):
-        """Finish datetime using workcenter calendar when available."""
+        """Finish datetime for a duration placed on a work center's calendar.
+
+        Always goes through ``resource.calendar``. The previous version fell
+        back to wall-clock arithmetic when anything went wrong, which produced a
+        schedule that quietly ignored shifts, breaks and shutdowns - wrong dates
+        that look right. A missing calendar is a configuration error and is
+        reported as one, the same way ``mrp`` itself reports it.
+
+        Args:
+            start: Datetime the operation may begin.
+            hours: Working hours needed.
+            workcenter: Work center running the operation.
+
+        Returns:
+            Datetime the operation finishes, respecting working time.
+
+        Raises:
+            UserError: The work center has no working calendar.
+        """
         calendar = workcenter.resource_calendar_id if workcenter else False
-        if calendar and hasattr(calendar, 'plan_hours'):
-            try:
-                return calendar.plan_hours(hours, start, compute_leaves=True)
-            except Exception:  # noqa: BLE001 - fall back to wall-clock hours
-                pass
-        return start + timedelta(hours=hours)
+        if not calendar:
+            raise UserError(_(
+                'There is no defined calendar on workcenter %s. Set one before '
+                'scheduling: without working hours the dates would be meaningless.',
+                workcenter.display_name if workcenter else _('(none)'),
+            ))
+        return calendar.plan_hours(hours, start, compute_leaves=True)
+
+    def _htplus_propose_slot(self, workorder, workcenter):
+        """Find the first free slot on the work center for this work order.
+
+        Delegates to ``mrp.workcenter._get_first_available_slot``, the same
+        primitive ``button_plan`` uses. That matters for correctness, not just
+        for reuse: it searches against the work center's *existing* leaves, so
+        the slot is disjoint from every other planned work order - including
+        ones this schedule run has never seen, and maintenance downtime.
+
+        The previous implementation advanced a private per-work-center cursor
+        held in memory for the duration of one run. It could only avoid
+        collisions with work orders inside the same run, so two runs, or a run
+        and a plain Odoo ``button_plan``, would happily book the same machine
+        for the same hour.
+
+        Args:
+            workorder: Work order to place.
+            workcenter: Work center that will run it.
+
+        Returns:
+            Tuple of (start, finish) datetimes.
+
+        Raises:
+            UserError: No calendar on the work center, or no slot within the
+                horizon Odoo searches.
+        """
+        horizon_start = self._htplus_horizon_start()
+        hours = self._htplus_duration_hours(workorder)
+        if not workcenter:
+            # No work center means no capacity to reserve; place it on the
+            # horizon and let the conflict pass flag it.
+            return horizon_start, horizon_start + timedelta(hours=hours)
+        if not workcenter.resource_calendar_id:
+            raise UserError(_(
+                'There is no defined calendar on workcenter %s. Set one before '
+                'scheduling: without working hours the dates would be meaningless.',
+                workcenter.display_name,
+            ))
+        duration_minutes = workorder.duration_expected or hours * 60.0
+        start, end = workcenter._get_first_available_slot(horizon_start, duration_minutes)
+        if not start:
+            # Odoo returns (False, reason) when it finds nothing in ~700 days.
+            raise UserError(_(
+                'No free slot on workcenter %(wc)s for %(wo)s: %(reason)s',
+                wc=workcenter.display_name, wo=workorder.display_name, reason=end,
+            ))
+        return start, end
 
     def _htplus_split_attachable(self, workorders):
         """Return (attachable, blocked) — blocked = locked or on confirmed/locked run."""
@@ -116,7 +191,6 @@ class HtplusScheduleRun(models.Model):
             raise UserError(_('No attachable work orders.'))
 
         Machine = self.env['htplus.machine']
-        cursors = {}
         ordered = attachable.sorted(lambda w: (-(w.priority or 0), w.id))
         for workorder in ordered:
             vals = {'schedule_run_id': self.id}
@@ -132,10 +206,7 @@ class HtplusScheduleRun(models.Model):
                     vals['machine_id'] = machine.id
 
             if propose_dates and not workorder.date_start:
-                wc_key = workcenter.id if workcenter else 0
-                start = cursors.get(wc_key) or self._htplus_horizon_start()
-                hours = self._htplus_duration_hours(workorder)
-                end = self._htplus_plan_end(start, hours, workcenter)
+                start, end = self._htplus_propose_slot(workorder, workcenter)
                 vals.update({
                     'date_start': start,
                     'date_finished': end,
@@ -143,7 +214,6 @@ class HtplusScheduleRun(models.Model):
                     'schedule_conflict': False,
                     'capacity_ok': True,
                 })
-                cursors[wc_key] = end
             elif workorder.date_start:
                 vals['schedule_state'] = (
                     workorder.schedule_state
@@ -225,34 +295,38 @@ class HtplusScheduleRun(models.Model):
             if not dated:
                 raise UserError(_('No dated work orders to calculate. Attach or run the solver first.'))
             run._htplus_mark_overlaps(run.workorder_ids)
-            run.state = 'calculated'
+            run._htplus_apply_transition('calculate')
         return True
 
-    def action_confirm(self):
-        """Confirm the run once it has no conflicts and every work order is dated."""
-        self._htplus_require_planner()
-        for run in self:
-            if run.conflict_count:
-                raise ValidationError(_('Cannot confirm a schedule with unresolved conflicts.'))
-            undated = run.workorder_ids.filtered(
-                lambda w: w.state != 'cancel' and not w.date_start
-            )
-            if undated:
-                raise ValidationError(_(
-                    'Cannot confirm: %s work order(s) still unscheduled.'
-                ) % len(undated))
-            run.workorder_ids.filtered(lambda w: w.state != 'cancel').write({
-                'schedule_state': 'confirmed',
-            })
-            run.state = 'confirmed'
+    def _htplus_guard_confirm(self):
+        """A run may only be confirmed when it is complete and conflict-free."""
+        if self.conflict_count:
+            raise ValidationError(_('Cannot confirm a schedule with unresolved conflicts.'))
+        undated = self.workorder_ids.filtered(
+            lambda w: w.state != 'cancel' and not w.date_start
+        )
+        if undated:
+            raise ValidationError(_(
+                'Cannot confirm: %s work order(s) still unscheduled.'
+            ) % len(undated))
 
-    def action_lock(self):
-        """Lock the run and its work orders against further rescheduling."""
-        self._htplus_require_manager()
-        for run in self:
-            run.workorder_ids.locked = True
-            run.workorder_ids.schedule_state = 'locked'
-            run.state = 'locked'
+    def _htplus_after_confirm(self):
+        """Carry the confirmation down to the work orders of the run."""
+        self.workorder_ids.filtered(lambda w: w.state != 'cancel').write({
+            'schedule_state': 'confirmed',
+        })
+
+    def _htplus_after_lock(self):
+        """Lock the work orders of the run against further rescheduling."""
+        self.workorder_ids.locked = True
+        self.workorder_ids.schedule_state = 'locked'
+
+    def _htplus_after_reset(self):
+        """Release the work orders so the run can be recalculated."""
+        self.workorder_ids.with_context(htplus_force_locked_write=True).write({
+            'locked': False,
+            'schedule_state': 'scheduled',
+        })
 
     def action_undo_change(self):
         """Revert the most recent schedule change recorded on this run."""
@@ -320,8 +394,11 @@ class MrpProduction(models.Model):
 
 
 class MrpWorkorder(models.Model):
-    _inherit = ['mrp.workorder', 'htplus.factory.scope.mixin']
+    _name = 'mrp.workorder'
+    _inherit = ['mrp.workorder', 'htplus.factory.scope.mixin', 'htplus.concurrency.mixin']
     _htplus_factory_path = 'workcenter_id.factory_id'
+    _htplus_concurrency_fields = ('date_start', 'date_finished', 'machine_id', 'line_id',
+                                  'priority', 'schedule_state', 'locked')
 
     schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
     line_id = fields.Many2one('htplus.line', string='Line')
@@ -496,32 +573,6 @@ class MrpWorkorder(models.Model):
             conflicted.write({'schedule_conflict': True, 'capacity_ok': False})
         return conflicted
 
-    def _htplus_check_optimistic_lock(self):
-        """Refuse stale writes when client sends expected write_date(s).
-
-        Context keys (either):
-        - htplus_expected_write_date: single ISO datetime for a one-record write
-        - htplus_expected_write_dates: {workorder_id: ISO datetime}
-        """
-        expected_map = self.env.context.get('htplus_expected_write_dates') or {}
-        single = self.env.context.get('htplus_expected_write_date')
-        if single and len(self) == 1:
-            expected_map = {self.id: single}
-        if not expected_map:
-            return
-        for workorder in self:
-            expected = expected_map.get(workorder.id)
-            if not expected or not workorder.write_date:
-                continue
-            expected_dt = fields.Datetime.to_datetime(expected)
-            if expected_dt and workorder.write_date.replace(microsecond=0) != expected_dt.replace(microsecond=0):
-                raise UserError(_(
-                    'Work order "%(wo)s" was modified by another user (%(when)s). '
-                    'Reload and try again.'
-                ) % {
-                    'wo': workorder.display_name,
-                    'when': fields.Datetime.to_string(workorder.write_date),
-                })
 
     @staticmethod
     def _htplus_change_value(value):
@@ -540,11 +591,11 @@ class MrpWorkorder(models.Model):
         return str(value)
 
     def write(self, vals):
-        """Enforce locked work orders, optimistic locking and schedule-change logging."""
-        tracked = ('date_start', 'date_finished', 'machine_id', 'line_id', 'priority', 'schedule_state', 'locked')
-        if any(field in vals for field in tracked) or self.env.context.get('htplus_expected_write_date') \
-                or self.env.context.get('htplus_expected_write_dates'):
-            self._htplus_check_optimistic_lock()
+        """Enforce locked work orders and log schedule changes.
+
+        The staleness check lives in htplus.concurrency.mixin and runs from its
+        own write(); this override only adds what is specific to scheduling.
+        """
         for workorder in self:
             if workorder.locked and any(f in vals for f in ('date_start', 'date_finished', 'machine_id', 'line_id')):
                 if not self.env.context.get('htplus_force_locked_write'):

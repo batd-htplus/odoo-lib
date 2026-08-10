@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <data noupdate="1">
+    <!--
+        Deliberately NOT noupdate: this is the taxonomy the product ships, and a
+        project must be able to correct it through an upgrade instead of editing
+        the database by hand or forking the module.
+    -->
+    <data>
 
         <!-- ========== Production operations ========== -->
         <record id="hr_skill_type_production" model="hr.skill.type">
