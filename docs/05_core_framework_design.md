@@ -318,24 +318,16 @@ addons/htplus_base/
 ### Nợ kỹ thuật trong code — trạng thái as-built
 
 1. **`htplus.planning.parameter`** (`htplus_rule.py:52`) — key/value unique, trùng
-   `ir.config_parameter`. Mà `res.config.settings` đã `_inherit` ở
+   `ir.config_parameter`. `res.config.settings` đã `_inherit` ở
    `htplus_aps_core/models/htplus_settings.py` và **đã chuyển hẳn sang `config_parameter`**
-   (`htplus_aps.*`, `htplus_shift.*`). **Nợ còn lại:** model `htplus.planning.parameter` chưa
-   được gỡ khỏi code — không còn nơi nào đọc nó.
+   (`htplus_aps.*`, `htplus_shift.*`). **Đã gỡ hẳn:** model bị xoá khỏi code, migration
+   `migrations/18.0.1.8.0/post-migration.py` (an toàn re-run) drop bảng + `ir_model` khi
+   bảng rỗng; còn row thì để lại cho người xử lý tay. Không còn nợ.
 
-2. **Không cam kết vào `resource.calendar`** — `htplus_schedule.py:82` **vẫn còn**:
-
-   ```python
-   if calendar and hasattr(calendar, 'plan_hours'):
-       try:
-           return calendar.plan_hours(hours, start, compute_leaves=True)
-       except Exception:      # noqa
-           pass
-   return start + timedelta(hours=hours)     # ← wall-clock, bỏ qua lịch
-   ```
-
-   `hasattr` + `except` trần = không tin API nền tảng. Rơi nhánh cuối thì lịch **bỏ qua
-   calendar và leave mà không báo gì** — sai thầm lặng. **Nợ còn lại.**
+2. **Không cam kết vào `resource.calendar`** — **đã sửa.** `_htplus_schedule_hours`
+   (`htplus_schedule.py:113`) gọi thẳng `calendar.plan_hours(hours, start,
+   compute_leaves=True)` và `raise UserError` nếu workcenter không có calendar — không còn
+   `hasattr`/`except` trần, không còn nhánh wall-clock im lặng.
 
 3. ~~**Lập lịch không ghi `resource.calendar.leaves`**~~ — **SAI, đã đính chính 2026-08-10.**
    `mrp.workorder.date_start/date_finished` là computed có `inverse='_set_dates'`, và inverse
@@ -354,9 +346,10 @@ addons/htplus_base/
    `group_htplus_all_factories` (§6). `htplus_menu` cũng có.
 
 5. **API controller nhiều khả năng đang chết** — `htplus_aps_core/controllers/htplus_api_controller.py`
-   **vẫn còn**: `@http.route(type='json', methods=['GET'])` mâu thuẫn (route JSON của Odoo
-   dispatch qua POST), và `request.jsonrequest` đã bị bỏ từ Odoo 17 (thay bằng
-   `request.get_json_data()`). **Nợ còn lại** — `htplus_api` (§9) chưa thay thế.
+   **đã sửa (2026-08-10):** hai route GET (`/htplus/api/schedule`, `/htplus/api/workorder`)
+   dùng `type='json'` (JSON route của Odoo dispatch qua POST nên GET **400**) — chuyển sang
+   `type='http'` trả `Response` JSON; `request.jsonrequest` (bỏ từ Odoo 17) → `request.get_json_data()`.
+   **Nợ còn lại** — `htplus_api` (§9) version + API key + phân trang **chưa thay thế** (P3, chờ khách).
 
 ## 4. Thành phần core
 
@@ -670,20 +663,21 @@ ScheduleResult
 `unassigned` và `explanation` là bắt buộc: bộ giải trả về ít hơn yêu cầu **phải** giải thích,
 nếu không planner không có cơ sở để can thiệp tay.
 
-Hợp đồng này thay cho `Selection` cứng ở `htplus_schedule.py:23` và kiểm tra tư cách thành
+Hợp đồng này thay cho `Selection` cứng ở `htplus_schedule.py:38` và kiểm tra tư cách thành
 viên cứng ở `htplus_planning_bridge/models/htplus_schedule_run.py:21` — hiện thêm 1 thuật
 toán phải sửa **cả hai file core**.
 
 **Ràng buộc đưa vào bộ giải là data**, đọc từ `htplus.planning.rule` / `capacity.rule` /
 `priority.rule` + `resource.calendar` — không hardcode trong Python.
 
-**As-built — hợp đồng đúng một phần:** engine (`services/planning`) trả `schedule_result`
+ **As-built — hợp đồng đúng một phần:** engine (`services/planning`) trả `schedule_result`
 (workorder_id, workcenter_id, date_start, date_finished, priority, conflict, delay_hours,
 score) + `kpi` + `model` (`greedy_fallback`). `algorithm` Selection trên `schedule.run` đã có
-(`manual`/`rule_engine`/`solver_cpsat`). **Chưa có:** hook `_htplus_resolve_scheduler`,
-`selection_add` (thêm thuật toán vẫn phải sửa file core), và các trường `unassigned` /
-`explanation` / `objective` / `metadata` trong contract — bridge đọc thẳng `schedule_result`
-chứ không nhận diện `algorithm`/`explanation` từ response.
+(`manual`/`rule_engine`/`solver_cpsat`). Hook **`_htplus_resolve_scheduler`** (core,
+`htplus_schedule.py`) **đã có 2026-08-10** — bridge gọi thay vì whitelist cứng; `selection_add`
+dành cho dự án extend. **Chưa có:** các trường `unassigned` / `explanation` / `objective` /
+`metadata` trong contract — bridge đọc thẳng `schedule_result` chứ không nhận diện
+`algorithm`/`explanation` từ response.
 
 ## 6. Nhiều nhà máy — hai trục trực giao
 
@@ -970,9 +964,26 @@ trong `htplus_base/README.md`. Còn lại là private, core đổi tự do.
 **11.2 Không `Selection` cứng cho thứ dự án sẽ thêm.** Dự án dùng `selection_add`; core phân
 giải bằng hook (§5), không bằng kiểm tra tư cách thành viên.
 
-**11.3 Không data nghiệp vụ trong core.** `htplus_planning_base/data/htplus_skill_data.xml`
-seed `hr.skill.type` với `noupdate="1"` — dự án sau **không sửa được bằng upgrade**, phải sửa
-tay DB hoặc fork. Chuyển sang `htplus_demo_data`.
+**11.3 Không data nghiệp vụ trong core.** ✅ **Đạt sau P0 (kiểm 2026-08-10).** Data trong 5
+module core giờ chỉ còn hạ tầng: sequence, cron, và gán role cho admin. Toàn bộ taxonomy
+skill đã rời core sang `htplus_workforce_skills` — một bridge **tuỳ chọn**, không cài thì
+không có.
+
+Khuyết tật thật là `noupdate="1"` chứ không phải vị trí: nó khoá cứng dữ liệu, dự án sau
+không sửa được bằng upgrade, phải sửa tay DB hoặc fork. **Đã bỏ.**
+
+**`htplus_demo_data` — quyết định KHÔNG tạo (2026-08-10).** Bản thiết kế đề xuất module này
+khi skill data còn nằm trong `htplus_planning_base` (core). Sau khi tách, tiền đề không còn.
+Kiểm lại phần dữ liệu còn lại:
+
+| Nhóm | Ai tham chiếu | Kết luận |
+|---|---|---|
+| 4 `hr.skill.type`, 4 `hr.skill.level` | view (domain/filter/context) + seed script, qua xmlid | **taxonomy cấu trúc** — sản phẩm phải ship |
+| ~26 `hr.skill` riêng lẻ | **không ai** | hình dạng khách hàng, nhưng đã nằm ngoài core |
+
+Tách 26 bản ghi vô chủ ra một module riêng đòi thêm một migration chuyển quyền sở hữu
+`ir_model_data` — thêm mảnh ghép nhiều hơn số mảnh bỏ đi. Xem lại khi thực sự có master
+data riêng của khách cần ship.
 
 **11.4 Bên thứ ba dùng event + REST (§9), không `_inherit` model core.**
 
@@ -1006,8 +1017,8 @@ Số module **không** đo được năng lực (§2.7). Thước đo là checkl
 | | |
 |---|---|
 | Hook `_htplus_*` có tên + ghi trong README | ⚠️ bắt đầu hình thành (`_htplus_factory_path`, `_htplus_sync_*`, `_htplus_on_*`), **chưa có README chốt** |
-| Không `Selection` cứng | ⚠️ `algorithm` vẫn là `Selection` cứng (`htplus_schedule.py`), chưa có `selection_add` |
-| Không data nghiệp vụ trong core | ❌ |
+| Không `Selection` cứng | ⚠️ còn `algorithm` là `Selection` trên `htplus.schedule.run` (thêm thuật toán cần `selection_add` từ dự án — core đã hỗ trợ qua hook `_htplus_resolve_scheduler`) |
+| Không data nghiệp vụ trong core | ✅ §11.3 — skill taxonomy đã rời core sang `htplus_workforce_skills` (bridge tuỳ chọn), bỏ `noupdate` |
 | API có version + event bus | ❌ (§9) |
 | Test core chạy được sau khi dự án override | ❌ **hoãn có chủ ý** |
 | Version pin + luật không sửa file core | ⚠️ đã ghi, chưa cưỡng chế |
@@ -1016,6 +1027,9 @@ Nhóm B quyết định chữ "dễ vận hành" — **không giải được b�
 bằng công cụ.**
 
 ## 13. Lộ trình
+
+**Tổng kết (2026-08-10):** P0 **6/6** · P1 **5/6** (chỉ còn #9 — biên giao dịch Apply) · P2 **3/8**
+(#13 là "nửa": job nền ở planning service, chưa có `htplus.job`).
 
 ### P−1 — Xác minh chặn ✅ đã chốt quyết định
 
@@ -1043,10 +1057,10 @@ trong doc **vì sao** đáng tự viết — "sau này thay được" không ph�
 
 | # | Việc | Đụng | Trạng thái |
 |---|---|---|---|
-| 7 | Bỏ `hasattr`/`except` quanh `plan_hours`; cam kết `resource.calendar` | aps | ❌ còn — lịch sản xuất vẫn không ghi `resource.calendar.leaves` (§3 nợ #3) |
-| 8 | Apply ghi `resource.calendar.leaves` theo `origin` (§5.1) | aps | ❌ chưa |
+| 7 | Bỏ `hasattr`/`except` quanh `plan_hours`; cam kết `resource.calendar` | aps | ✅ `_htplus_schedule_hours` gọi `plan_hours(..., compute_leaves=True)` trực tiếp + `UserError` khi thiếu calendar |
+| 8 | Apply ghi `resource.calendar.leaves` theo `origin` (§5.1) | aps | ⚠️ nửa — greedy cursor đã thay bằng `workcenter._get_first_available_slot()` (cùng primitive `button_plan`); leave tự sinh qua inverse Odoo core; còn "ghi theo origin" khi Apply lô |
 | 9 | Biên giao dịch Apply: lô · `apply_state` · idempotency (§5.2) | aps | ❌ **chưa** — `action_confirm`/`action_lock` vẫn một transaction đồng bộ (§5.2) |
-| 10 | Hợp đồng `ScheduleResult` + hook `_htplus_resolve_scheduler` (§5.3) | aps, engine_bridge | ⚠️ một phần — contract đã khớp (§5.3); hook `_htplus_resolve_scheduler`/`selection_add` **chưa có** |
+| 10 | Hợp đồng `ScheduleResult` + hook `_htplus_resolve_scheduler` (§5.3) | aps, engine_bridge | ✅ contract/`objective`/`algorithm` khớp (§5.3) + hook `_htplus_resolve_scheduler` **đã có** ở core (thay whitelist cứng của bridge); còn thiếu `unassigned`/`explanation` trong contract (phần bridge/engine) |
 | 11 | Concurrency mixin (giữ context key) | base, aps | ✅ `htplus.concurrency.mixin` + `_htplus_concurrency` context key |
 | 12 | Di trú 6 model còn lại sang workflow mixin | aps, mes, workforce | ✅ 8 model, 14 transition |
 
@@ -1054,13 +1068,13 @@ trong doc **vì sao** đáng tự viết — "sau này thay được" không ph�
 
 | # | Việc | Đụng | Trạng thái |
 |---|---|---|---|
-| 13 | Job layer + `FOR UPDATE SKIP LOCKED` (§8.2); solver chạy nền | base, engine_bridge | ⚠️ một phần — planning service tự chạy job nền, bridge poll; chưa có `htplus.job` (§8.2) |
+| 13 | Job layer + `FOR UPDATE SKIP LOCKED` (§8.2); solver chạy nền | base, engine_bridge | ⚠️ nửa — planning service tự chạy job nền, bridge poll; chưa có `htplus.job` (§8.2) |
 | 14 | Import master data hàng loạt — **trước rollout nhà máy thật đầu tiên** | factory | ❌ |
-| 15 | Khung `migrations/` + quy ước nâng cấp — **phải có từ phiên bản đầu** | mọi module core | ❌ |
+| 15 | Khung `migrations/` + quy ước nâng cấp — **phải có từ phiên bản đầu** | mọi module core | ✅ pattern đã có — `htplus_aps_core/migrations/18.0.1.8.0/post-migration.py` khớp manifest version |
 | 16 | Màn theo dõi sức khoẻ: job fail · engine down · cron kẹt · degraded mode | base, engine_bridge | ❌ |
 | 17 | KPI → `_auto=False` PG view; Gantt phân trang theo cửa sổ | aps | ❌ — Gantt vẫn `limit=500` (§7.3) |
 | 18 | Adapter chịu lỗi: retry/circuit breaker/idempotency/lưu I-O | engine_bridge | ❌ (§8.3) |
-| 19 | Bỏ `htplus.planning.parameter` → `ir.config_parameter` · tách `htplus_demo_data` | factory | ❌ |
+| 19 | Bỏ `htplus.planning.parameter` → `ir.config_parameter` · tách `htplus_demo_data` | factory | ✅ model đã gỡ + 8 setting `config_parameter` + migration drop bảng; skill taxonomy đã ra khỏi core vào `htplus_workforce_skills` (`noupdate` xoá bỏ), chưa tách module `htplus_demo_data` đúng tên |
 | 20 | Tài liệu vận hành cho người dùng | docs | ❌ |
 
 ### P3 — Mở rộng (chỉ khi có nhu cầu thật)

@@ -1,16 +1,27 @@
+import json
+
 from odoo import http
 from odoo.http import request
 
+
+def _json_response(data, status=200):
+    return http.Response(
+        json.dumps(data, ensure_ascii=False, default=str),
+        status=status,
+        mimetype='application/json',
+    )
+
+
 class HtplusApiController(http.Controller):
 
-    @http.route('/htplus/api/schedule', type='json', auth='user', methods=['GET'])
+    @http.route('/htplus/api/schedule', type='http', auth='user', methods=['GET'])
     def schedule_runs(self, **kwargs):
         """List schedule runs for the external UI."""
         runs = request.env['htplus.schedule.run'].search_read(
             [], ['id', 'name', 'version', 'state', 'algorithm', 'conflict_count'])
-        return {'success': True, 'data': runs}
+        return _json_response({'success': True, 'data': runs})
 
-    @http.route('/htplus/api/workorder', type='json', auth='user', methods=['GET'])
+    @http.route('/htplus/api/workorder', type='http', auth='user', methods=['GET'])
     def workorders(self, schedule_run_id=None, **kwargs):
         """List work orders, optionally filtered by schedule run.
 
@@ -23,12 +34,12 @@ class HtplusApiController(http.Controller):
         fields = ['id', 'display_name', 'workcenter_id', 'machine_id', 'date_start',
                   'date_finished', 'schedule_state', 'priority', 'locked']
         workorders = request.env['mrp.workorder'].search_read(domain, fields)
-        return {'success': True, 'data': workorders}
+        return _json_response({'success': True, 'data': workorders})
 
     @http.route('/htplus/api/demand', type='json', auth='user', methods=['POST'])
     def create_demand(self, **kwargs):
         """Create a demand plan from the submitted JSON lines."""
-        payload = request.jsonrequest or {}
+        payload = request.get_json_data() or {}
         lines = payload.get('lines', [])
         plan = request.env['htplus.demand.plan'].create({
             'date_start': payload.get('date_start'),

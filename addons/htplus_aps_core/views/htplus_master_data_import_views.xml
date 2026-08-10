@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_master_data_import" model="ir.actions.act_window">
+        <field name="name">Import Master Data</field>
+        <field name="res_model">htplus.master.data.import.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <record id="view_htplus_master_data_import_form" model="ir.ui.view">
+        <field name="name">htplus.master.data.import.form</field>
+        <field name="model">htplus.master.data.import.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Import Master Data">
+                <group>
+                    <field name="entity"/>
+                    <field name="file" filename="filename"/>
+                    <field name="filename" invisible="True"/>
+                </group>
+                <group>
+                    <field name="preview" colspan="2"/>
+                    <field name="import_summary" colspan="2"/>
+                </group>
+                <footer>
+                    <button name="action_preview" string="Preview" type="object"/>
+                    <button name="action_import" string="Import" type="object"
+                        class="btn-primary"/>
+                    <button string="Cancel" class="btn-secondary" special="cancel"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_master_data_import"
+        parent="htplus_aps_menu_planning"
+        action="action_htplus_master_data_import"
+        sequence="16"/>
+</odoo>

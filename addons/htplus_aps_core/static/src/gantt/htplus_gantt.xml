@@ -4,6 +4,10 @@
             <div class="o_htplus_gantt_header">
                 <span class="o_htplus_gantt_title">HTPlus Schedule Gantt</span>
                 <div class="o_htplus_gantt_hint" t-esc="strings.hint"/>
+                <span t-if="windowLabel()" class="o_htplus_gantt_winlabel" t-esc="windowLabel()"/>
+                <button t-on-click="() => this.shiftWindow(-1)" class="btn btn-secondary btn-sm" t-esc="strings.prev"/>
+                <button t-on-click="() => this.shiftWindow(1)" class="btn btn-secondary btn-sm" t-esc="strings.next"/>
+                <button t-on-click="resetWindow" class="btn btn-secondary btn-sm" t-esc="strings.full"/>
                 <button t-on-click="load" class="btn btn-secondary btn-sm" t-esc="strings.reload"/>
             </div>
             <div t-if="state.loading" class="o_htplus_gantt_loading" t-esc="strings.loading"/>

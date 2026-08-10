@@ -5,6 +5,8 @@ from odoo.exceptions import UserError
 class HtplusScheduleRun(models.Model):
     _inherit = 'htplus.schedule.run'
 
+    job_id = fields.Many2one('htplus.job', string='Background Job', readonly=True)
+
     def action_run_solver(self):
         """Call the planning engine and store the schedule result in a simulation scenario.
 
@@ -14,11 +16,43 @@ class HtplusScheduleRun(models.Model):
         self.ensure_one()
         if self.algorithm == 'manual':
             return super().action_run_solver()
+        return self._htplus_execute_solver()
 
+    def action_run_solver_async(self):
+        """Enqueue the solver as a background job instead of blocking the UI.
+
+        Returns:
+            True once the job is created; follow it on the run's job_id field.
+        """
+        self.ensure_one()
+        if self.algorithm == 'manual':
+            raise UserError(_('The manual algorithm cannot run in the background.'))
+        if not self.workorder_ids:
+            raise UserError(_('Add work orders to the schedule run before running the solver.'))
+        job = self.env['htplus.job']._enqueue(
+            'htplus.schedule.run',
+            '_htplus_solver_job',
+            payload={'run_id': self.id},
+            name=_('Solver run for %s', self.name),
+            origin_model=self._name,
+            origin_id=self.id,
+        )
+        self.job_id = job.id
+        return True
+
+    def _htplus_solver_job(self, run_id):
+        """Job body: execute the solver for the given run id and store the scenario."""
+        run = self.browse(run_id)
+        run._htplus_execute_solver()
+        return run.scenario_id.id
+
+    def _htplus_execute_solver(self):
+        """Run the engine solver synchronously and write the simulation scenario."""
+        self.ensure_one()
         if not self.workorder_ids:
             raise UserError(_('Add work orders to the schedule run before running the solver.'))
 
-        algorithm = self.algorithm if self.algorithm in ('rule_engine', 'solver_cpsat') else 'rule_engine'
+        algorithm = self._htplus_resolve_scheduler()
         workorders = [self._htplus_wo_payload(wo) for wo in self.workorder_ids]
         constraints = {
             'workcenters': self._htplus_workcenter_constraints(),

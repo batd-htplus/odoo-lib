@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_htplus_schedule_run_solver" model="ir.ui.view">
+        <field name="name">htplus.schedule.run.solver</field>
+        <field name="model">htplus.schedule.run</field>
+        <field name="inherit_id" ref="htplus_aps_core.view_htplus_schedule_run_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//button[@name='action_run_solver']" position="after">
+                <button name="action_run_solver_async" string="Run Solver in Background"
+                        type="object"
+                        invisible="state not in ['draft', 'calculated']"
+                        groups="htplus_factory.group_aps_planner"/>
+            </xpath>
+            <xpath expr="//field[@name='user_id']" position="after">
+                <field name="job_id" string="Background Job"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

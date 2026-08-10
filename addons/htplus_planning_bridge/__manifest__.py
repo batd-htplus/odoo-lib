@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Planning Bridge",
-    "version": "18.0.1.1.2",
+    "version": "18.0.1.1.4",
     "summary": "Client bridge to the HTPlus Planning Engine (forecast, scheduling, assignment, assistant).",
     "description": """
 HTPlus Planning Bridge
@@ -18,6 +18,7 @@ assignment and the planning assistant.
         "htplus_aps_core",
     ],
     "data": [
+        "views/htplus_schedule_run_views.xml",
         "views/htplus_demand_plan_views.xml",
         "security/ir.model.access.csv",
         "views/htplus_planning_menus.xml",

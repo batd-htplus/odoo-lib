@@ -4,5 +4,7 @@ from . import htplus_production_plan
 from . import htplus_schedule
 from . import htplus_simulation
 from . import htplus_dashboard
+from . import htplus_system_health
+from . import htplus_master_data_import
 from . import htplus_demand_import
 from . import htplus_settings

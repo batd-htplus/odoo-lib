@@ -5,3 +5,5 @@ from . import htplus_planning_chat
 from . import htplus_planning_recommendation
 from . import htplus_schedule_run
 from . import htplus_demand_plan
+from . import htplus_planning_request_log
+from . import htplus_system_health

@@ -1,7 +1,7 @@
 {
     "name": "HTPlus Base",
-    "version": "18.0.1.0.0",
-    "summary": "Technical foundation for the HTPlus suite: declarative workflow and optimistic locking.",
+    "version": "18.0.1.1.0",
+    "summary": "Technical foundation for the HTPlus suite: declarative workflow, optimistic locking and background jobs.",
     "description": """
 HTPlus Base
 ===========
@@ -21,7 +21,11 @@ See README.md for the public extension contract.
         "base",
         "mail",
     ],
-    "data": [],
+    "data": [
+        "security/ir.model.access.csv",
+        "data/ir_cron_data.xml",
+        "views/htplus_job_views.xml",
+    ],
     "application": False,
     "installable": True,
     "auto_install": False,

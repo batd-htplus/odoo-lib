@@ -21,6 +21,11 @@
         <field name="res_model">htplus.planning.recommendation</field>
         <field name="view_mode">list,form</field>
     </record>
+    <record id="action_htplus_planning_request_log" model="ir.actions.act_window">
+        <field name="name">Request Log</field>
+        <field name="res_model">htplus.planning.request.log</field>
+        <field name="view_mode">list,form</field>
+    </record>
 
     <record id="view_htplus_planning_config_tree" model="ir.ui.view">
         <field name="name">htplus.planning.config.tree</field>
@@ -31,6 +36,7 @@
                 <field name="url"/>
                 <field name="model"/>
                 <field name="timeout_sec"/>
+                <field name="circuit_state"/>
                 <field name="active"/>
             </list>
         </field>
@@ -40,6 +46,11 @@
         <field name="model">htplus.planning.config</field>
         <field name="arch" type="xml">
             <form string="Engine Configuration">
+                <header>
+                    <button name="action_reset_circuit" string="Reset Circuit Breaker" type="object"
+                            invisible="circuit_state == 'closed'"
+                            class="btn-primary"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
@@ -53,6 +64,20 @@
                             <field name="timeout_sec"/>
                             <field name="active"/>
                             <field name="company_id"/>
+                        </group>
+                    </group>
+                    <group string="Resilience">
+                        <group>
+                            <field name="retry_max"/>
+                            <field name="retry_backoff"/>
+                            <field name="log_requests"/>
+                        </group>
+                        <group>
+                            <field name="circuit_failure_threshold"/>
+                            <field name="circuit_recovery_timeout"/>
+                            <field name="circuit_state"/>
+                            <field name="circuit_failures"/>
+                            <field name="circuit_open_since"/>
                         </group>
                     </group>
                 </sheet>
@@ -213,6 +238,126 @@
         </field>
     </record>
 
+    <record id="view_htplus_planning_request_log_tree" model="ir.ui.view">
+        <field name="name">htplus.planning.request.log.tree</field>
+        <field name="model">htplus.planning.request.log</field>
+        <field name="arch" type="xml">
+            <list string="Request Log">
+                <field name="create_date"/>
+                <field name="config_id"/>
+                <field name="method"/>
+                <field name="endpoint"/>
+                <field name="status"/>
+                <field name="status_code"/>
+                <field name="retries"/>
+                <field name="response_time_ms"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_htplus_planning_request_log_form" model="ir.ui.view">
+        <field name="name">htplus.planning.request.log.form</field>
+        <field name="model">htplus.planning.request.log</field>
+        <field name="arch" type="xml">
+            <form string="Request Log Entry">
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="create_date"/>
+                            <field name="config_id"/>
+                            <field name="endpoint"/>
+                            <field name="method"/>
+                        </group>
+                        <group>
+                            <field name="status"/>
+                            <field name="status_code"/>
+                            <field name="retries"/>
+                            <field name="response_time_ms"/>
+                            <field name="idempotency_key"/>
+                            <field name="user_id"/>
+                        </group>
+                    </group>
+                    <group string="Error">
+                        <field name="error"/>
+                    </group>
+                    <group string="Request Payload">
+                        <field name="request_payload"/>
+                    </group>
+                    <group string="Response">
+                        <field name="response"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_htplus_system_health_engine" model="ir.ui.view">
+        <field name="name">htplus.system.health.engine</field>
+        <field name="model">htplus.system.health</field>
+        <field name="inherit_id" ref="htplus_aps_core.view_htplus_system_health_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//group[@name='health_data']" position="after">
+                <group string="Planning Engine">
+                    <div class="row">
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="engine_state"/></h3>
+                                    <div>Circuit</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-danger"><field name="engine_failures"/></h3>
+                                    <div>Consecutive Failures</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning"><field name="engine_avg_ms"/></h3>
+                                    <div>Avg Response (ms)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-primary"><field name="engine_req_ok"/></h3>
+                                    <div>OK (24h)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-danger"><field name="engine_req_failed"/></h3>
+                                    <div>Failed (24h)</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-4 mb-3">
+                            <div class="card">
+                                <div class="card-body text-center">
+                                    <h3 class="text-warning"><field name="forecast_stuck"/></h3>
+                                    <div>Stuck Forecasts</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <group>
+                        <field name="engine_open_since"/>
+                        <field name="engine_req_skipped"/>
+                        <field name="engine_last_error"/>
+                    </group>
+                </group>
+            </xpath>
+        </field>
+    </record>
+
     <menuitem id="menu_htplus_planning_config"
         parent="htplus_planning_menu"
         action="action_htplus_planning_config"
@@ -229,4 +374,8 @@
         parent="htplus_planning_menu"
         action="action_htplus_planning_recommendation"
         sequence="40"/>
+    <menuitem id="menu_htplus_planning_request_log"
+        parent="htplus_planning_menu"
+        action="action_htplus_planning_request_log"
+        sequence="50"/>
 </odoo>

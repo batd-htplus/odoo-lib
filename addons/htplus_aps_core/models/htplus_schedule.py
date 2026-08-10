@@ -358,6 +358,18 @@ class HtplusScheduleRun(models.Model):
         self.scenario_id.action_run()
         return self.scenario_id
 
+    def _htplus_resolve_scheduler(self, algorithm=None):
+        """Resolve which solver should handle this run. HOOK CÔNG KHAI (§5.3).
+
+        Core only knows ``rule_engine`` and ``solver_cpsat``; any other value
+        (including ``manual``) falls back to ``rule_engine``. Dự án cắm engine
+        riêng bằng cách ``_inherit`` và override method này (kèm ``selection_add``
+        trên field ``algorithm``) — không phải sửa whitelist cứng ở core/bridge.
+        """
+        self.ensure_one()
+        algorithm = algorithm or self.algorithm
+        return algorithm if algorithm in ('rule_engine', 'solver_cpsat') else 'rule_engine'
+
     def action_open_production_plan(self):
         self.ensure_one()
         if not self.production_plan_id:
@@ -429,6 +441,9 @@ class MrpWorkorder(models.Model):
         Optional context keys:
             htplus_production_plan_id — limit to MOs of that production plan
             htplus_schedule_run_id — limit to work orders on that schedule run
+            htplus_gantt_date_start / htplus_gantt_date_end — time window;
+                only work orders overlapping the window are returned
+            htplus_gantt_line_ids — limit to those production lines
         """
         domain = [('date_start', '!=', False), ('state', '!=', 'cancel')]
         plan_id = self.env.context.get('htplus_production_plan_id')
@@ -437,9 +452,18 @@ class MrpWorkorder(models.Model):
             domain.append(('schedule_run_id', '=', int(run_id)))
         elif plan_id:
             domain.append(('production_id.htplus_plan_id', '=', int(plan_id)))
-        workorders = self.search(domain, limit=500)
+        line_ids = self.env.context.get('htplus_gantt_line_ids')
+        if line_ids:
+            domain.append(('line_id', 'in', [int(x) for x in line_ids]))
+        date_from = self.env.context.get('htplus_gantt_date_start')
+        date_to = self.env.context.get('htplus_gantt_date_end')
+        if date_from and date_to:
+            domain.append(('date_start', '<=', date_to))
+            domain.append(('date_finished', '>=', date_from))
+        total = self.search_count(domain)
+        workorders = self.search(domain)
         if not workorders:
-            return {'start': False, 'end': False, 'lines': [], 'workorders': []}
+            return {'start': False, 'end': False, 'lines': [], 'workorders': [], 'total': total}
         workorders = workorders.sorted(
             lambda w: (w.date_start or w.create_date or fields.Datetime.now()))
         lines = []
@@ -476,6 +500,7 @@ class MrpWorkorder(models.Model):
             'end': end.isoformat(),
             'lines': lines,
             'workorders': bars,
+            'total': total,
         }
 
     @api.model

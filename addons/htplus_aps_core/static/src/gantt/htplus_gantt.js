@@ -36,11 +36,15 @@ export class HtplusGantt extends Component {
             hint: _t("Drag to move, resize the edges, or drop on another line"),
             lineHeader: _t("Line / Work order"),
             reload: _t("Reload"),
+            prev: _t("◀ Earlier"),
+            next: _t("Later ▶"),
+            full: _t("Full range"),
             loading: _t("Loading…"),
             noData: _t("No dated work orders in this scope. Open from a Production Plan or Schedule Run, or Calculate first."),
             conflict: _t("Conflict"),
             locked: _t("%(product)s (locked)"),
             workorders: _t("%(count)s work order(s)"),
+            total: _t("Showing %(count)s / %(total)s work order(s) in window"),
             loadError: _t("Unable to load Gantt data: %(message)s"),
             saved: _t("Schedule updated."),
             savedConflicts: _t("Saved. %(count)s work order conflict(s) remaining."),
@@ -50,21 +54,31 @@ export class HtplusGantt extends Component {
             rows: [],
             start: null,
             end: null,
+            total: 0,
             loading: true,
         });
         this.drag = null;
+        this.window = null;
         this._onPointerMove = this._onPointerMove.bind(this);
         this._onPointerUp = this._onPointerUp.bind(this);
         onMounted(() => this.load());
         onWillUnmount(() => this._endDrag());
     }
 
+    _context() {
+        const context = Object.assign({}, this.props.actionContext || {});
+        if (this.window) {
+            context.htplus_gantt_date_start = toUtcIso(this.window.start);
+            context.htplus_gantt_date_end = toUtcIso(this.window.end);
+        }
+        return context;
+    }
+
     async load() {
         this.state.loading = true;
         try {
-            const context = this.props.actionContext || {};
             const data = await this.orm.call("mrp.workorder", "action_open_gantt", [], {
-                context,
+                context: this._context(),
             });
             this._apply(data);
         } catch (error) {
@@ -77,11 +91,29 @@ export class HtplusGantt extends Component {
         }
     }
 
+    shiftWindow(direction) {
+        const start = this.window ? new Date(this.window.start) : new Date(this.state.start);
+        const end = this.window ? new Date(this.window.end) : new Date(this.state.end);
+        const span = end - start;
+        if (!(span > 0)) return;
+        this.window = {
+            start: new Date(start.getTime() + direction * span),
+            end: new Date(end.getTime() + direction * span),
+        };
+        this.load();
+    }
+
+    resetWindow() {
+        this.window = null;
+        this.load();
+    }
+
     _apply(data) {
         const start = parseUtc(data.start) || new Date();
         const end = parseUtc(data.end) || new Date(start.getTime() + 14 * DAY_MS);
         this.state.start = new Date(start.getTime() - DAY_MS);
         this.state.end = new Date(end.getTime() + DAY_MS);
+        this.state.total = data.total || 0;
         this.state.rows = (data.lines || []).map((line) => ({
             id: line.id,
             name: line.name,
@@ -144,6 +176,12 @@ export class HtplusGantt extends Component {
 
     itemsLabel(row) {
         return _t(this.strings.workorders, { count: row.items.length });
+    }
+
+    windowLabel() {
+        if (!this.state.total || !this.window) return "";
+        const count = this.state.rows.reduce((acc, row) => acc + row.items.length, 0);
+        return _t(this.strings.total, { count, total: this.state.total });
     }
 
     barTitle(item) {
@@ -250,13 +288,11 @@ export class HtplusGantt extends Component {
             line_id: lineId || item.line_id || 0,
         };
         try {
-            const context = this.props.actionContext || {};
-            // RPC args: first positional arg must be a *list* of moves.
             const data = await this.orm.call(
                 "mrp.workorder",
                 "action_save_gantt_move",
                 [[move]],
-                { context },
+                { context: this._context() },
             );
             const conflicted = data.conflicted || 0;
             this.notification.add(

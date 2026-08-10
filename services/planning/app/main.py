@@ -46,6 +46,24 @@ def require_api_key(request: Request):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
 
+def _submit_or_reuse(request: Request, fn, args):
+    """Start an async job, reusing an existing one for an identical payload.
+
+    The Odoo bridge derives a deterministic ``X-Idempotency-Key`` from the
+    endpoint and payload. Re-submitting the same payload returns the original
+    job id instead of recomputing it (idempotency for double-submit safety).
+    """
+    idempotency_key = request.headers.get("X-Idempotency-Key") or ""
+    job_id = idempotency_key or str(uuid.uuid4())
+    with JOBS_LOCK:
+        existing = JOBS.get(job_id)
+        if existing and existing.get("status") in ("pending", "success", "failed"):
+            return job_id
+        JOBS[job_id] = {"status": "pending", "created_at": datetime.utcnow().isoformat()}
+    _run_job(job_id, fn, *args)
+    return job_id
+
+
 def _run_job(job_id: str, fn, *args):
     def worker():
         try:
@@ -70,33 +88,23 @@ def healthz():
 
 
 @app.post("/api/v1/forecast", dependencies=[Depends(require_api_key)])
-def forecast(payload: ForecastRequest):
-    job_id = str(uuid.uuid4())
-    with JOBS_LOCK:
-        JOBS[job_id] = {"status": "pending", "created_at": datetime.utcnow().isoformat()}
-    _run_job(
-        job_id,
-        moving_average_forecast,
+def forecast(payload: ForecastRequest, request: Request):
+    job_id = _submit_or_reuse(request, moving_average_forecast, (
         payload.product_ids,
         [item.dict() for item in payload.history],
         payload.horizon_days,
-    )
+    ))
     return {"success": True, "forecast_id": job_id}
 
 
 @app.post("/api/v1/schedule/recommend", dependencies=[Depends(require_api_key)])
-def schedule_recommend(payload: ScheduleRequest):
-    job_id = str(uuid.uuid4())
-    with JOBS_LOCK:
-        JOBS[job_id] = {"status": "pending", "created_at": datetime.utcnow().isoformat()}
+def schedule_recommend(payload: ScheduleRequest, request: Request):
     scheduler = get_scheduler(payload.algorithm)
-    _run_job(
-        job_id,
-        scheduler.schedule,
+    job_id = _submit_or_reuse(request, scheduler.schedule, (
         [wo.dict() for wo in payload.workorders],
         payload.constraints.dict(),
         payload.objective,
-    )
+    ))
     return {"success": True, "job_id": job_id}
 
 

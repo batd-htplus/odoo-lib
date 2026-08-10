@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_job" model="ir.actions.act_window">
+        <field name="name">Background Jobs</field>
+        <field name="res_model">htplus.job</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_htplus_job_tree" model="ir.ui.view">
+        <field name="name">htplus.job.tree</field>
+        <field name="model">htplus.job</field>
+        <field name="arch" type="xml">
+            <list string="Background Jobs" editable="bottom">
+                <field name="name"/>
+                <field name="model"/>
+                <field name="method"/>
+                <field name="state"/>
+                <field name="attempts"/>
+                <field name="scheduled_at"/>
+                <field name="started_at"/>
+                <field name="finished_at"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+    <record id="view_htplus_job_form" model="ir.ui.view">
+        <field name="name">htplus.job.form</field>
+        <field name="model">htplus.job</field>
+        <field name="arch" type="xml">
+            <form string="Background Job">
+                <header>
+                    <button name="action_retry" string="Retry" type="object"
+                            invisible="state != 'failed'" class="btn-primary"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                            invisible="state != 'pending'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <group>
+                        <group>
+                            <field name="name"/>
+                            <field name="model"/>
+                            <field name="method"/>
+                            <field name="user_id"/>
+                        </group>
+                        <group>
+                            <field name="attempts"/>
+                            <field name="max_attempts"/>
+                            <field name="scheduled_at"/>
+                            <field name="started_at"/>
+                            <field name="finished_at"/>
+                        </group>
+                    </group>
+                    <group string="Payload">
+                        <field name="payload"/>
+                    </group>
+                    <group string="Result">
+                        <field name="result"/>
+                    </group>
+                    <group string="Error" invisible="not error">
+                        <field name="error"/>
+                    </group>
+                    <group string="Origin">
+                        <field name="origin_model"/>
+                        <field name="origin_id"/>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_job"
+        parent="base.menu_custom"
+        action="action_htplus_job"
+        sequence="30"
+        groups="base.group_system"/>
+</odoo>

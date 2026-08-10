@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_htplus_system_health" model="ir.actions.act_window">
+        <field name="name">System Health</field>
+        <field name="res_model">htplus.system.health</field>
+        <field name="view_mode">form</field>
+        <field name="target">inline</field>
+    </record>
+
+    <record id="view_htplus_system_health_form" model="ir.ui.view">
+        <field name="name">htplus.system.health.form</field>
+        <field name="model">htplus.system.health</field>
+        <field name="arch" type="xml">
+            <form string="System Health">
+                <header>
+                    <button name="action_refresh" string="Refresh" type="object" class="btn-primary"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="date_from"/>
+                            <field name="date_to"/>
+                        </group>
+                        <group name="health_alerts" string="Alerts">
+                            <field name="alert_summary" nolabel="1" readonly="1"/>
+                        </group>
+                    </group>
+                    <group name="health_jobs" string="Scheduled Jobs">
+                        <div class="row">
+                            <div class="col-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-primary"><field name="cron_total"/></h3>
+                                        <div>Cron Jobs</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-primary"><field name="cron_active"/></h3>
+                                        <div>Active</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-danger"><field name="cron_overdue"/></h3>
+                                        <div>Overdue</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+                    <group name="health_data" string="Data">
+                        <div class="row">
+                            <div class="col-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-primary"><field name="change_count"/></h3>
+                                        <div>Schedule Change Logs</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-danger"><field name="conflict_count"/></h3>
+                                        <div>Schedule Conflicts</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body text-center">
+                                        <h3 class="text-danger"><field name="machine_down"/></h3>
+                                        <div>Machines Down</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_system_health"
+        parent="htplus_factory.htplus_aps_menu_root"
+        action="action_htplus_system_health"
+        sequence="16"/>
+</odoo>
