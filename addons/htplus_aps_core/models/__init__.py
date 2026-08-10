@@ -1,3 +1,4 @@
+from . import htplus_rule
 from . import htplus_demand_plan
 from . import htplus_production_plan
 from . import htplus_schedule

@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+
+    <record id="action_htplus_shift_actual" model="ir.actions.act_window">
+        <field name="name">Shift Actual</field>
+        <field name="res_model">htplus.shift.actual</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_htplus_shift_actual_search" model="ir.ui.view">
+        <field name="name">htplus.shift.actual.search</field>
+        <field name="model">htplus.shift.actual</field>
+        <field name="arch" type="xml">
+            <search string="Shift Actuals">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="shift_id"/>
+                <field name="line_id"/>
+                <field name="factory_id"/>
+                <field name="state"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_by_date" string="Date" context="{'group_by': 'date'}"/>
+                    <filter name="group_by_line" string="Line" context="{'group_by': 'line_id'}"/>
+                    <filter name="group_by_state" string="Status" context="{'group_by': 'state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_shift_actual_tree" model="ir.ui.view">
+        <field name="name">htplus.shift.actual.tree</field>
+        <field name="model">htplus.shift.actual</field>
+        <field name="arch" type="xml">
+            <list string="Shift Actuals">
+                <field name="name"/>
+                <field name="date"/>
+                <field name="shift_id"/>
+                <field name="line_id"/>
+                <field name="qty_target"/>
+                <field name="qty_done"/>
+                <field name="qty_good"/>
+                <field name="qty_ng"/>
+                <field name="achievement_rate" widget="progressbar"/>
+                <field name="yield_rate" widget="progressbar"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_htplus_shift_actual_form" model="ir.ui.view">
+        <field name="name">htplus.shift.actual.form</field>
+        <field name="model">htplus.shift.actual</field>
+        <field name="arch" type="xml">
+            <form string="Shift Actual">
+                <header>
+                    <button name="action_generate_from_shift" type="object"
+                        string="Load from Assignments" invisible="state != 'draft' or not shift_id"
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
+                    <button name="action_confirm" string="Start" type="object"
+                        invisible="state != 'draft'" class="btn-primary"
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
+                    <button name="action_done" string="Complete" type="object"
+                        invisible="state not in ['draft', 'in_progress']" class="btn-primary"
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
+                    <button name="action_cancel" string="Cancel" type="object"
+                        invisible="state in ['done', 'cancelled']"
+                        groups="htplus_factory.group_aps_planner"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <field name="shift_id"/>
+                            <field name="date"/>
+                            <field name="leader_id"/>
+                        </group>
+                        <group>
+                            <field name="factory_id"/>
+                            <field name="plant_id"/>
+                            <field name="line_id"/>
+                            <field name="workcenter_id"/>
+                        </group>
+                    </group>
+                    <group string="Totals">
+                        <group>
+                            <field name="qty_target" readonly="1"/>
+                            <field name="qty_done" readonly="1"/>
+                            <field name="qty_good" readonly="1"/>
+                            <field name="qty_ng" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="manpower_used" readonly="1"/>
+                            <field name="downtime_minutes" readonly="1"/>
+                            <field name="overtime_minutes" readonly="1"/>
+                            <field name="achievement_rate" readonly="1" widget="progressbar"/>
+                            <field name="yield_rate" readonly="1" widget="progressbar"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="Actual Lines">
+                            <field name="line_ids">
+                                <list string="Actual Lines" editable="bottom">
+                                    <field name="assignment_id"/>
+                                    <field name="workorder_id"/>
+                                    <field name="employee_id"/>
+                                    <field name="qty_target"/>
+                                    <field name="qty_done"/>
+                                    <field name="qty_good"/>
+                                    <field name="qty_ng"/>
+                                    <field name="downtime_minutes"/>
+                                    <field name="overtime_minutes"/>
+                                    <field name="achievement_rate" readonly="1"/>
+                                    <field name="yield_rate" readonly="1"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Notes">
+                            <field name="remarks"/>
+                        </page>
+                    </notebook>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_shift_actual"
+        parent="menu_htplus_shift_mgmt"
+        action="action_htplus_shift_actual"
+        sequence="25"/>
+
+</odoo>

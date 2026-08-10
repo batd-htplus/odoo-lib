@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="htplus_aps_menu_planning"
-        parent="htplus_planning_base.htplus_aps_menu_root"
+        parent="htplus_factory.htplus_aps_menu_root"
         name="Planning"
         sequence="20">
     </menuitem>
     <menuitem id="htplus_aps_menu_scheduling"
-        parent="htplus_planning_base.htplus_aps_menu_root"
+        parent="htplus_factory.htplus_aps_menu_root"
         name="Scheduling"
         sequence="30">
     </menuitem>
     <menuitem id="htplus_aps_menu_workforce"
-        parent="htplus_planning_base.htplus_aps_menu_root"
+        parent="htplus_factory.htplus_aps_menu_root"
         name="Workforce"
         sequence="40">
     </menuitem>

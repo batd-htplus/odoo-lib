@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- The Propose Workforce button only exists when Workforce is installed. -->
+    <record id="view_htplus_schedule_run_form_workforce" model="ir.ui.view">
+        <field name="name">htplus.schedule.run.form.workforce</field>
+        <field name="model">htplus.schedule.run</field>
+        <field name="inherit_id" ref="htplus_aps_core.view_htplus_schedule_run_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//header" position="inside">
+                    <button name="action_propose_workforce" string="Propose Workforce"
+                        type="object"
+                        invisible="state not in ['draft', 'calculated', 'confirmed']"
+                        groups="htplus_factory.group_aps_planner"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

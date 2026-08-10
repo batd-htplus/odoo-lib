@@ -6,8 +6,9 @@ from odoo.exceptions import UserError, ValidationError
 
 class HtplusScheduleRun(models.Model):
     _name = 'htplus.schedule.run'
+    _htplus_factory_path = 'production_plan_id.factory_id'
     _description = 'Schedule Run'
-    _inherit = ['mail.thread', 'htplus.security.mixin']
+    _inherit = ['mail.thread', 'htplus.security.mixin', 'htplus.factory.scope.mixin']
     _order = 'id desc'
 
     name = fields.Char(required=True, default=lambda self: _('New'))
@@ -20,6 +21,12 @@ class HtplusScheduleRun(models.Model):
     ], default='draft', string='Status', tracking=True)
     production_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan')
     scenario_id = fields.Many2one('htplus.simulation.scenario', string='Simulation Scenario')
+
+    @api.depends('production_plan_id', 'production_plan_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a schedule run by the production plan it schedules."""
+        return super()._compute_htplus_factory_id()
+
     algorithm = fields.Selection([
         ('manual', 'Manual'),
         ('rule_engine', 'Rule Engine'),
@@ -277,133 +284,6 @@ class HtplusScheduleRun(models.Model):
         self.scenario_id.action_run()
         return self.scenario_id
 
-    def _htplus_ensure_shift_for_wo(self, workorder):
-        """Find or create a production shift covering the WO window."""
-        if not workorder.date_start:
-            return self.env['htplus.production.shift']
-        work_date = fields.Date.to_date(workorder.date_start)
-        Shift = self.env['htplus.production.shift']
-        domain = [
-            ('date', '=', work_date),
-            ('state', 'in', ('draft', 'confirmed')),
-        ]
-        if workorder.line_id:
-            domain.append(('line_id', '=', workorder.line_id.id))
-        elif workorder.workcenter_id:
-            domain.append(('workcenter_id', '=', workorder.workcenter_id.id))
-        shift = Shift.search(domain, limit=1)
-        if shift:
-            return shift
-
-        Template = self.env['htplus.shift.template']
-        template = Template.search([
-            ('active', '=', True),
-            ('line_id', '=', workorder.line_id.id),
-        ], limit=1) if workorder.line_id else Template.browse()
-        if not template and workorder.workcenter_id and 'factory_id' in workorder.workcenter_id._fields:
-            factory = workorder.workcenter_id.factory_id
-            if factory:
-                template = Template.search([
-                    ('active', '=', True),
-                    ('factory_id', '=', factory.id),
-                ], limit=1)
-        if not template:
-            template = Template.search([('active', '=', True)], limit=1)
-        if not template:
-            return Shift.browse()
-
-        return Shift.create({
-            'date': work_date,
-            'template_id': template.id,
-            'factory_id': template.factory_id.id or False,
-            'plant_id': template.plant_id.id or False,
-            'line_id': (workorder.line_id or template.line_id).id or False,
-            'workcenter_id': workorder.workcenter_id.id or False,
-            'manpower_required': template.default_manpower or 1,
-        })
-
-    def action_propose_workforce(self):
-        """Create draft workforce assignments linking scheduled WOs to shifts."""
-        self._htplus_require_planner()
-        Assignment = self.env['htplus.workforce.assignment']
-        created = Assignment.browse()
-        for run in self:
-            workorders = run.workorder_ids.filtered(
-                lambda w: w.date_start and w.state != 'cancel' and not w.locked
-            )
-            if not workorders:
-                raise UserError(_('No dated work orders to assign. Calculate or run the solver first.'))
-
-            # One lookup for every existing assignment instead of one per work order.
-            assigned_wo_ids = set(
-                Assignment.search([
-                    ('workorder_id', 'in', workorders.ids),
-                    ('state', '!=', 'cancelled'),
-                ]).mapped('workorder_id').ids
-            )
-            pending = workorders.filtered(lambda w: w.id not in assigned_wo_ids)
-            if not pending:
-                continue
-
-            # Resolve one shift per (date, line, work center) group instead of per work order.
-            shift_by_group = {}
-            employee_by_company = {}
-            for workorder in pending:
-                group = (
-                    fields.Date.to_date(workorder.date_start),
-                    workorder.line_id.id or 0,
-                    workorder.workcenter_id.id or 0,
-                )
-                if group not in shift_by_group:
-                    shift_by_group[group] = run._htplus_ensure_shift_for_wo(workorder)
-
-            vals_list = []
-            for workorder in pending:
-                group = (
-                    fields.Date.to_date(workorder.date_start),
-                    workorder.line_id.id or 0,
-                    workorder.workcenter_id.id or 0,
-                )
-                shift = shift_by_group.get(group)
-                if not shift:
-                    continue
-                employee = shift.leader_id
-                if not employee:
-                    company_id = run.user_id.company_id.id
-                    if company_id not in employee_by_company:
-                        employee_by_company[company_id] = self.env['hr.employee'].search([
-                            ('company_id', '=', company_id),
-                        ], limit=1)
-                    employee = employee_by_company[company_id]
-                if not employee:
-                    continue
-                vals_list.append({
-                    'shift_id': shift.id,
-                    'workorder_id': workorder.id,
-                    'employee_id': employee.id,
-                    'date_start': workorder.date_start,
-                    'date_end': workorder.date_finished or workorder.date_start,
-                    'qty': workorder.production_id.product_qty or 1.0,
-                })
-            if vals_list:
-                created |= Assignment.create(vals_list)
-        created.action_validate()
-        if not created:
-            raise UserError(_(
-                'No new assignments created. Need shift templates (and preferably a shift leader '
-                'or employee) covering the work order dates.'
-            ))
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Workforce Assignments'),
-            'res_model': 'htplus.workforce.assignment',
-            'view_mode': 'list,form',
-            'domain': [('id', 'in', created.ids)],
-            'context': {
-                'default_date_start': self[:1].date_start,
-            },
-        }
-
     def action_open_production_plan(self):
         self.ensure_one()
         if not self.production_plan_id:
@@ -431,18 +311,6 @@ class HtplusScheduleRun(models.Model):
             'context': ctx,
         }
 
-    def action_open_assignments(self):
-        """Open workforce assignments for work orders on this run."""
-        self.ensure_one()
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Workforce Assignments'),
-            'res_model': 'htplus.workforce.assignment',
-            'view_mode': 'list,form',
-            'domain': [('workorder_id', 'in', self.workorder_ids.ids)],
-        }
-
-
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
 
@@ -452,7 +320,8 @@ class MrpProduction(models.Model):
 
 
 class MrpWorkorder(models.Model):
-    _inherit = 'mrp.workorder'
+    _inherit = ['mrp.workorder', 'htplus.factory.scope.mixin']
+    _htplus_factory_path = 'workcenter_id.factory_id'
 
     schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
     line_id = fields.Many2one('htplus.line', string='Line')
@@ -469,6 +338,12 @@ class MrpWorkorder(models.Model):
     material_ok = fields.Boolean(string='Material OK')
     capacity_ok = fields.Boolean(string='Capacity OK')
     machine_ok = fields.Boolean(string='Machine OK')
+
+    @api.depends('workcenter_id', 'workcenter_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a work order by the work center that runs it."""
+        return super()._compute_htplus_factory_id()
+
 
     @api.model
     def action_open_gantt(self):
@@ -707,12 +582,19 @@ class MrpWorkorder(models.Model):
 
 class HtplusScheduleChange(models.Model):
     _name = 'htplus.schedule.change'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'schedule_run_id.factory_id'
     _description = 'Schedule Change'
     _order = 'id desc'
 
     schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
     user_id = fields.Many2one('res.users', string='User', default=lambda self: self.env.user)
+    @api.depends('schedule_run_id', 'schedule_run_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope an audit row by the run it belongs to."""
+        return super()._compute_htplus_factory_id()
+
     field = fields.Selection([
         ('date_start', 'Start'),
         ('date_finished', 'Finished'),

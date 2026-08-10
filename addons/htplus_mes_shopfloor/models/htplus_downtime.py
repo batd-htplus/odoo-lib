@@ -41,6 +41,8 @@ class HtplusDowntimeReason(models.Model):
 
 class HtplusDowntime(models.Model):
     _name = 'htplus.downtime'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'machine_id.factory_id'
     _description = 'Downtime'
 
     workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True)
@@ -54,6 +56,11 @@ class HtplusDowntime(models.Model):
     date_end = fields.Datetime(string='End')
     employee_id = fields.Many2one('hr.employee', string='Employee')
     cost = fields.Float()
+    @api.depends('machine_id', 'machine_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope downtime by the machine that stopped."""
+        return super()._compute_htplus_factory_id()
+
     productivity_id = fields.Many2one(
         'mrp.workcenter.productivity',
         string='Odoo Time Log',

@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Factory scoping. Two rules per model, OR-ed by Odoo because they target
+        different groups:
+
+          * the per-user rule keeps a user inside the factories listed on their
+            profile - an empty list therefore means NO access, never unrestricted;
+          * the All Factories rule is the explicit, deliberate escape hatch.
+
+        Matching on the stored, indexed factory_id rather than walking
+        workcenter -> line -> plant -> factory keeps every read to one indexed
+        condition instead of three subqueries.
+    -->
+    <record id="rule_htplus_demand_plan_factory" model="ir.rule">
+        <field name="name">htplus.demand.plan: own factories only</field>
+        <field name="model_id" ref="model_htplus_demand_plan"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_demand_plan_all_factories" model="ir.rule">
+        <field name="name">htplus.demand.plan: all factories</field>
+        <field name="model_id" ref="model_htplus_demand_plan"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_demand_plan_line_factory" model="ir.rule">
+        <field name="name">htplus.demand.plan.line: own factories only</field>
+        <field name="model_id" ref="model_htplus_demand_plan_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_demand_plan_line_all_factories" model="ir.rule">
+        <field name="name">htplus.demand.plan.line: all factories</field>
+        <field name="model_id" ref="model_htplus_demand_plan_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_production_plan_factory" model="ir.rule">
+        <field name="name">htplus.production.plan: own factories only</field>
+        <field name="model_id" ref="model_htplus_production_plan"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_production_plan_all_factories" model="ir.rule">
+        <field name="name">htplus.production.plan: all factories</field>
+        <field name="model_id" ref="model_htplus_production_plan"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_production_plan_line_factory" model="ir.rule">
+        <field name="name">htplus.production.plan.line: own factories only</field>
+        <field name="model_id" ref="model_htplus_production_plan_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_production_plan_line_all_factories" model="ir.rule">
+        <field name="name">htplus.production.plan.line: all factories</field>
+        <field name="model_id" ref="model_htplus_production_plan_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_schedule_run_factory" model="ir.rule">
+        <field name="name">htplus.schedule.run: own factories only</field>
+        <field name="model_id" ref="model_htplus_schedule_run"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_schedule_run_all_factories" model="ir.rule">
+        <field name="name">htplus.schedule.run: all factories</field>
+        <field name="model_id" ref="model_htplus_schedule_run"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_mrp_workorder_factory" model="ir.rule">
+        <field name="name">mrp.workorder: own factories only</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_mrp_workorder_all_factories" model="ir.rule">
+        <field name="name">mrp.workorder: all factories</field>
+        <field name="model_id" ref="mrp.model_mrp_workorder"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_schedule_change_factory" model="ir.rule">
+        <field name="name">htplus.schedule.change: own factories only</field>
+        <field name="model_id" ref="model_htplus_schedule_change"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_schedule_change_all_factories" model="ir.rule">
+        <field name="name">htplus.schedule.change: all factories</field>
+        <field name="model_id" ref="model_htplus_schedule_change"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_simulation_scenario_factory" model="ir.rule">
+        <field name="name">htplus.simulation.scenario: own factories only</field>
+        <field name="model_id" ref="model_htplus_simulation_scenario"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_simulation_scenario_all_factories" model="ir.rule">
+        <field name="name">htplus.simulation.scenario: all factories</field>
+        <field name="model_id" ref="model_htplus_simulation_scenario"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_simulation_line_factory" model="ir.rule">
+        <field name="name">htplus.simulation.line: own factories only</field>
+        <field name="model_id" ref="model_htplus_simulation_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_simulation_line_all_factories" model="ir.rule">
+        <field name="name">htplus.simulation.line: all factories</field>
+        <field name="model_id" ref="model_htplus_simulation_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+</odoo>

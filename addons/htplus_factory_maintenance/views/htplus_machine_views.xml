@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_htplus_machine_form_maintenance" model="ir.ui.view">
+        <field name="name">htplus.machine.form.maintenance</field>
+        <field name="model">htplus.machine</field>
+        <field name="inherit_id" ref="htplus_factory.view_htplus_machine_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='status']" position="after">
+                <field name="equipment_id"/>
+            </xpath>
+        </field>
+    </record>
+</odoo>

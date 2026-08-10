@@ -1,0 +1,16 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_htplus_factory_user,htplus.factory,model_htplus_factory,htplus_factory.group_aps_user,1,0,0,0
+access_htplus_factory_planner,htplus.factory,model_htplus_factory,htplus_factory.group_aps_planner,1,1,1,0
+access_htplus_factory_manager,htplus.factory,model_htplus_factory,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_plant_user,htplus.plant,model_htplus_plant,htplus_factory.group_aps_user,1,0,0,0
+access_htplus_plant_planner,htplus.plant,model_htplus_plant,htplus_factory.group_aps_planner,1,1,1,0
+access_htplus_plant_manager,htplus.plant,model_htplus_plant,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_line_user,htplus.line,model_htplus_line,htplus_factory.group_aps_user,1,0,0,0
+access_htplus_line_planner,htplus.line,model_htplus_line,htplus_factory.group_aps_planner,1,1,1,0
+access_htplus_line_manager,htplus.line,model_htplus_line,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_machine_user,htplus.machine,model_htplus_machine,htplus_factory.group_aps_user,1,0,0,0
+access_htplus_machine_planner,htplus.machine,model_htplus_machine,htplus_factory.group_aps_planner,1,1,1,0
+access_htplus_machine_manager,htplus.machine,model_htplus_machine,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_factory_holiday_user,htplus.factory.holiday,model_htplus_factory_holiday,htplus_factory.group_aps_user,1,0,0,0
+access_htplus_factory_holiday_planner,htplus.factory.holiday,model_htplus_factory_holiday,htplus_factory.group_aps_planner,1,1,1,0
+access_htplus_factory_holiday_manager,htplus.factory.holiday,model_htplus_factory_holiday,htplus_factory.group_aps_manager,1,1,1,1

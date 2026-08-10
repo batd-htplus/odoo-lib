@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Factory scoping. Two rules per model, OR-ed by Odoo because they target
+        different groups:
+
+          * the per-user rule keeps a user inside the factories listed on their
+            profile - an empty list therefore means NO access, never unrestricted;
+          * the All Factories rule is the explicit, deliberate escape hatch.
+
+        Matching on the stored, indexed factory_id rather than walking
+        workcenter -> line -> plant -> factory keeps every read to one indexed
+        condition instead of three subqueries.
+    -->
+    <record id="rule_htplus_downtime_factory" model="ir.rule">
+        <field name="name">htplus.downtime: own factories only</field>
+        <field name="model_id" ref="model_htplus_downtime"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_downtime_all_factories" model="ir.rule">
+        <field name="name">htplus.downtime: all factories</field>
+        <field name="model_id" ref="model_htplus_downtime"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_machine_stop_factory" model="ir.rule">
+        <field name="name">htplus.machine.stop: own factories only</field>
+        <field name="model_id" ref="model_htplus_machine_stop"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_machine_stop_all_factories" model="ir.rule">
+        <field name="name">htplus.machine.stop: all factories</field>
+        <field name="model_id" ref="model_htplus_machine_stop"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_issue_factory" model="ir.rule">
+        <field name="name">htplus.issue: own factories only</field>
+        <field name="model_id" ref="model_htplus_issue"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_issue_all_factories" model="ir.rule">
+        <field name="name">htplus.issue: all factories</field>
+        <field name="model_id" ref="model_htplus_issue"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_workorder_ng_factory" model="ir.rule">
+        <field name="name">htplus.workorder.ng: own factories only</field>
+        <field name="model_id" ref="model_htplus_workorder_ng"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_workorder_ng_all_factories" model="ir.rule">
+        <field name="name">htplus.workorder.ng: all factories</field>
+        <field name="model_id" ref="model_htplus_workorder_ng"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_workorder_actual_factory" model="ir.rule">
+        <field name="name">htplus.workorder.actual: own factories only</field>
+        <field name="model_id" ref="model_htplus_workorder_actual"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_workorder_actual_all_factories" model="ir.rule">
+        <field name="name">htplus.workorder.actual: all factories</field>
+        <field name="model_id" ref="model_htplus_workorder_actual"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+</odoo>

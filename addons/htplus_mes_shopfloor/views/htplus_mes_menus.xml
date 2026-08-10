@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <menuitem id="htplus_mes_menu_shopfloor"
-        parent="htplus_planning_base.htplus_aps_menu_root"
+        parent="htplus_factory.htplus_aps_menu_root"
         name="Shop Floor"
         sequence="50">
     </menuitem>

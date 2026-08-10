@@ -2,7 +2,6 @@ import io
 
 from odoo import http
 from odoo.http import request
-from odoo.tools.misc import str2bool
 
 try:
     import xlsxwriter

@@ -1,4 +1,4 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class HtplusDefect(models.Model):
@@ -13,6 +13,8 @@ class HtplusDefect(models.Model):
 
 class HtplusWorkorderNg(models.Model):
     _name = 'htplus.workorder.ng'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'workorder_id.factory_id'
     _description = 'Work Order NG'
     _order = 'date desc'
 
@@ -24,3 +26,8 @@ class HtplusWorkorderNg(models.Model):
     countermeasure = fields.Text()
     employee_id = fields.Many2one('hr.employee', string='Employee')
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    @api.depends('workorder_id', 'workorder_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope an NG record by the work order it was found on."""
+        return super()._compute_htplus_factory_id()
+

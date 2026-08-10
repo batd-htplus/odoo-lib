@@ -1,8 +1,10 @@
-from odoo import api, fields, models, _
+from odoo import api, fields, models
 
 
 class HtplusSimulationScenario(models.Model):
     _name = 'htplus.simulation.scenario'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'base_schedule_run_id.factory_id'
     _description = 'Simulation Scenario'
 
     name = fields.Char(required=True)
@@ -13,6 +15,12 @@ class HtplusSimulationScenario(models.Model):
         ('cancelled', 'Cancelled'),
     ], default='draft', string='Status')
     base_schedule_run_id = fields.Many2one('htplus.schedule.run', string='Base Schedule Run')
+
+    @api.depends('base_schedule_run_id', 'base_schedule_run_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a scenario by the schedule run it branches from."""
+        return super()._compute_htplus_factory_id()
+
     scenario_date = fields.Date(default=fields.Date.context_today)
     overtime_hours = fields.Float(string='Overtime (hours)')
     capacity_change_pct = fields.Float(string='Capacity Change (%)')
@@ -75,9 +83,17 @@ class HtplusSimulationScenario(models.Model):
 
 class HtplusSimulationLine(models.Model):
     _name = 'htplus.simulation.line'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'scenario_id.factory_id'
     _description = 'Simulation Line'
 
     scenario_id = fields.Many2one('htplus.simulation.scenario', required=True, ondelete='cascade')
+
+    @api.depends('scenario_id', 'scenario_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a simulation line by its scenario."""
+        return super()._compute_htplus_factory_id()
+
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order')
     machine_id = fields.Many2one('htplus.machine', string='Machine')
     original_start = fields.Datetime(string='Original Start')

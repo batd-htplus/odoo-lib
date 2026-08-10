@@ -15,14 +15,13 @@ NG/scrap registration, issue management and shift completion reporting.
     "license": "LGPL-3",
     "category": "HTPlus",
     "depends": [
-        "htplus_aps_core",
+        "htplus_factory",
     ],
     "data": [
         "security/ir.model.access.csv",
+        "security/htplus_factory_rules.xml",
         "views/htplus_mes_menus.xml",
-        "views/htplus_dashboard_views.xml",
         "views/htplus_mes_views.xml",
-        "views/htplus_workforce_views.xml",
         "reports/htplus_production_daily_report.xml",
         "reports/htplus_production_daily_report_templates.xml",
     ],

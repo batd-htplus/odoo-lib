@@ -4,6 +4,8 @@ from odoo.exceptions import ValidationError
 
 class HtplusWorkorderActual(models.Model):
     _name = 'htplus.workorder.actual'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'workorder_id.factory_id'
     _description = 'Work Order Actual'
     _order = 'date_start desc'
 
@@ -28,6 +30,12 @@ class HtplusWorkorderActual(models.Model):
         help='Linked mrp.workcenter.productivity row (Fully Productive Time).',
     )
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+
+    @api.depends('workorder_id', 'workorder_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope an actual by the work order it records."""
+        return super()._compute_htplus_factory_id()
+
 
     @api.constrains('workorder_id', 'state')
     def _check_single_running(self):

@@ -65,12 +65,12 @@
                 <header>
                     <button name="action_start" string="Start" type="object" invisible="state != 'paused'"
                         class="btn-primary"
-                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_pause" string="Pause" type="object" invisible="state != 'running'"
-                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_finish" string="Finish" type="object" invisible="state != 'running'"
                         class="btn-primary"
-                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -305,17 +305,17 @@
                 <header>
                     <button name="action_open" string="Reopen" type="object"
                         invisible="state not in ['resolved', 'closed']"
-                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_in_progress" string="In Progress" type="object"
                         invisible="state != 'open'"
-                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_resolve" string="Resolve" type="object"
                         invisible="state not in ['open', 'in_progress']"
                         class="btn-primary"
-                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_close" string="Close" type="object"
                         invisible="state != 'resolved'"
-                        groups="htplus_planning_base.group_mes_operator,htplus_planning_base.group_aps_planner"/>
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>

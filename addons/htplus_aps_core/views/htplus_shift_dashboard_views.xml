@@ -95,7 +95,7 @@
     </record>
 
     <menuitem id="menu_htplus_shift_dashboard"
-        parent="htplus_planning_base.menu_htplus_shift_mgmt"
+        parent="htplus_workforce.menu_htplus_shift_mgmt"
         action="action_htplus_shift_dashboard"
         sequence="50"/>
 </odoo>

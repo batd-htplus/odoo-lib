@@ -1,11 +1,21 @@
 from odoo import api, fields, models, _
+from odoo.exceptions import UserError
 
 
 class HtplusDemandPlan(models.Model):
     _name = 'htplus.demand.plan'
     _description = 'Demand Plan'
-    _inherit = ['mail.thread', 'htplus.security.mixin']
+    _inherit = ['mail.thread', 'htplus.workflow.mixin', 'htplus.factory.scope.mixin']
     _order = 'date_start desc'
+
+    _htplus_transitions = {
+        'confirm': {'from': ('draft',), 'to': 'confirmed', 'role': 'planner'},
+        'approve': {'from': ('confirmed',), 'to': 'approved', 'role': 'manager'},
+        'plan': {'from': ('approved',), 'to': 'planned', 'role': 'planner'},
+        'cancel': {'from': ('draft', 'confirmed', 'approved'), 'to': 'cancelled',
+                   'role': 'planner'},
+        'reset': {'from': ('cancelled',), 'to': 'draft', 'role': 'manager'},
+    }
 
     name = fields.Char(required=True, default=lambda self: _('New'))
     state = fields.Selection([
@@ -15,6 +25,11 @@ class HtplusDemandPlan(models.Model):
         ('planned', 'Planned'),
         ('cancelled', 'Cancelled'),
     ], default='draft', string='Status', tracking=True)
+    factory_id = fields.Many2one(
+        'htplus.factory', string='Factory', index=True,
+        default=lambda self: self._htplus_default_factory(),
+        help='Factory this plan is for. Required from Confirm onwards - a plan '
+             'nobody can attribute to a site cannot be scheduled against real capacity.')
     date_start = fields.Date(required=True)
     date_end = fields.Date(required=True)
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
@@ -34,6 +49,30 @@ class HtplusDemandPlan(models.Model):
     notes = fields.Text()
     active = fields.Boolean(default=True)
 
+    @api.model
+    def _htplus_default_factory(self):
+        """Preselect the factory when the user is scoped to exactly one.
+
+        Returns:
+            htplus.factory recordset, empty when the choice is ambiguous.
+        """
+        allowed = self.env.user.htplus_factory_ids
+        return allowed if len(allowed) == 1 else self.env['htplus.factory']
+
+    def _htplus_require_factory(self):
+        """Refuse to move a plan forward while it has no factory."""
+        missing = self.filtered(lambda plan: not plan.factory_id)
+        if missing:
+            raise UserError(_(
+                'Set a factory on %(names)s before confirming: without it the plan '
+                'is outside every access scope and cannot be scheduled.',
+                names=', '.join(missing.mapped('display_name')),
+            ))
+
+    def _htplus_guard_confirm(self):
+        """A demand plan must name its factory before it can be confirmed."""
+        self._htplus_require_factory()
+
     def _compute_production_plan_count(self):
         for rec in self:
             rec.production_plan_count = len(rec.production_plan_ids)
@@ -44,21 +83,6 @@ class HtplusDemandPlan(models.Model):
             if vals.get('name', _('New')) == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('htplus.demand.plan') or _('New')
         return super().create(vals_list)
-
-    def action_confirm(self):
-        """Confirm the demand plan for approval."""
-        self._htplus_require_planner()
-        self.state = 'confirmed'
-
-    def action_approve(self):
-        """Approve the demand plan for planning."""
-        self._htplus_require_manager()
-        self.state = 'approved'
-
-    def action_cancel(self):
-        """Cancel the demand plan."""
-        self._htplus_require_planner()
-        self.state = 'cancelled'
 
     def action_open_production_plans(self):
         """Open production plans generated from this demand plan."""
@@ -138,10 +162,18 @@ class HtplusDemandPlan(models.Model):
                     priority=priority, seen=seen,
                 )
 
+    def _htplus_guard_plan(self):
+        """Refuse to mark the demand as planned when it has no lines."""
+        if not self.line_ids:
+            raise UserError(_('Cannot generate a production plan from an empty demand plan.'))
+
     def action_generate_plan(self):
         """Generate the production plan from the demand lines."""
         self.ensure_one()
-        self._htplus_require_planner()
+        # Checked up front as well as in the transition guard: building the plan
+        # first and failing afterwards would be wasted work.
+        self._htplus_require_role('planner')
+        self._htplus_guard_plan()
         plan = self.env['htplus.production.plan'].create({
             'demand_plan_id': self.id,
             'date_start': self.date_start,
@@ -152,7 +184,7 @@ class HtplusDemandPlan(models.Model):
                 plan, line.product_id, line.qty, line.date,
                 demand_line=line, priority=0,
             )
-        self.state = 'planned'
+        self._htplus_apply_transition('plan')
         return {
             'type': 'ir.actions.act_window',
             'name': _('Production Plan'),
@@ -175,10 +207,18 @@ class HtplusDemandPlan(models.Model):
 
 class HtplusDemandPlanLine(models.Model):
     _name = 'htplus.demand.plan.line'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'plan_id.factory_id'
     _description = 'Demand Plan Line'
     _order = 'date, sequence'
 
     plan_id = fields.Many2one('htplus.demand.plan', required=True, ondelete='cascade')
+
+    @api.depends('plan_id', 'plan_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a demand line by its plan."""
+        return super()._compute_htplus_factory_id()
+
     sequence = fields.Integer(default=10)
     product_id = fields.Many2one('product.product', required=True)
     date = fields.Date(required=True)

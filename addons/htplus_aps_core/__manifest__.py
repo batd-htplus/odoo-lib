@@ -15,14 +15,16 @@ manufacturing operations.
     "license": "LGPL-3",
     "category": "HTPlus",
     "depends": [
-        "htplus_planning_base",
+        "htplus_factory",
         "mail",
     ],
     "data": [
         "data/ir_sequence_data.xml",
         "data/ir_cron_data.xml",
         "security/ir.model.access.csv",
+        "security/htplus_factory_rules.xml",
         "views/htplus_aps_menus.xml",
+        "views/htplus_rule_views.xml",
         "views/htplus_dashboard_views.xml",
         "views/htplus_shift_dashboard_views.xml",
         "views/htplus_demand_plan_views.xml",
@@ -30,12 +32,9 @@ manufacturing operations.
         "views/htplus_production_plan_views.xml",
         "views/htplus_schedule_views.xml",
         "views/htplus_simulation_views.xml",
-        "views/htplus_workforce_views.xml",
         "views/htplus_settings_views.xml",
         "reports/htplus_schedule_report.xml",
         "reports/htplus_schedule_report_templates.xml",
-        "reports/htplus_shift_report.xml",
-        "reports/htplus_shift_report_templates.xml",
     ],
     "assets": {
         "web.assets_backend": [

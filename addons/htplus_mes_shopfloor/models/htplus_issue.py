@@ -1,8 +1,10 @@
-from odoo import fields, models
+from odoo import api, fields, models
 
 
 class HtplusMachineStop(models.Model):
     _name = 'htplus.machine.stop'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'machine_id.factory_id'
     _description = 'Machine Stop'
 
     machine_id = fields.Many2one('htplus.machine', required=True, string='Machine', index=True)
@@ -16,10 +18,17 @@ class HtplusMachineStop(models.Model):
     duration_minutes = fields.Float(string='Duration (minutes)')
     cost = fields.Float()
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+    @api.depends('machine_id', 'machine_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a machine stop by the machine that stopped."""
+        return super()._compute_htplus_factory_id()
+
 
 
 class HtplusIssue(models.Model):
     _name = 'htplus.issue'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'workorder_id.factory_id'
     _description = 'Issue'
     _order = 'date desc'
 
@@ -48,6 +57,11 @@ class HtplusIssue(models.Model):
     date = fields.Datetime(default=fields.Datetime.now, required=True, index=True)
     root_cause = fields.Text(string='Root Cause')
     countermeasure = fields.Text()
+    @api.depends('workorder_id', 'workorder_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope an issue by the work order it was raised against."""
+        return super()._compute_htplus_factory_id()
+
     employee_id = fields.Many2one('hr.employee', string='Employee')
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
 
