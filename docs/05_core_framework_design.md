@@ -871,6 +871,42 @@ contract async), nhưng **không** có retry/backoff/idempotency trên job Odoo,
 `FOR UPDATE SKIP LOCKED`, và bridge vẫn chờ đồng bộ (§8.1). `htplus.job`/OCA `queue_job` chưa
 quyết — quyết định 0c ở lộ trình gốc còn bỏ ngỏ.
 
+### 8.2.1 Quyết định: tự viết `htplus.job`, không dùng OCA `queue_job` (chốt 2026-08-10)
+
+Doc yêu cầu ghi rõ lý do — "sau này thay được" không phải lý do. Đây là lý do.
+
+**Điều tưởng là rào cản nhưng không phải:** giấy phép. `queue_job` là **LGPL-3**, trùng với
+module HTPlus, nên không có ràng buộc thương mại nào. Quyết định vì thế sát nút, không hiển
+nhiên — `queue_job` chín hơn hẳn về mặt kỹ thuật.
+
+| | `htplus.job` | OCA `queue_job` |
+|---|---|---|
+| Giấy phép | LGPL-3 (của ta) | LGPL-3 — không phải vấn đề |
+| Độ chín | 154 dòng, mới | Mature, dùng rộng nhiều năm |
+| Triển khai | `ir.cron` sẵn có | cần `server_wide_modules=web,queue_job` + runner + cấu hình channel ở cả dev lẫn prod |
+| Độ trễ nhận job | ~tức thì nhờ `ir.cron._trigger()` | tức thì |
+| Điều phối | không có channel/priority | channel, priority, ETA |
+| Nghĩa vụ nâng cấp | không | vendor addon phải theo kịp mỗi bản Odoo |
+
+**Lý do chọn tự viết — đều gắn với mô hình sản phẩm, không phải sở thích kỹ thuật:**
+
+1. **Mỗi vendor addon là một nghĩa vụ tương thích ở mỗi lần nâng Odoo.** Sản phẩm chạy trên
+   hàng trăm bản cài; nếu `queue_job` chậm hỗ trợ bản Odoo kế tiếp thì **mọi khách bị chặn
+   nâng cấp** vì một thứ chỉ dùng để chạy nền.
+2. **Nó đổi hạ tầng, không chỉ thêm module** — phải sửa `entrypoint.sh`, config template và
+   channel. `htplus.job` chạy trên `ir.cron` đã có sẵn.
+3. **Tải thực tế chưa cần đến nó**: solver, apply batch, export — vài job mỗi giờ. `queue_job`
+   giải bài toán thông lượng cao và điều phối channel; bài toán đó chưa tồn tại.
+4. `03_engine.md` nguyên tắc 2: OCA là nguồn tham khảo, phần quan trọng không phụ thuộc bắt buộc.
+
+**Điểm yếu đã vá:** cron poll 1 phút ⇒ độ trễ tới 60 giây. `_enqueue()` gọi
+`ir.cron._trigger()` (API sẵn có của Odoo) nên job được nhặt ở lần worker thức dậy kế tiếp.
+Kiểm chứng: enqueue tạo 1 bản ghi `ir.cron.trigger`.
+
+**Đổi sang `queue_job` khi** cần giới hạn đồng thời theo channel, hoặc job vượt vài nghìn
+mỗi ngày, hoặc cần ưu tiên giữa các loại job. Job layer là interface (`_enqueue` /
+`_claim_and_run_next`) nên khi đó đổi là thay đổi khu trú.
+
 ### 8.3 Adapter chịu lỗi
 
 Ranh giới hiện tại **đúng** (AbstractModel, endpoint `/api/v1/*` ổn định — `03_engine.md`

@@ -1,6 +1,7 @@
 from datetime import timedelta
 
 from odoo import api, fields, models, _
+from .htplus_schedule_result import HtplusScheduleResult
 from odoo.exceptions import UserError, ValidationError
 
 
@@ -29,6 +30,12 @@ class HtplusScheduleRun(models.Model):
     ], default='draft', string='Status', tracking=True)
     production_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan')
     scenario_id = fields.Many2one('htplus.simulation.scenario', string='Simulation Scenario')
+    last_result = fields.Json(
+        string='Last Scheduler Result', readonly=True, copy=False,
+        help='The full ScheduleResult of the last scheduler run, kept so a plan '
+             'can be explained after the fact.')
+    last_explanation = fields.Text(
+        string='Why This Schedule', readonly=True, copy=False)
 
     @api.depends('production_plan_id', 'production_plan_id.factory_id')
     def _compute_htplus_factory_id(self):
@@ -242,37 +249,32 @@ class HtplusScheduleRun(models.Model):
         return True
 
     def _htplus_mark_overlaps(self, workorders):
-        """Set schedule_conflict / capacity_ok for overlapping WOs on the same WC."""
+        """Flag work orders that share a work center with an overlapping one.
+
+        Delegates to ``mrp.workorder._get_conflicted_workorder_ids()``, which
+        answers this in one SQL statement using PostgreSQL's OVERLAPS. The
+        previous implementation grouped in Python, compared every pair inside a
+        group, and then issued one extra search per work order to catch overlaps
+        with work orders outside the run - quadratic in the run and linear in
+        queries, for a question the database answers directly.
+
+        Reusing Odoo's method also means HTPlus and plain ``button_plan`` agree
+        on what a conflict is, instead of each having its own opinion.
+
+        Args:
+            workorders: Work orders to evaluate and flag.
+
+        Returns:
+            The recordset that turned out to be in conflict.
+        """
         workorders.write({'schedule_conflict': False, 'capacity_ok': True})
-        by_wc = {}
-        for workorder in workorders.filtered(lambda w: w.date_start and w.state != 'cancel'):
-            by_wc.setdefault(workorder.workcenter_id.id, self.env['mrp.workorder'])
-            by_wc[workorder.workcenter_id.id] |= workorder
-
-        conflicted = self.env['mrp.workorder']
-        for wc_id, group in by_wc.items():
-            ordered = group.sorted(lambda w: (w.date_start, w.id))
-            for index, left in enumerate(ordered):
-                left_end = left.date_finished or left.date_start
-                for right in ordered[index + 1:]:
-                    if right.date_start >= left_end:
-                        break
-                    conflicted |= left | right
-
-            for workorder in ordered:
-                end = workorder.date_finished or workorder.date_start
-                outsiders = self.env['mrp.workorder'].search([
-                    ('id', 'not in', group.ids),
-                    ('workcenter_id', '=', wc_id),
-                    ('date_start', '!=', False),
-                    ('date_start', '<', end),
-                    ('date_finished', '>', workorder.date_start),
-                    ('schedule_state', 'in', ('confirmed', 'locked')),
-                    ('state', '!=', 'cancel'),
-                ], limit=1)
-                if outsiders:
-                    conflicted |= workorder
-
+        candidates = workorders.filtered(lambda w: w.date_start and w.state != 'cancel')
+        if not candidates:
+            return self.env['mrp.workorder']
+        conflicted_map = candidates._get_conflicted_workorder_ids()
+        conflicted = self.env['mrp.workorder'].browse(
+            [workorder_id for workorder_id in conflicted_map if conflicted_map[workorder_id]]
+        )
         if conflicted:
             conflicted.write({'schedule_conflict': True, 'capacity_ok': False})
         return conflicted
@@ -294,8 +296,10 @@ class HtplusScheduleRun(models.Model):
                 dated = run.workorder_ids.filtered(lambda w: w.date_start)
             if not dated:
                 raise UserError(_('No dated work orders to calculate. Attach or run the solver first.'))
+            run._htplus_store_result(run._htplus_run_scheduler())
             run._htplus_mark_overlaps(run.workorder_ids)
             run._htplus_apply_transition('calculate')
+            run._htplus_snapshot_proposals()
         return True
 
     def _htplus_guard_confirm(self):
@@ -369,6 +373,78 @@ class HtplusScheduleRun(models.Model):
         self.ensure_one()
         algorithm = algorithm or self.algorithm
         return algorithm if algorithm in ('rule_engine', 'solver_cpsat') else 'rule_engine'
+
+    def _htplus_run_scheduler(self, algorithm=None):
+        """Produce a ScheduleResult for this run.
+
+        HOOK - this is the seam §5.3 describes. Core ships the rule engine;
+        a project plugs in another by overriding this (plus ``selection_add`` on
+        ``algorithm``) and returning the same contract. Nothing downstream needs
+        to know which engine answered.
+
+        Args:
+            algorithm: Override the run's own algorithm.
+
+        Returns:
+            HtplusScheduleResult covering every work order of the run.
+        """
+        self.ensure_one()
+        code = self._htplus_resolve_scheduler(algorithm)
+        result = HtplusScheduleResult(
+            algorithm=code,
+            explanation=_(
+                'Rule engine: work orders placed in priority order, each on the '
+                'first free slot of its work center calendar.'),
+            objective={'name': 'first_fit', 'value': 0.0},
+        )
+        ordered = self.workorder_ids.sorted(lambda w: (-(w.priority or 0), w.id))
+        for workorder in ordered:
+            if workorder.state == 'cancel':
+                result.add_unassigned(workorder.id, _('Work order is cancelled.'))
+                continue
+            if workorder.locked:
+                result.add_assignment(
+                    workorder.id, workorder.date_start, workorder.date_finished,
+                    workcenter_id=workorder.workcenter_id.id,
+                    machine_id=workorder.machine_id.id, line_id=workorder.line_id.id)
+                continue
+            if not workorder.workcenter_id:
+                result.add_unassigned(workorder.id, _('No work center on the work order.'))
+                continue
+            try:
+                start, end = self._htplus_propose_slot(workorder, workorder.workcenter_id)
+            except UserError as error:
+                result.add_unassigned(workorder.id, str(error))
+                continue
+            result.add_assignment(
+                workorder.id, start, end,
+                workcenter_id=workorder.workcenter_id.id,
+                machine_id=workorder.machine_id.id, line_id=workorder.line_id.id)
+        result.metadata['workorder_count'] = len(self.workorder_ids)
+        return result
+
+    def _htplus_store_result(self, result):
+        """Record a ScheduleResult on the run after checking it answers fully.
+
+        Args:
+            result: HtplusScheduleResult returned by a scheduler.
+
+        Raises:
+            UserError: The result does not account for every work order, or
+                omits the algorithm or explanation.
+        """
+        self.ensure_one()
+        problems = result.validate(self.workorder_ids.ids)
+        if problems:
+            raise UserError(_(
+                'The scheduler returned an incomplete result:\n- %s'
+            ) % '\n- '.join(problems))
+        self.write({
+            'algorithm': result.algorithm,
+            'last_result': result.to_dict(),
+            'last_explanation': result.explanation,
+        })
+        return True
 
     def action_open_production_plan(self):
         self.ensure_one()

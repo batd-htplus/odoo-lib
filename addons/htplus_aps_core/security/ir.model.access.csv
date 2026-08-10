@@ -41,3 +41,10 @@ access_htplus_priority_rule_manager,htplus.priority.rule,model_htplus_priority_r
 access_htplus_capacity_rule_user,htplus.capacity.rule,model_htplus_capacity_rule,htplus_factory.group_aps_user,1,0,0,0
 access_htplus_capacity_rule_planner,htplus.capacity.rule,model_htplus_capacity_rule,htplus_factory.group_aps_planner,1,1,1,0
 access_htplus_capacity_rule_manager,htplus.capacity.rule,model_htplus_capacity_rule,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_schedule_line_user,htplus.schedule.line,model_htplus_schedule_line,htplus_factory.group_aps_user,1,0,0,0
+access_htplus_schedule_line_planner,htplus.schedule.line,model_htplus_schedule_line,htplus_factory.group_aps_planner,1,1,1,0
+access_htplus_schedule_line_manager,htplus.schedule.line,model_htplus_schedule_line,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_apply_batch_user,htplus.apply.batch,model_htplus_apply_batch,htplus_factory.group_aps_user,1,0,0,0
+access_htplus_apply_batch_planner,htplus.apply.batch,model_htplus_apply_batch,htplus_factory.group_aps_planner,1,1,1,0
+access_htplus_apply_batch_manager,htplus.apply.batch,model_htplus_apply_batch,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_schedule_report_user,htplus.schedule.report,model_htplus_schedule_report,htplus_factory.group_aps_user,1,0,0,0

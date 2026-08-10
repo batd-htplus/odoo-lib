@@ -1,4 +1,5 @@
 from odoo import fields, models, _
+from odoo.addons.htplus_aps_core.models.htplus_schedule_result import HtplusScheduleResult
 from odoo.exceptions import UserError
 
 
@@ -105,6 +106,69 @@ class HtplusScheduleRun(models.Model):
             'target': 'current',
         }
 
+    def _htplus_run_scheduler(self, algorithm=None):
+        """Ask the planning engine, and answer in the same contract as core.
+
+        Overrides the built-in rule engine when the run asks for a real solver.
+        Everything the engine leaves out is filled in here rather than silently
+        dropped: a work order the engine did not return comes back as
+        ``unassigned`` with a reason, and the response's own ``algorithm`` label
+        is trusted over the request's, so a degraded fallback shows up as what
+        it actually was.
+        """
+        self.ensure_one()
+        code = self._htplus_resolve_scheduler(algorithm)
+        if code == 'rule_engine':
+            return super()._htplus_run_scheduler(algorithm)
+
+        payload = [self._htplus_wo_payload(wo) for wo in self.workorder_ids]
+        constraints = {
+            'workcenters': self._htplus_workcenter_constraints(),
+            'lock_workorder_ids': self.workorder_ids.filtered('locked').ids,
+            'holidays': [],
+            'rules': {},
+        }
+        service = self.env['htplus.planning.service']
+        submit = service.schedule_recommend(
+            payload, constraints, objective='min_tardiness', algorithm=code)
+        job_id = submit.get('job_id')
+        if not job_id:
+            raise UserError(_('Planning engine did not return a job id.'))
+        response = service.wait_job(job_id)
+        data = response.get('data') or {}
+        entries = data.get('schedule_result') or []
+
+        result = HtplusScheduleResult(
+            algorithm=data.get('algorithm') or code,
+            explanation=data.get('explanation') or _(
+                'Planning engine %s returned a schedule for %s work order(s).',
+                data.get('algorithm') or code, len(entries)),
+            objective=data.get('objective') or {},
+            metadata={'job_id': job_id, 'engine_returned': len(entries)},
+        )
+        by_id = {entry.get('workorder_id'): entry for entry in entries}
+        for workorder in self.workorder_ids:
+            entry = by_id.get(workorder.id)
+            start = self._htplus_parse_dt((entry or {}).get('date_start'))
+            end = self._htplus_parse_dt((entry or {}).get('date_finished'))
+            if not entry:
+                result.add_unassigned(workorder.id, _('The engine returned no slot for it.'))
+            elif not start or not end:
+                result.add_unassigned(
+                    workorder.id,
+                    entry.get('reason') or _('The engine returned no dates for it.'))
+            else:
+                result.add_assignment(
+                    workorder.id, start, end,
+                    workcenter_id=workorder.workcenter_id.id,
+                    machine_id=workorder.machine_id.id,
+                    line_id=workorder.line_id.id)
+                if entry.get('delay_hours'):
+                    result.add_conflict(
+                        workorder.id, 'tardiness',
+                        _('%s hour(s) late against the deadline.', entry['delay_hours']))
+        return result
+
     def _htplus_wo_payload(self, workorder):
         """Build the work order payload dict sent to the planning engine."""
         production = workorder.production_id
@@ -127,7 +191,9 @@ class HtplusScheduleRun(models.Model):
         return [{
             'workcenter_id': center.id,
             'name': center.name,
-            'capacity': center.capacity,
+            # mrp.workcenter carries default_capacity; plain `capacity` lives on
+            # mrp.workcenter.capacity, the per-product override model.
+            'capacity': center.default_capacity,
         } for center in centers]
 
     @staticmethod

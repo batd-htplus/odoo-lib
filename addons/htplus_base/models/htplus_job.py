@@ -66,7 +66,7 @@ class HtplusJob(models.Model):
             ], limit=1)
             if existing:
                 return existing
-        return self.create({
+        job = self.create({
             'name': name or _('%s.%s', model, method),
             'model': model,
             'method': method,
@@ -77,6 +77,24 @@ class HtplusJob(models.Model):
             'origin_id': origin_id,
             'max_attempts': max_attempts,
         })
+        job._htplus_wake_runner()
+        return job
+
+    def _htplus_wake_runner(self):
+        """Ask the cron worker to pick this job up now instead of on its next tick.
+
+        Without this the queue inherits the cron interval as latency: pressing
+        "Run solver" would sit idle for up to a minute before anything started.
+        ``ir.cron._trigger()`` is Odoo's own answer to that - it schedules the
+        cron to run at the next worker wake-up regardless of ``nextcall`` - so
+        the polling design keeps near-immediate pickup without a runner process
+        of its own.
+        """
+        cron = self.env.ref('htplus_base.ir_cron_htplus_job', raise_if_not_found=False)
+        if cron:
+            at = min(self.mapped('scheduled_at')) if self else None
+            cron.sudo()._trigger(at=at or None)
+        return True
 
     @api.model
     def _claim_and_run_next(self, limit=20):

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="view_htplus_schedule_report_pivot" model="ir.ui.view">
+        <field name="name">htplus.schedule.report.pivot</field>
+        <field name="model">htplus.schedule.report</field>
+        <field name="arch" type="xml">
+            <pivot string="Schedule Analysis" sample="1">
+                <field name="factory_id" type="row"/>
+                <field name="line_id" type="row"/>
+                <field name="date_day" interval="week" type="col"/>
+                <field name="workorder_count" type="measure"/>
+                <field name="duration_expected" type="measure"/>
+                <field name="late_count" type="measure"/>
+            </pivot>
+        </field>
+    </record>
+
+    <record id="view_htplus_schedule_report_graph" model="ir.ui.view">
+        <field name="name">htplus.schedule.report.graph</field>
+        <field name="model">htplus.schedule.report</field>
+        <field name="arch" type="xml">
+            <graph string="Schedule Analysis" type="bar" sample="1">
+                <field name="line_id"/>
+                <field name="duration_expected" type="measure"/>
+            </graph>
+        </field>
+    </record>
+
+    <record id="view_htplus_schedule_report_search" model="ir.ui.view">
+        <field name="name">htplus.schedule.report.search</field>
+        <field name="model">htplus.schedule.report</field>
+        <field name="arch" type="xml">
+            <search string="Schedule Analysis">
+                <field name="factory_id"/>
+                <field name="line_id"/>
+                <field name="workcenter_id"/>
+                <field name="product_id"/>
+                <filter name="conflicts" string="Conflicts" domain="[('schedule_conflict','=',True)]"/>
+                <filter name="late" string="Late" domain="[('late_count','&gt;',0)]"/>
+                <filter name="locked" string="Locked" domain="[('locked','=',True)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="g_factory" string="Factory" context="{'group_by':'factory_id'}"/>
+                    <filter name="g_line" string="Line" context="{'group_by':'line_id'}"/>
+                    <filter name="g_wc" string="Work Center" context="{'group_by':'workcenter_id'}"/>
+                    <filter name="g_day" string="Day" context="{'group_by':'date_day'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="action_htplus_schedule_report" model="ir.actions.act_window">
+        <field name="name">Schedule Analysis</field>
+        <field name="res_model">htplus.schedule.report</field>
+        <field name="view_mode">pivot,graph</field>
+    </record>
+
+    <menuitem id="menu_htplus_schedule_report"
+        parent="htplus_aps_menu_scheduling"
+        action="action_htplus_schedule_report"
+        sequence="90"/>
+</odoo>

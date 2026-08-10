@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Factory",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.1.0",
     "summary": "Manufacturing foundation: factory, plant, line, machine and access scoping.",
     "description": """
 HTPlus Factory
@@ -34,6 +34,7 @@ in through auto-installed bridge modules instead.
         "views/htplus_machine_views.xml",
         "views/htplus_factory_holiday_views.xml",
         "views/htplus_users_views.xml",
+        "wizard/htplus_master_import_views.xml",
     ],
     "pre_init_hook": "pre_init_hook",
     "application": False,

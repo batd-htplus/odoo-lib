@@ -14,3 +14,4 @@ access_htplus_machine_manager,htplus.machine,model_htplus_machine,htplus_factory
 access_htplus_factory_holiday_user,htplus.factory.holiday,model_htplus_factory_holiday,htplus_factory.group_aps_user,1,0,0,0
 access_htplus_factory_holiday_planner,htplus.factory.holiday,model_htplus_factory_holiday,htplus_factory.group_aps_planner,1,1,1,0
 access_htplus_factory_holiday_manager,htplus.factory.holiday,model_htplus_factory_holiday,htplus_factory.group_aps_manager,1,1,1,1
+access_htplus_master_import_manager,htplus.master.import.wizard,model_htplus_master_import_wizard,htplus_factory.group_aps_manager,1,1,1,1

@@ -34,6 +34,7 @@ manufacturing operations.
         "views/htplus_schedule_views.xml",
         "views/htplus_simulation_views.xml",
         "views/htplus_settings_views.xml",
+        "report/htplus_schedule_report_views.xml",
         "reports/htplus_schedule_report.xml",
         "reports/htplus_schedule_report_templates.xml",
     ],
