@@ -5,71 +5,61 @@
         <field name="model">htplus.dashboard.kpi</field>
         <field name="inherit_id" ref="htplus_aps_core.view_htplus_dashboard_kpi_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//div[hasclass('row')]" position="inside">
-                <div class="col-4 mb-3">
+            <xpath expr="//div[@name='kpi_tiles']" position="inside">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-success"><field name="qty_good"/></h3>
-                            <div>Qty Good</div>
+                            <h3 class="text-success"><field name="qty_good"/></h3><div class="text-muted small">Qty Good</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-danger"><field name="qty_ng"/></h3>
-                            <div>Qty NG</div>
+                            <h3 class="text-danger" invisible="qty_ng == 0"><field name="qty_ng"/></h3><h3 class="text-muted" invisible="qty_ng != 0"><field name="qty_ng"/></h3><div class="text-muted small">Qty NG</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-success"><field name="oee_pct"/></h3>
-                            <div>OEE %</div>
+                            <h3 class="text-success"><field name="oee_pct"/></h3><div class="text-muted small">OEE %</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-success"><field name="yield_pct"/></h3>
-                            <div>Yield %</div>
+                            <h3 class="text-success"><field name="yield_pct"/></h3><div class="text-muted small">Yield %</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-warning"><field name="downtime_minutes"/></h3>
-                            <div>Downtime (minutes)</div>
+                            <h3 class="text-danger" invisible="downtime_minutes == 0"><field name="downtime_minutes"/></h3><h3 class="text-muted" invisible="downtime_minutes != 0"><field name="downtime_minutes"/></h3><div class="text-muted small">Downtime (minutes)</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-warning"><field name="machine_stop_count"/></h3>
-                            <div>Machine Stops</div>
+                            <h3 class="text-danger" invisible="machine_stop_count == 0"><field name="machine_stop_count"/></h3><h3 class="text-muted" invisible="machine_stop_count != 0"><field name="machine_stop_count"/></h3><div class="text-muted small">Machine Stops</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-danger"><field name="open_issues"/></h3>
-                            <div>Open Issues</div>
+                            <h3 class="text-danger" invisible="open_issues == 0"><field name="open_issues"/></h3><h3 class="text-muted" invisible="open_issues != 0"><field name="open_issues"/></h3><div class="text-muted small">Open Issues</div>
                         </div>
                     </div>
                 </div>
             </xpath>
-            <xpath expr="//sheet" position="inside">
-                <group>
-                    <button name="action_open_actuals" string="Open Execution Records"
-                        type="object"/>
-                    <button name="action_open_downtime" string="Open Downtime" type="object"/>
-                    <button name="action_open_issues" string="Open Issues" type="object"/>
-                </group>
+            <xpath expr="//button[@name='action_open_workorders']" position="after">
+                <button name="action_open_actuals" string="Open Execution Records" type="object"/>
+                <button name="action_open_downtime" string="Open Downtime" type="object"/>
+                <button name="action_open_issues" string="Open Issues" type="object"/>
             </xpath>
         </field>
     </record>

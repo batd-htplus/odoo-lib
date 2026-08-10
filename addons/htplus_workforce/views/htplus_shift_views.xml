@@ -219,7 +219,6 @@
         <field name="name">Shift Calendar</field>
         <field name="res_model">htplus.production.shift</field>
         <field name="view_mode">calendar,list,form</field>
-        <field name="context">{'search_default_group_by_date': 1}</field>
     </record>
 
     <record id="view_htplus_production_shift_calendar" model="ir.ui.view">

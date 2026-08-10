@@ -30,27 +30,24 @@
                     </group>
                     <group name="health_jobs" string="Scheduled Jobs">
                         <div class="row">
-                            <div class="col-4 mb-3">
+                            <div class="col-6 col-md-4 col-xl-2 mb-2">
                                 <div class="card">
                                     <div class="card-body text-center">
-                                        <h3 class="text-primary"><field name="cron_total"/></h3>
-                                        <div>Cron Jobs</div>
+                                        <h3 class="text-primary"><field name="cron_total"/></h3><div class="text-muted small">Cron Jobs</div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4 mb-3">
+                            <div class="col-6 col-md-4 col-xl-2 mb-2">
                                 <div class="card">
                                     <div class="card-body text-center">
-                                        <h3 class="text-primary"><field name="cron_active"/></h3>
-                                        <div>Active</div>
+                                        <h3 class="text-primary"><field name="cron_active"/></h3><div class="text-muted small">Active</div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4 mb-3">
+                            <div class="col-6 col-md-4 col-xl-2 mb-2">
                                 <div class="card">
                                     <div class="card-body text-center">
-                                        <h3 class="text-danger"><field name="cron_overdue"/></h3>
-                                        <div>Overdue</div>
+                                        <h3 class="text-danger" invisible="cron_overdue == 0"><field name="cron_overdue"/></h3><h3 class="text-muted" invisible="cron_overdue != 0"><field name="cron_overdue"/></h3><div class="text-muted small">Overdue</div>
                                     </div>
                                 </div>
                             </div>
@@ -58,27 +55,24 @@
                     </group>
                     <group name="health_data" string="Data">
                         <div class="row">
-                            <div class="col-4 mb-3">
+                            <div class="col-6 col-md-4 col-xl-2 mb-2">
                                 <div class="card">
                                     <div class="card-body text-center">
-                                        <h3 class="text-primary"><field name="change_count"/></h3>
-                                        <div>Schedule Change Logs</div>
+                                        <h3 class="text-primary"><field name="change_count"/></h3><div class="text-muted small">Schedule Change Logs</div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4 mb-3">
+                            <div class="col-6 col-md-4 col-xl-2 mb-2">
                                 <div class="card">
                                     <div class="card-body text-center">
-                                        <h3 class="text-danger"><field name="conflict_count"/></h3>
-                                        <div>Schedule Conflicts</div>
+                                        <h3 class="text-danger" invisible="conflict_count == 0"><field name="conflict_count"/></h3><h3 class="text-muted" invisible="conflict_count != 0"><field name="conflict_count"/></h3><div class="text-muted small">Schedule Conflicts</div>
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4 mb-3">
+                            <div class="col-6 col-md-4 col-xl-2 mb-2">
                                 <div class="card">
                                     <div class="card-body text-center">
-                                        <h3 class="text-danger"><field name="machine_down"/></h3>
-                                        <div>Machines Down</div>
+                                        <h3 class="text-danger" invisible="machine_down == 0"><field name="machine_down"/></h3><h3 class="text-muted" invisible="machine_down != 0"><field name="machine_down"/></h3><div class="text-muted small">Machines Down</div>
                                     </div>
                                 </div>
                             </div>

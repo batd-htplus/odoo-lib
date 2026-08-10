@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models, _
 
 
@@ -18,7 +20,7 @@ class HtplusSystemHealth(models.Model):
     @api.depends('date_from', 'date_to')
     def _compute_engine(self):
         """Aggregate planning-engine health signals from the config and request log."""
-        since = fields.Datetime.now().replace(microsecond=0) - fields.timedelta(hours=24)
+        since = fields.Datetime.now().replace(microsecond=0) - timedelta(hours=24)
         log_model = 'htplus.planning.request.log'
         for rec in self:
             config = self.env['htplus.planning.config']._get_active()
@@ -40,7 +42,7 @@ class HtplusSystemHealth(models.Model):
             last_failed = Log.search(
                 [('status', '=', 'failed')], limit=1, order='create_date desc')
             rec.engine_last_error = last_failed.error if last_failed else False
-            stuck_cutoff = fields.Datetime.now().replace(microsecond=0) - fields.timedelta(hours=1)
+            stuck_cutoff = fields.Datetime.now().replace(microsecond=0) - timedelta(hours=1)
             rec.forecast_stuck = self.env['htplus.planning.forecast'].search_count([
                 ('state', '=', 'draft'),
                 ('job_id', '!=', False),

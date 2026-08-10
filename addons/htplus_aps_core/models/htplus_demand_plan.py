@@ -223,7 +223,14 @@ class HtplusDemandPlanLine(models.Model):
     product_id = fields.Many2one('product.product', required=True)
     date = fields.Date(required=True)
     qty = fields.Float(required=True)
-    uom_id = fields.Many2one('uom.uom', required=True, default=lambda self: self.env['uom.uom']._get_default_uom_id())
+    uom_id = fields.Many2one(
+        'uom.uom', string='Unit of Measure', required=True,
+        compute='_compute_uom_id', store=True, readonly=False, precompute=True,
+        domain="[('category_id', '=', product_uom_category_id)]",
+        help='Defaults to the unit of the chosen product; override when the plan '
+             'is expressed in another unit of the same category.')
+    product_uom_category_id = fields.Many2one(
+        related='product_id.uom_id.category_id', depends=['product_id'])
     forecast_confidence = fields.Float(string='Forecast Confidence')
     remark = fields.Char()
     state = fields.Selection([
@@ -231,3 +238,14 @@ class HtplusDemandPlanLine(models.Model):
         ('confirmed', 'Confirmed'),
         ('planned', 'Planned'),
     ], default='draft', string='Status')
+
+    @api.depends('product_id')
+    def _compute_uom_id(self):
+        """Follow the product's own unit unless someone set another one."""
+        for line in self:
+            if line.product_id and (
+                not line.uom_id
+                or line.uom_id.category_id != line.product_id.uom_id.category_id
+            ):
+                line.uom_id = line.product_id.uom_id
+

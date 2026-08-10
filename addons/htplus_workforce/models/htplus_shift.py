@@ -208,7 +208,7 @@ class HtplusProductionShift(models.Model):
     }
     _description = 'Production Shift'
     _order = 'date desc, template_id'
-    _rec_name = 'display_name'
+    _rec_name = 'name'
 
     name = fields.Char(required=True, default=lambda self: _('New'))
     date = fields.Date(required=True, string='Work Date')
@@ -235,8 +235,10 @@ class HtplusProductionShift(models.Model):
         'htplus.workforce.assignment', 'shift_id', string='Assignments')
     completion_ids = fields.One2many(
         'htplus.shift.completion', 'shift_id', string='Actuals')
-    start_time = fields.Datetime(compute='_compute_shift_time', string='Start')
-    end_time = fields.Datetime(compute='_compute_shift_time', string='End')
+    start_time = fields.Datetime(
+        compute='_compute_shift_time', string='Start', store=True)
+    end_time = fields.Datetime(
+        compute='_compute_shift_time', string='End', store=True)
     notes = fields.Text()
     active = fields.Boolean(default=True)
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
@@ -246,7 +248,7 @@ class HtplusProductionShift(models.Model):
          'A shift already exists for this date, shift and line.'),
     ]
 
-    @api.depends('date', 'template_id.start_time', 'template_id.end_time')
+    @api.depends('date', 'template_id', 'template_id.start_time', 'template_id.end_time')
     def _compute_shift_time(self):
         """Compute the shift start and end datetimes, rolling overnight ends to the next day."""
         for rec in self:
@@ -318,7 +320,7 @@ class HtplusProductionShift(models.Model):
     def create(self, vals_list):
         """Number new shifts, inherit template defaults and run the conflict checks."""
         for vals in vals_list:
-            if vals.get('name', _('New')) == _('New'):
+            if not vals.get('name') or vals.get('name') == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code(
                     'htplus.production.shift') or _('New')
             if not vals.get('line_id') and vals.get('template_id'):

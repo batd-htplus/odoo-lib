@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models, _
 
 
@@ -7,8 +9,12 @@ class HtplusSystemHealth(models.Model):
     _table = 'htplus_system_health'
 
     name = fields.Char(string='Health', default=lambda self: _('System Health'))
-    date_from = fields.Date(default=fields.Date.context_today)
-    date_to = fields.Date(default=fields.Date.context_today)
+    date_from = fields.Date(
+        default=lambda self: fields.Date.context_today(self) - timedelta(days=7),
+        help='Start of the analysed window. Defaults to a week back: opening on a '
+             'single day shows nothing but zeros and reads as a broken screen.')
+    date_to = fields.Date(
+        default=lambda self: fields.Date.context_today(self) + timedelta(days=7))
 
     cron_total = fields.Integer(string='Cron Jobs', compute='_compute_crons')
     cron_active = fields.Integer(string='Active Cron Jobs', compute='_compute_crons')

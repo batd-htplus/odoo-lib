@@ -299,51 +299,45 @@
             <xpath expr="//group[@name='health_data']" position="after">
                 <group string="Planning Engine">
                     <div class="row">
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="engine_state"/></h3>
-                                    <div>Circuit</div>
+                                    <h3 class="text-primary"><field name="engine_state"/></h3><div class="text-muted small">Circuit</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-danger"><field name="engine_failures"/></h3>
-                                    <div>Consecutive Failures</div>
+                                    <h3 class="text-danger" invisible="engine_failures == 0"><field name="engine_failures"/></h3><h3 class="text-muted" invisible="engine_failures != 0"><field name="engine_failures"/></h3><div class="text-muted small">Consecutive Failures</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-warning"><field name="engine_avg_ms"/></h3>
-                                    <div>Avg Response (ms)</div>
+                                    <h3 class="text-warning"><field name="engine_avg_ms"/></h3><div class="text-muted small">Avg Response (ms)</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="engine_req_ok"/></h3>
-                                    <div>OK (24h)</div>
+                                    <h3 class="text-primary"><field name="engine_req_ok"/></h3><div class="text-muted small">OK (24h)</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-danger"><field name="engine_req_failed"/></h3>
-                                    <div>Failed (24h)</div>
+                                    <h3 class="text-danger" invisible="engine_req_failed == 0"><field name="engine_req_failed"/></h3><h3 class="text-muted" invisible="engine_req_failed != 0"><field name="engine_req_failed"/></h3><div class="text-muted small">Failed (24h)</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-warning"><field name="forecast_stuck"/></h3>
-                                    <div>Stuck Forecasts</div>
+                                    <h3 class="text-danger" invisible="forecast_stuck == 0"><field name="forecast_stuck"/></h3><h3 class="text-muted" invisible="forecast_stuck != 0"><field name="forecast_stuck"/></h3><div class="text-muted small">Stuck Forecasts</div>
                                 </div>
                             </div>
                         </div>

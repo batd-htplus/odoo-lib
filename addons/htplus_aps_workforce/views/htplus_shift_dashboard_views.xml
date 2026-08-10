@@ -25,63 +25,56 @@
                         <field name="date_to"/>
                     </group>
                     <div class="row">
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="total_shifts"/></h3>
-                                    <div>Total Shifts</div>
+                                    <h3 class="text-primary"><field name="total_shifts"/></h3><div class="text-muted small">Total Shifts</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
                                     <h3 class="text-primary">
                                         <field name="assignment_rate" widget="percentpie"/>
-                                    </h3>
-                                    <div>Assignment Rate</div>
+                                    </h3><div class="text-muted small">Assignment Rate</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
                                     <h3 class="text-success">
                                         <field name="completion_rate" widget="percentpie"/>
-                                    </h3>
-                                    <div>Completion Rate</div>
+                                    </h3><div class="text-muted small">Completion Rate</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-warning"><field name="confirmed_shifts"/></h3>
-                                    <div>Confirmed Shifts</div>
+                                    <h3 class="text-warning"><field name="confirmed_shifts"/></h3><div class="text-muted small">Confirmed Shifts</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-success"><field name="completed_shifts"/></h3>
-                                    <div>Completed Shifts</div>
+                                    <h3 class="text-success"><field name="completed_shifts"/></h3><div class="text-muted small">Completed Shifts</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-danger"><field name="shortage_shifts"/></h3>
-                                    <div>Shifts Short Manpower</div>
+                                    <h3 class="text-danger" invisible="shortage_shifts == 0"><field name="shortage_shifts"/></h3><h3 class="text-muted" invisible="shortage_shifts != 0"><field name="shortage_shifts"/></h3><div class="text-muted small">Shifts Short Manpower</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="total_ot_minutes"/></h3>
-                                    <div>Total Overtime (min)</div>
+                                    <h3 class="text-primary"><field name="total_ot_minutes"/></h3><div class="text-muted small">Total Overtime (min)</div>
                                 </div>
                             </div>
                         </div>

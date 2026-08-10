@@ -6,20 +6,18 @@
         <field name="model">htplus.dashboard.kpi</field>
         <field name="inherit_id" ref="htplus_aps_core.view_htplus_dashboard_kpi_form"/>
         <field name="arch" type="xml">
-            <xpath expr="//field[@name='machine_down']/ancestor::div[hasclass('col-4')]" position="after">
-                <div class="col-4 mb-3">
+            <xpath expr="//div[@name='kpi_tiles']" position="inside">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-warning"><field name="assignment_conflict_count"/></h3>
-                            <div>Assignment Conflicts</div>
+                            <h3 class="text-danger" invisible="assignment_conflict_count == 0"><field name="assignment_conflict_count"/></h3><h3 class="text-muted" invisible="assignment_conflict_count != 0"><field name="assignment_conflict_count"/></h3><div class="text-muted small">Assignment Conflicts</div>
                         </div>
                     </div>
                 </div>
-                <div class="col-4 mb-3">
+                <div class="col-6 col-md-4 col-xl-2 mb-2">
                     <div class="card">
                         <div class="card-body text-center">
-                            <h3 class="text-warning"><field name="shortage_shifts"/></h3>
-                            <div>Shifts Short Manpower</div>
+                            <h3 class="text-danger" invisible="shortage_shifts == 0"><field name="shortage_shifts"/></h3><h3 class="text-muted" invisible="shortage_shifts != 0"><field name="shortage_shifts"/></h3><div class="text-muted small">Shifts Short Manpower</div>
                         </div>
                     </div>
                 </div>

@@ -181,14 +181,7 @@ class HtplusProductionPlan(models.Model):
         if not dash:
             dash = Dashboard.create({'name': _('Production Dashboard')})
         dash.production_plan_id = self.id
-        return {
-            'type': 'ir.actions.act_window',
-            'name': _('Dashboard'),
-            'res_model': 'htplus.dashboard.kpi',
-            'res_id': dash.id,
-            'view_mode': 'form',
-            'target': 'current',
-        }
+        return Dashboard.action_open_dashboard()
 
     def action_create_productions(self):
         """Create and confirm a manufacturing order for each plan line."""
@@ -283,7 +276,14 @@ class HtplusProductionPlanLine(models.Model):
     demand_line_id = fields.Many2one('htplus.demand.plan.line', string='Demand Line')
     product_id = fields.Many2one('product.product', required=True)
     qty = fields.Float(required=True)
-    uom_id = fields.Many2one('uom.uom', required=True, default=lambda self: self.env['uom.uom']._get_default_uom_id())
+    uom_id = fields.Many2one(
+        'uom.uom', string='Unit of Measure', required=True,
+        compute='_compute_uom_id', store=True, readonly=False, precompute=True,
+        domain="[('category_id', '=', product_uom_category_id)]",
+        help='Defaults to the unit of the chosen product; override when the plan '
+             'is expressed in another unit of the same category.')
+    product_uom_category_id = fields.Many2one(
+        related='product_id.uom_id.category_id', depends=['product_id'])
     date_deadline = fields.Date(string='Deadline')
     bom_id = fields.Many2one('mrp.bom', string='BOM', domain="[('product_tmpl_id', '=', product_tmpl_id)]")
     product_tmpl_id = fields.Many2one(
@@ -346,6 +346,17 @@ class HtplusProductionPlanLine(models.Model):
             line.material_ok = not shortages
             line.material_note = '; '.join(shortages[:3]) if shortages else _('OK')
         return True
+
+
+    @api.depends('product_id')
+    def _compute_uom_id(self):
+        """Follow the product's own unit unless someone set another one."""
+        for line in self:
+            if line.product_id and (
+                not line.uom_id
+                or line.uom_id.category_id != line.product_id.uom_id.category_id
+            ):
+                line.uom_id = line.product_id.uom_id
 
     @api.onchange('product_id')
     def _onchange_product_id_bom(self):

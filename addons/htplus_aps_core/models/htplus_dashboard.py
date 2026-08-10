@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import api, fields, models, _
 
 
@@ -7,8 +9,12 @@ class HtplusDashboardKpi(models.Model):
     _table = 'htplus_dashboard_kpi'
 
     name = fields.Char(string='Dashboard', default=lambda self: _('Production Dashboard'))
-    date_from = fields.Date(default=fields.Date.context_today)
-    date_to = fields.Date(default=fields.Date.context_today)
+    date_from = fields.Date(
+        default=lambda self: fields.Date.context_today(self) - timedelta(days=7),
+        help='Start of the analysed window. Defaults to a week back: opening on a '
+             'single day shows nothing but zeros and reads as a broken screen.')
+    date_to = fields.Date(
+        default=lambda self: fields.Date.context_today(self) + timedelta(days=7))
     production_plan_id = fields.Many2one(
         'htplus.production.plan',
         string='Working Production Plan',
@@ -131,6 +137,21 @@ class HtplusDashboardKpi(models.Model):
         """Invalidate caches so the dashboard recomputes its KPIs."""
         self.invalidate_recordset()
         return True
+
+    @api.model
+    def action_open_dashboard(self):
+        """Open the singleton dashboard record (create it on first visit)."""
+        dash = self.search([], order='id', limit=1)
+        if not dash:
+            dash = self.create({'name': _('Production Dashboard')})
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Dashboard'),
+            'res_model': 'htplus.dashboard.kpi',
+            'res_id': dash.id,
+            'view_mode': 'form',
+            'target': 'inline',
+        }
 
     @api.model
     def _dashboard_record(self, date_from=None, date_to=None, production_plan_id=False):

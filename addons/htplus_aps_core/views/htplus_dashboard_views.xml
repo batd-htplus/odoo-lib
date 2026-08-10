@@ -1,10 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="action_htplus_dashboard" model="ir.actions.act_window">
+    <record id="action_htplus_dashboard_open" model="ir.actions.server">
         <field name="name">Dashboard</field>
-        <field name="res_model">htplus.dashboard.kpi</field>
-        <field name="view_mode">form</field>
-        <field name="target">inline</field>
+        <field name="model_id" ref="model_htplus_dashboard_kpi"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_dashboard()</field>
+    </record>
+
+    <record id="htplus_factory.htplus_aps_menu_root" model="ir.ui.menu">
+        <field name="action" ref="action_htplus_dashboard_open"/>
     </record>
 
     <record id="view_htplus_dashboard_kpi_form" model="ir.ui.view">
@@ -20,6 +24,10 @@
                         invisible="conflict_count == 0"/>
                     <button name="action_open_material_shortages" string="Material Shortages"
                         type="object" invisible="material_shortage_count == 0"/>
+<button name="action_open_schedule" string="Open Schedule Runs"
+                            type="object"/>
+                        <button name="action_open_workorders" string="Open Work Orders"
+                            type="object"/>
                 </header>
                 <sheet>
                     <div class="oe_title">
@@ -31,98 +39,84 @@
                             <field name="date_from"/>
                             <field name="date_to"/>
                         </group>
-                        <group string="Alerts">
-                            <field name="alert_summary" nolabel="1" readonly="1"/>
-                        </group>
+                    <div class="alert alert-warning mb-3" role="status"
+                        invisible="not alert_summary or alert_summary == 'No alerts'">
+                        <strong>Needs attention</strong>
+                        <field name="alert_summary" nolabel="1" class="mb-0"/>
+                    </div>
                     </group>
-                    <div class="row">
-                        <div class="col-4 mb-3">
+                    <div class="row" name="kpi_tiles">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="plan_count"/></h3>
-                                    <div>Production Plans</div>
+                                    <h3 class="text-primary"><field name="plan_count"/></h3><div class="text-muted small">Production Plans</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="demand_qty"/></h3>
-                                    <div>Demand Qty</div>
+                                    <h3 class="text-primary"><field name="demand_qty"/></h3><div class="text-muted small">Demand Qty</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="planned_qty"/></h3>
-                                    <div>Planned Production</div>
+                                    <h3 class="text-primary"><field name="planned_qty"/></h3><div class="text-muted small">Planned Production</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="workorder_count"/></h3>
-                                    <div>Work Orders</div>
+                                    <h3 class="text-primary"><field name="workorder_count"/></h3><div class="text-muted small">Work Orders</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="scheduled_wo"/></h3>
-                                    <div>Scheduled</div>
+                                    <h3 class="text-primary"><field name="scheduled_wo"/></h3><div class="text-muted small">Scheduled</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-danger"><field name="conflict_count"/></h3>
-                                    <div>Schedule Conflicts</div>
+                                    <h3 class="text-danger" invisible="conflict_count == 0"><field name="conflict_count"/></h3><h3 class="text-muted" invisible="conflict_count != 0"><field name="conflict_count"/></h3><div class="text-muted small">Schedule Conflicts</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-warning"><field name="late_wo"/></h3>
-                                    <div>Late Work Orders</div>
+                                    <h3 class="text-danger" invisible="late_wo == 0"><field name="late_wo"/></h3><h3 class="text-muted" invisible="late_wo != 0"><field name="late_wo"/></h3><div class="text-muted small">Late Work Orders</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-danger"><field name="material_shortage_count"/></h3>
-                                    <div>Material Shortages</div>
+                                    <h3 class="text-danger" invisible="material_shortage_count == 0"><field name="material_shortage_count"/></h3><h3 class="text-muted" invisible="material_shortage_count != 0"><field name="material_shortage_count"/></h3><div class="text-muted small">Material Shortages</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-danger"><field name="machine_down"/></h3>
-                                    <div>Machines Down</div>
+                                    <h3 class="text-danger" invisible="machine_down == 0"><field name="machine_down"/></h3><h3 class="text-muted" invisible="machine_down != 0"><field name="machine_down"/></h3><div class="text-muted small">Machines Down</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-4 mb-3">
+                        <div class="col-6 col-md-4 col-xl-2 mb-2">
                             <div class="card">
                                 <div class="card-body text-center">
-                                    <h3 class="text-primary"><field name="locked_wo"/></h3>
-                                    <div>Locked Work Orders</div>
+                                    <h3 class="text-primary"><field name="locked_wo"/></h3><div class="text-muted small">Locked Work Orders</div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <group>
-                        <button name="action_open_schedule" string="Open Schedule Runs"
-                            type="object"/>
-                        <button name="action_open_workorders" string="Open Work Orders"
-                            type="object"/>
-                    </group>
                 </sheet>
             </form>
         </field>
@@ -130,6 +124,6 @@
 
     <menuitem id="menu_htplus_dashboard"
         parent="htplus_factory.htplus_aps_menu_root"
-        action="action_htplus_dashboard"
-        sequence="15"/>
+        action="action_htplus_dashboard_open"
+        sequence="5"/>
 </odoo>

@@ -14,7 +14,7 @@ class HtplusShiftActual(models.Model):
     }
     _description = 'Shift Actual'
     _order = 'date desc, shift_id'
-    _rec_name = 'display_name'
+    _rec_name = 'name'
 
     name = fields.Char(required=True, default=lambda self: _('New'))
     shift_id = fields.Many2one('htplus.production.shift', string='Shift')
@@ -66,7 +66,7 @@ class HtplusShiftActual(models.Model):
     def create(self, vals_list):
         """Number new actuals and inherit shift attributes."""
         for vals in vals_list:
-            if vals.get('name', _('New')) == _('New'):
+            if not vals.get('name') or vals.get('name') == _('New'):
                 vals['name'] = self.env['ir.sequence'].next_by_code('htplus.shift.actual') or _('New')
             if vals.get('shift_id'):
                 shift = self.env['htplus.production.shift'].browse(vals['shift_id'])

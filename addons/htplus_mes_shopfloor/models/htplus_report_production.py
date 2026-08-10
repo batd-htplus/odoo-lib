@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from odoo import fields, models
 
 
@@ -18,7 +20,7 @@ class HtplusReportProductionDaily(models.TransientModel):
         lines = []
         actuals = self.env['htplus.workorder.actual'].search([
             ('date_start', '>=', fields.Datetime.to_datetime(self.date_from)),
-            ('date_start', '<=', fields.Datetime.to_datetime(self.date_to) + fields.timedelta(days=1)),
+            ('date_start', '<=', fields.Datetime.to_datetime(self.date_to) + timedelta(days=1)),
         ])
         grouped = {}
         for actual in actuals:
@@ -35,7 +37,7 @@ class HtplusReportProductionDaily(models.TransientModel):
             bucket['qty_ng'] += actual.qty_ng
         downtimes = self.env['htplus.downtime'].search([
             ('date_start', '>=', fields.Datetime.to_datetime(self.date_from)),
-            ('date_start', '<=', fields.Datetime.to_datetime(self.date_to) + fields.timedelta(days=1)),
+            ('date_start', '<=', fields.Datetime.to_datetime(self.date_to) + timedelta(days=1)),
         ])
         for downtime in downtimes:
             key = (downtime.workorder_id.id, downtime.workorder_id.workcenter_id.id, downtime.workorder_id.machine_id.id)
