@@ -103,3 +103,21 @@ class HtplusWorkforceAssignment(models.Model):
         if self.workorder_id and not self.skill_ok:
             raise ValidationError(
                 _('Employee %s has no skill for this work order.') % self.employee_id.name)
+
+
+class HrEmployee(models.Model):
+    """Factory scoping for an employee.
+
+    One home factory per employee. Leaves, skill checks and anything else that
+    keys off "where does this person work" reference this field, so record
+    rules can gate access on a single indexed column.
+    """
+
+    _inherit = 'hr.employee'
+
+    htplus_factory_id = fields.Many2one(
+        'htplus.factory',
+        string='Home Factory',
+        index=True,
+        help='Factory this employee belongs to. Drives time-off access.',
+    )

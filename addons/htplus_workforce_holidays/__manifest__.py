@@ -13,7 +13,10 @@ line leader sees who is unavailable before assigning a shift.
     "license": "LGPL-3",
     "category": "HTPlus",
     "depends": ["htplus_workforce", "hr_holidays"],
-    "data": ["views/htplus_leave_views.xml"],
+    "data": [
+        "security/htplus_factory_rules.xml",
+        "views/htplus_leave_views.xml",
+    ],
     "auto_install": True,
     "application": False,
     "installable": True,
