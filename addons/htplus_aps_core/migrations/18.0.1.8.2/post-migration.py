@@ -8,6 +8,14 @@ MODELS = (
     ('htplus.capacity.rule', 'htplus_capacity_rule'),
 )
 
+# Many2many relation tables between the dropped models and mrp.workcenter.
+# They carry a foreign key back to the rule tables, so they must go first.
+REL_TABLES = {
+    'htplus_planning_rule': ('htplus_planning_rule_mrp_workcenter_rel',),
+    'htplus_priority_rule': (),
+    'htplus_capacity_rule': (),
+}
+
 
 def migrate(cr, version):
     """Drop the three scheduling-rule models nothing ever consumed.
@@ -25,6 +33,11 @@ def migrate(cr, version):
     configured something a human should look at before it disappears.
     """
     for model, table in MODELS:
+        for rel_table in REL_TABLES[table]:
+            cr.execute("SELECT to_regclass(%s)", ('public.' + rel_table,))
+            if cr.fetchone()[0] is not None:
+                cr.execute('DROP TABLE "%s"' % rel_table)
+                _logger.info('%s dropped (Many2many relation of %s).', rel_table, model)
         cr.execute("SELECT to_regclass(%s)", ('public.' + table,))
         if cr.fetchone()[0] is None:
             continue
