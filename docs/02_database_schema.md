@@ -81,10 +81,6 @@ htplus.simulation.scenario  name | state(draft/computed/applied/cancelled) | bas
                             | include_holiday | line_ids O2M
 htplus.simulation.line      scenario_id | workorder_id | original_start/end | simulated_start/end | delay_hours
 
-htplus.planning.rule        name | code | workcenter_ids M2M | capacity_limit_pct | buffer_before/after
-                            | batch_size | max_concurrent | objective(min_makespan/min_tardiness/min_cost)
-htplus.priority.rule        name | code | sequence | priority_field | weight
-htplus.capacity.rule        name | workcenter_id | max_units_per_day | max_hours_per_day
 htplus.planning.parameter   name | key(unique) | value | description
                             ⚠️ deprecated — trùng ir.config_parameter, sẽ bỏ (05 §3 nợ #1, P2 #19)
 

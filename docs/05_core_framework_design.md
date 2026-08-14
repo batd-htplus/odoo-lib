@@ -121,10 +121,17 @@ phần Odoo không có. Bảng §4 là câu trả lời sẵn cho "Odoo có cái
 |---|---|
 | Phân cấp, số line, workcenter | master data |
 | Mẫu ca, giờ nghỉ, ngày nghỉ | `htplus.shift.template` → `resource.calendar` |
-| Quy tắc công suất, ưu tiên | `htplus.planning.rule` / `capacity.rule` / `priority.rule` |
+| Quy tắc công suất, ưu tiên | *chưa có* — xem ghi chú bên dưới |
 | Ngưỡng KPI, mục tiêu OEE | `ir.config_parameter` + `mrp.workcenter.oee_target` |
 | Bước duyệt | `_htplus_transitions` (khai báo) |
 | Thuật toán lập lịch | hook + `selection_add` |
+
+Hàng "quy tắc công suất, ưu tiên" hiện **chưa có chỗ đứng**. Ba model
+`htplus.planning.rule` / `priority.rule` / `capacity.rule` từng chiếm ô đó nhưng
+không bộ phận nào của solver đọc chúng, nên đã bị gỡ ở 18.0.1.8.2 thay vì để
+người dùng cấu hình một thứ không có tác dụng. Khi làm capacity constraint thật,
+schema sẽ do solver quyết định — nhiều khả năng khác với bản đã gỡ. Lịch sử git
+giữ lại bản cũ nếu cần tham chiếu.
 
 Chỉ tạo module `htplus_<customer>_*` khi nghiệp vụ **không thể** biểu diễn bằng cấu hình.
 
@@ -479,7 +486,8 @@ Tài khoản demo sau seed: `manager|planner|op1-3@htplus.demo`, mật khẩu `h
 **Lưu ý cho người mới:**
 
 - User mới **không thấy gì** cho tới khi được cấp nhà máy (Users → HTPlus Factories) hoặc
-  nhóm *All Factories*. Đây là chủ ý, không phải lỗi.
+  nhóm *All Factories*. Chưa cấp factory thì menu **HTPlus APS cũng ẩn luôn**, không chỉ
+  chặn dữ liệu (xem `htplus_factory/models/ir_ui_menu.py`). Đây là chủ ý, không phải lỗi.
 - Kế hoạch phải có **Factory** trước khi Confirm.
 - Bridge `auto_install` tự bật khi cả hai phía cùng cài — không cài tay.
 
