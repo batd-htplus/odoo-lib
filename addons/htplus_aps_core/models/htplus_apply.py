@@ -76,6 +76,8 @@ class HtplusApplyBatch(models.Model):
     """
 
     _name = 'htplus.apply.batch'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'schedule_run_id.factory_id'
     _description = 'Schedule Apply Batch'
     _order = 'schedule_run_id, sequence'
 
@@ -105,6 +107,11 @@ class HtplusApplyBatch(models.Model):
         """Keep the line count queryable without loading the lines."""
         for batch in self:
             batch.line_count = len(batch.line_ids)
+
+    @api.depends('schedule_run_id', 'schedule_run_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a batch by the schedule run it belongs to."""
+        return super()._compute_htplus_factory_id()
 
     @property
     def htplus_idempotency_key(self):

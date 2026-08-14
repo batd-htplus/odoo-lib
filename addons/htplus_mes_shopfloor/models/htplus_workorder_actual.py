@@ -17,10 +17,10 @@ class HtplusWorkorderActual(models.Model):
         index=True,
     )
 
-    @api.depends('workorder_id', 'workorder_id.display_name', 'employee_id', 'employee_id.name', 'date_start')
+    @api.depends('workorder_id', 'workorder_id.name', 'employee_id', 'employee_id.name', 'date_start')
     def _compute_name(self):
         for rec in self:
-            parts = [rec.workorder_id.display_name or _('No Work Order')]
+            parts = [rec.workorder_id.name or _('No Work Order')]
             if rec.employee_id:
                 parts.append(rec.employee_id.name)
             if rec.date_start:
