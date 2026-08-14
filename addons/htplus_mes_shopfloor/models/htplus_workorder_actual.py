@@ -7,7 +7,25 @@ class HtplusWorkorderActual(models.Model):
     _inherit = ['htplus.factory.scope.mixin']
     _htplus_factory_path = 'workorder_id.factory_id'
     _description = 'Work Order Actual'
+    _rec_name = 'name'
     _order = 'date_start desc'
+
+    name = fields.Char(
+        compute='_compute_name',
+        store=True,
+        string='Actual',
+        index=True,
+    )
+
+    @api.depends('workorder_id', 'workorder_id.display_name', 'employee_id', 'employee_id.name', 'date_start')
+    def _compute_name(self):
+        for rec in self:
+            parts = [rec.workorder_id.display_name or _('No Work Order')]
+            if rec.employee_id:
+                parts.append(rec.employee_id.name)
+            if rec.date_start:
+                parts.append(fields.Datetime.to_string(rec.date_start))
+            rec.name = ' · '.join(parts)
 
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
     date_start = fields.Datetime(required=True, string='Start', index=True)
@@ -18,10 +36,11 @@ class HtplusWorkorderActual(models.Model):
     qty_good = fields.Float(string='Qty Good')
     qty_ng = fields.Float(string='Qty NG')
     state = fields.Selection([
+        ('draft', 'Draft'),
         ('running', 'Running'),
         ('paused', 'Paused'),
         ('finished', 'Finished'),
-    ], default='running', string='Status', index=True)
+    ], default='draft', string='Status', index=True)
     productivity_id = fields.Many2one(
         'mrp.workcenter.productivity',
         string='Odoo Time Log',
@@ -104,7 +123,7 @@ class HtplusWorkorderActual(models.Model):
         return res
 
     def action_start(self):
-        """Resume or start shop-floor execution from a paused state or after assignment.
+        """Start shop-floor execution for a draft actual, or resume a paused one.
 
         Returns:
             True once the actual is running.

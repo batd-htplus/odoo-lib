@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="view_htplus_my_workorder_tree" model="ir.ui.view">
+        <field name="name">htplus.my.workorder.tree</field>
+        <field name="model">mrp.workorder</field>
+        <field name="arch" type="xml">
+            <list string="My Work Orders" multi_edit="0">
+                <field name="display_name"/>
+                <field name="workcenter_id"/>
+                <field name="priority"/>
+                <field name="date_start"/>
+                <field name="date_finished"/>
+                <field name="product_id"/>
+                <field name="qty_produced"/>
+                <field name="qty_producing"/>
+                <field name="state"/>
+            </list>
+        </field>
+    </record>
+    <record id="action_htplus_my_workorders" model="ir.actions.act_window">
+        <field name="name">My Work Orders</field>
+        <field name="res_model">mrp.workorder</field>
+        <field name="view_mode">list,form</field>
+        <field name="context">{"search_default_ready": 1}</field>
+        <field name="view_ids" eval="[(5, 0, 0),
+            (0, 0, {'view_mode': 'list', 'view_id': ref('view_htplus_my_workorder_tree')})]"/>
+    </record>
+
     <record id="action_htplus_workorder_actual" model="ir.actions.act_window">
         <field name="name">Work Order Execution</field>
         <field name="res_model">htplus.workorder.actual</field>
@@ -58,8 +84,10 @@
         <field name="arch" type="xml">
             <form string="Work Order Execution">
                 <header>
-                    <button name="action_start" string="Start" type="object" invisible="state != 'paused'"
+                    <button name="action_start" string="Start" type="object" invisible="state != 'draft'"
                         class="btn-primary"
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
+                    <button name="action_start" string="Resume" type="object" invisible="state != 'paused'"
                         groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_pause" string="Pause" type="object" invisible="state != 'running'"
                         groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
@@ -349,6 +377,10 @@
         </field>
     </record>
 
+    <menuitem id="menu_htplus_my_workorders"
+        parent="htplus_mes_menu_shopfloor"
+        action="action_htplus_my_workorders"
+        sequence="1"/>
     <menuitem id="menu_htplus_workorder_actual"
         parent="htplus_mes_menu_shopfloor"
         action="action_htplus_workorder_actual"

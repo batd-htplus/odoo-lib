@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_mrp_workorder_operator,mrp.workorder,mrp.model_mrp_workorder,htplus_factory.group_mes_operator,1,0,0,0
 access_htplus_workorder_actual_operator,htplus.workorder.actual,model_htplus_workorder_actual,htplus_factory.group_mes_operator,1,1,1,0
 access_htplus_workorder_actual_user,htplus.workorder.actual,model_htplus_workorder_actual,htplus_factory.group_aps_user,1,0,0,0
 access_htplus_workorder_actual_manager,htplus.workorder.actual,model_htplus_workorder_actual,htplus_factory.group_aps_manager,1,1,1,1
