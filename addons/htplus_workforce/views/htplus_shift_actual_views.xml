@@ -63,7 +63,7 @@
                         invisible="state != 'draft'" class="btn-primary"
                         groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_done" string="Complete" type="object"
-                        invisible="state not in ['draft', 'in_progress']" class="btn-primary"
+                        invisible="state != 'in_progress'" class="btn-primary"
                         groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
                     <button name="action_cancel" string="Cancel" type="object"
                         invisible="state in ['done', 'cancelled']"

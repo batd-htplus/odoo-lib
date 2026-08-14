@@ -99,7 +99,7 @@
         <field name="name">htplus.downtime.tree</field>
         <field name="model">htplus.downtime</field>
         <field name="arch" type="xml">
-            <list string="Downtime">
+            <list string="Downtime" decoration-warning="not date_end">
                 <field name="workorder_id"/>
                 <field name="machine_id"/>
                 <field name="reason_id"/>
@@ -116,6 +116,11 @@
         <field name="model">htplus.downtime</field>
         <field name="arch" type="xml">
             <form string="Downtime">
+                <header>
+                    <button name="action_end" string="End" type="object"
+                        invisible="date_end" class="btn-primary"
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
+                </header>
                 <sheet>
                     <group>
                         <group>
@@ -244,7 +249,7 @@
         <field name="name">htplus.machine.stop.tree</field>
         <field name="model">htplus.machine.stop</field>
         <field name="arch" type="xml">
-            <list string="Machine Stops">
+            <list string="Machine Stops" decoration-warning="not date_end">
                 <field name="machine_id"/>
                 <field name="date_start"/>
                 <field name="date_end"/>
@@ -259,6 +264,11 @@
         <field name="model">htplus.machine.stop</field>
         <field name="arch" type="xml">
             <form string="Machine Stop">
+                <header>
+                    <button name="action_end" string="End" type="object"
+                        invisible="date_end" class="btn-primary"
+                        groups="htplus_factory.group_mes_operator,htplus_factory.group_aps_planner"/>
+                </header>
                 <sheet>
                     <group>
                         <group>

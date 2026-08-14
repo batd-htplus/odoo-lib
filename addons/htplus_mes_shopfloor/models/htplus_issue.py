@@ -1,4 +1,5 @@
-from odoo import api, fields, models
+from odoo import _, api, fields, models
+from odoo.exceptions import UserError
 
 
 class HtplusMachineStop(models.Model):
@@ -6,6 +7,7 @@ class HtplusMachineStop(models.Model):
     _inherit = ['htplus.factory.scope.mixin']
     _htplus_factory_path = 'machine_id.factory_id'
     _description = 'Machine Stop'
+    _order = 'date_start desc, id desc'
 
     machine_id = fields.Many2one('htplus.machine', required=True, string='Machine', index=True)
     date_start = fields.Datetime(required=True, string='Start', index=True)
@@ -22,6 +24,25 @@ class HtplusMachineStop(models.Model):
     def _compute_htplus_factory_id(self):
         """Scope a machine stop by the machine that stopped."""
         return super()._compute_htplus_factory_id()
+
+    def action_end(self):
+        """Close an open machine stop and fill in how long it lasted.
+
+        duration_minutes stays a plain editable field here rather than a
+        computed one, because records already in the database carry values
+        typed in by hand and a stored compute would silently overwrite them.
+        The button only fills the duration it just measured itself.
+        """
+        open_records = self.filtered(lambda rec: not rec.date_end)
+        if not open_records:
+            raise UserError(_('This machine stop has already been closed.'))
+        now = fields.Datetime.now()
+        for rec in open_records:
+            rec.write({
+                'date_end': now,
+                'duration_minutes': (now - rec.date_start).total_seconds() / 60.0,
+            })
+        return True
 
 
 
