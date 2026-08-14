@@ -206,11 +206,19 @@ for name, line_code, is_leader, login, skills in employees_spec:
         if not existing:
             group_id = G['manager'] if login.startswith('manager') \
                 else G['planner'] if login.startswith('planner') else G['operator']
+            # mrp.workorder / mrp.production have stock ACLs that only the
+            # Manufacturing groups satisfy; htplus only adds record rules on top.
+            mrp_group_id = env.ref('mrp.group_mrp_manager').id \
+                if login.startswith('manager') else env.ref('mrp.group_mrp_user').id
             User.create({
                 'name': name, 'login': login, 'password': PASSWORD,
                 'partner_id': employee.work_contact_id.id,
                 'company_id': company.id, 'company_ids': [company.id],
-                'groups_id': [(6, 0, [group_id])],
+                'groups_id': [(6, 0, [group_id, mrp_group_id])],
+                # Record rules scope every model to user.htplus_factory_ids:
+                # without a factory (or the All Factories group) the user sees
+                # nothing, so hand the demo factory to every seeded user.
+                'htplus_factory_ids': [(4, factory.id)],
             })
     for skill_name, level_key in skills:
         skill = skill_by(skill_name)
