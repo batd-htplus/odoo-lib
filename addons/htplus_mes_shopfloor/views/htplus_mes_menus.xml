@@ -3,6 +3,6 @@
     <menuitem id="htplus_mes_menu_shopfloor"
         parent="htplus_factory.htplus_aps_menu_root"
         name="Shop Floor"
-        sequence="50">
+        sequence="30">
     </menuitem>
 </odoo>

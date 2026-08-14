@@ -3,6 +3,7 @@
     <menuitem id="htplus_planning_menu"
         parent="htplus_factory.htplus_aps_menu_root"
         name="Planning Assistant"
-        sequence="60">
+        sequence="70"
+        groups="htplus_factory.group_aps_manager">
     </menuitem>
 </odoo>

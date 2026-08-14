@@ -29,7 +29,7 @@
     </record>
 
     <record id="action_htplus_master_import" model="ir.actions.act_window">
-        <field name="name">Import Master Data</field>
+        <field name="name">Import Factory Hierarchy</field>
         <field name="res_model">htplus.master.import.wizard</field>
         <field name="view_mode">form</field>
         <field name="target">new</field>

@@ -86,5 +86,6 @@
     <menuitem id="menu_htplus_system_health"
         parent="htplus_factory.htplus_aps_menu_root"
         action="action_htplus_system_health"
-        sequence="16"/>
+        sequence="90"
+        groups="base.group_system"/>
 </odoo>

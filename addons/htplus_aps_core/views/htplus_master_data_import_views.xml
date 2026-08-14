@@ -32,7 +32,8 @@
     </record>
 
     <menuitem id="menu_htplus_master_data_import"
-        parent="htplus_aps_menu_planning"
+        parent="htplus_factory.htplus_aps_menu_master_data"
         action="action_htplus_master_data_import"
-        sequence="16"/>
+        sequence="190"
+        groups="htplus_factory.group_aps_manager"/>
 </odoo>

@@ -90,5 +90,6 @@
         parent="htplus_aps_core.htplus_aps_menu_scheduling"
         name="Work Order Timeline (Spike)"
         action="htplus_workorder_timeline_spike_action"
-        sequence="60" />
+        sequence="60"
+        groups="base.group_no_one" />
 </odoo>

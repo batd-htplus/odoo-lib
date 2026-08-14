@@ -137,10 +137,10 @@
         </field>
     </record>
 
-    <menuitem id="menu_htplus_planning_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_planning_rule" sequence="80" />
+    <menuitem id="menu_htplus_planning_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_planning_rule" groups="base.group_no_one" sequence="80" />
 
-    <menuitem id="menu_htplus_priority_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_priority_rule" sequence="90" />
+    <menuitem id="menu_htplus_priority_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_priority_rule" groups="base.group_no_one" sequence="90" />
 
-    <menuitem id="menu_htplus_capacity_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_capacity_rule" sequence="100" />
+    <menuitem id="menu_htplus_capacity_rule" parent="htplus_factory.htplus_aps_menu_master_data" action="action_htplus_capacity_rule" groups="base.group_no_one" sequence="100" />
 
 </odoo>

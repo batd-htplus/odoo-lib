@@ -3,17 +3,20 @@
     <menuitem id="htplus_aps_menu_planning"
         parent="htplus_factory.htplus_aps_menu_root"
         name="Planning"
-        sequence="20">
+        sequence="10"
+        groups="htplus_factory.group_aps_user">
     </menuitem>
     <menuitem id="htplus_aps_menu_scheduling"
         parent="htplus_factory.htplus_aps_menu_root"
         name="Scheduling"
-        sequence="30">
+        sequence="20"
+        groups="htplus_factory.group_aps_user">
     </menuitem>
     <menuitem id="htplus_aps_menu_workforce"
         parent="htplus_factory.htplus_aps_menu_root"
         name="Workforce"
-        sequence="40">
+        sequence="40"
+        groups="htplus_factory.group_aps_user">
     </menuitem>
     <record id="htplus_aps_action_gantt" model="ir.actions.client">
         <field name="name">HTPlus Gantt</field>

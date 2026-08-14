@@ -9,6 +9,7 @@
     <menuitem id="htplus_aps_menu_master_data"
         parent="htplus_aps_menu_root"
         name="Master Data"
-        sequence="10">
+        sequence="60"
+        groups="htplus_factory.group_aps_manager">
     </menuitem>
 </odoo>

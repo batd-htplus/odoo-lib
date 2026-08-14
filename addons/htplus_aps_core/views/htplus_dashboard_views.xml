@@ -8,7 +8,7 @@
     </record>
 
     <record id="htplus_factory.htplus_aps_menu_root" model="ir.ui.menu">
-        <field name="action" ref="action_htplus_dashboard_open"/>
+        <field name="action" eval="False"/>
     </record>
 
     <record id="view_htplus_dashboard_kpi_form" model="ir.ui.view">
@@ -125,5 +125,6 @@
     <menuitem id="menu_htplus_dashboard"
         parent="htplus_factory.htplus_aps_menu_root"
         action="action_htplus_dashboard_open"
-        sequence="5"/>
+        sequence="5"
+        groups="htplus_factory.group_aps_user"/>
 </odoo>

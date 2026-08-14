@@ -84,5 +84,6 @@
     <menuitem id="menu_htplus_simulation_scenario"
         parent="htplus_aps_menu_scheduling"
         action="action_htplus_simulation_scenario"
-        sequence="30"/>
+        sequence="30"
+        groups="htplus_factory.group_aps_manager"/>
 </odoo>

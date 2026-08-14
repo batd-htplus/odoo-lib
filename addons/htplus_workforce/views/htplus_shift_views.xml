@@ -239,7 +239,8 @@
     <menuitem id="menu_htplus_shift_mgmt"
         parent="htplus_factory.htplus_aps_menu_root"
         name="Shift Management"
-        sequence="25">
+        sequence="50"
+        groups="htplus_factory.group_aps_user">
     </menuitem>
 
     <menuitem id="menu_htplus_shift_calendar"
