@@ -22,6 +22,7 @@ NG/scrap registration, issue management and shift completion reporting.
         "security/htplus_factory_rules.xml",
         "views/htplus_mes_menus.xml",
         "views/htplus_mes_views.xml",
+        "views/htplus_search_views.xml",
         "reports/htplus_production_daily_report.xml",
         "reports/htplus_production_daily_report_templates.xml",
     ],

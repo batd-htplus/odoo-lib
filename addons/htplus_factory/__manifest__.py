@@ -33,6 +33,7 @@ in through auto-installed bridge modules instead.
         "views/htplus_factory_views.xml",
         "views/htplus_machine_views.xml",
         "views/htplus_factory_holiday_views.xml",
+        "views/htplus_search_views.xml",
         "views/htplus_users_views.xml",
         "wizard/htplus_master_import_views.xml",
     ],

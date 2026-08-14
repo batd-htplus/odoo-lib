@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Search views for planning engine models that only had list views. -->
+
+    <record id="view_htplus_planning_chat_search" model="ir.ui.view">
+        <field name="name">htplus.planning.chat.search</field>
+        <field name="model">htplus.planning.chat</field>
+        <field name="arch" type="xml">
+            <search string="Planning Chat Sessions">
+                <field name="name"/>
+                <field name="config_id"/>
+                <field name="user_id"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_user" string="User" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_config" string="Configuration" context="{'group_by': 'config_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_planning_config_search" model="ir.ui.view">
+        <field name="name">htplus.planning.config.search</field>
+        <field name="model">htplus.planning.config</field>
+        <field name="arch" type="xml">
+            <search string="Engine Configurations">
+                <field name="name"/>
+                <field name="model"/>
+                <filter name="open_circuit" string="Circuit Open" domain="[('circuit_state', '=', 'open')]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_circuit" string="Circuit" context="{'group_by': 'circuit_state'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_planning_forecast_search" model="ir.ui.view">
+        <field name="name">htplus.planning.forecast.search</field>
+        <field name="model">htplus.planning.forecast</field>
+        <field name="arch" type="xml">
+            <search string="Forecasts">
+                <field name="name"/>
+                <field name="config_id"/>
+                <field name="model"/>
+                <field name="date_start"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="computed" string="Computed" domain="[('state', '=', 'computed')]"/>
+                <filter name="applied" string="Applied" domain="[('state', '=', 'applied')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_config" string="Configuration" context="{'group_by': 'config_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_planning_recommendation_search" model="ir.ui.view">
+        <field name="name">htplus.planning.recommendation.search</field>
+        <field name="model">htplus.planning.recommendation</field>
+        <field name="arch" type="xml">
+            <search string="Recommendations">
+                <field name="title"/>
+                <field name="source_workorder_id"/>
+                <field name="source_plan_id"/>
+                <filter name="new" string="New" domain="[('state', '=', 'new')]"/>
+                <filter name="applied" string="Applied" domain="[('state', '=', 'applied')]"/>
+                <filter name="dismissed" string="Dismissed" domain="[('state', '=', 'dismissed')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_planning_request_log_search" model="ir.ui.view">
+        <field name="name">htplus.planning.request.log.search</field>
+        <field name="model">htplus.planning.request.log</field>
+        <field name="arch" type="xml">
+            <search string="Engine Request Logs">
+                <field name="config_id"/>
+                <field name="endpoint"/>
+                <field name="user_id"/>
+                <filter name="success" string="Success" domain="[('status', '=', 'success')]"/>
+                <filter name="failed" string="Failed" domain="[('status', '=', 'failed')]"/>
+                <filter name="skipped" string="Skipped" domain="[('status', '=', 'skipped')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_method" string="Method" context="{'group_by': 'method'}"/>
+                    <filter name="group_config" string="Configuration" context="{'group_by': 'config_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

@@ -23,6 +23,7 @@ assignment and the planning assistant.
         "security/ir.model.access.csv",
         "views/htplus_planning_menus.xml",
         "views/htplus_planning_views.xml",
+        "views/htplus_search_views.xml",
         "data/ir_sequence_data.xml",
         "data/ir_cron_data.xml",
         "data/htplus_planning_config_data.xml",

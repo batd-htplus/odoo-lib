@@ -31,6 +31,7 @@ worked. Neither of them owns the assignment.
         "views/htplus_shift_views.xml",
         "views/htplus_shift_actual_views.xml",
         "views/htplus_shift_member_views.xml",
+        "views/htplus_search_views.xml",
         "views/htplus_shift_report.xml",
         "views/htplus_shift_report_templates.xml",
     ],

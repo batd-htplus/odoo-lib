@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Search views for master data models that only had list views. -->
+
+    <record id="view_htplus_factory_search" model="ir.ui.view">
+        <field name="name">htplus.factory.search</field>
+        <field name="model">htplus.factory</field>
+        <field name="arch" type="xml">
+            <search string="Factories">
+                <field name="name"/>
+                <field name="code"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_company" string="Company" context="{'group_by': 'company_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_plant_search" model="ir.ui.view">
+        <field name="name">htplus.plant.search</field>
+        <field name="model">htplus.plant</field>
+        <field name="arch" type="xml">
+            <search string="Plants">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="factory_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_line_search" model="ir.ui.view">
+        <field name="name">htplus.line.search</field>
+        <field name="model">htplus.line</field>
+        <field name="arch" type="xml">
+            <search string="Lines">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="plant_id"/>
+                <field name="factory_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                    <filter name="group_plant" string="Plant" context="{'group_by': 'plant_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_machine_search" model="ir.ui.view">
+        <field name="name">htplus.machine.search</field>
+        <field name="model">htplus.machine</field>
+        <field name="arch" type="xml">
+            <search string="Machines">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="line_id"/>
+                <field name="plant_id"/>
+                <field name="workcenter_id"/>
+                <filter name="operational" string="Operational" domain="[('status', '=', 'operational')]"/>
+                <filter name="maintenance" string="Maintenance" domain="[('status', '=', 'maintenance')]"/>
+                <filter name="down" string="Down" domain="[('status', '=', 'down')]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_line" string="Line" context="{'group_by': 'line_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_factory_holiday_search" model="ir.ui.view">
+        <field name="name">htplus.factory.holiday.search</field>
+        <field name="model">htplus.factory.holiday</field>
+        <field name="arch" type="xml">
+            <search string="Factory Holidays">
+                <field name="name"/>
+                <field name="factory_id"/>
+                <field name="date_from"/>
+                <filter name="upcoming" string="Upcoming" domain="[('date_to', '>=', context_today)]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

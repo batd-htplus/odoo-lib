@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Search views for the shop floor models that only had list views. -->
+
+    <record id="view_htplus_downtime_search" model="ir.ui.view">
+        <field name="name">htplus.downtime.search</field>
+        <field name="model">htplus.downtime</field>
+        <field name="arch" type="xml">
+            <search string="Downtime">
+                <field name="machine_id"/>
+                <field name="reason_id"/>
+                <field name="factory_id"/>
+                <field name="date_start"/>
+                <filter name="open" string="Open" domain="[('date_end', '=', False)]"/>
+                <filter name="closed" string="Closed" domain="[('date_end', '!=', False)]"/>
+                <filter name="planned" string="Planned" domain="[('type', '=', 'planned')]"/>
+                <filter name="unplanned" string="Unplanned" domain="[('type', '=', 'unplanned')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                    <filter name="group_machine" string="Machine" context="{'group_by': 'machine_id'}"/>
+                    <filter name="group_reason" string="Reason" context="{'group_by': 'reason_id'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_machine_stop_search" model="ir.ui.view">
+        <field name="name">htplus.machine.stop.search</field>
+        <field name="model">htplus.machine.stop</field>
+        <field name="arch" type="xml">
+            <search string="Machine Stops">
+                <field name="machine_id"/>
+                <field name="reason_id"/>
+                <field name="factory_id"/>
+                <field name="date_start"/>
+                <filter name="open" string="Open" domain="[('date_end', '=', False)]"/>
+                <filter name="planned" string="Planned" domain="[('type', '=', 'planned')]"/>
+                <filter name="unplanned" string="Unplanned" domain="[('type', '=', 'unplanned')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                    <filter name="group_machine" string="Machine" context="{'group_by': 'machine_id'}"/>
+                    <filter name="group_reason" string="Reason" context="{'group_by': 'reason_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_issue_search" model="ir.ui.view">
+        <field name="name">htplus.issue.search</field>
+        <field name="model">htplus.issue</field>
+        <field name="arch" type="xml">
+            <search string="Issues">
+                <field name="name"/>
+                <field name="workorder_id"/>
+                <field name="factory_id"/>
+                <field name="date"/>
+                <filter name="open" string="Open" domain="[('state', '=', 'open')]"/>
+                <filter name="in_progress" string="In Progress" domain="[('state', '=', 'in_progress')]"/>
+                <filter name="resolved" string="Resolved" domain="[('state', '=', 'resolved')]"/>
+                <filter name="closed" string="Closed" domain="[('state', '=', 'closed')]"/>
+                <filter name="critical" string="Critical" domain="[('severity', '=', 'critical')]"/>
+                <filter name="high" string="High" domain="[('severity', '=', 'high')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_type" string="Type" context="{'group_by': 'type'}"/>
+                    <filter name="group_severity" string="Severity" context="{'group_by': 'severity'}"/>
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_workorder_actual_search" model="ir.ui.view">
+        <field name="name">htplus.workorder.actual.search</field>
+        <field name="model">htplus.workorder.actual</field>
+        <field name="arch" type="xml">
+            <search string="Work Order Actuals">
+                <field name="workorder_id"/>
+                <field name="machine_id"/>
+                <field name="factory_id"/>
+                <field name="date_start"/>
+                <filter name="running" string="Running" domain="[('state', '=', 'running')]"/>
+                <filter name="paused" string="Paused" domain="[('state', '=', 'paused')]"/>
+                <filter name="finished" string="Finished" domain="[('state', '=', 'finished')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_workorder" string="Work Order" context="{'group_by': 'workorder_id'}"/>
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_workorder_ng_search" model="ir.ui.view">
+        <field name="name">htplus.workorder.ng.search</field>
+        <field name="model">htplus.workorder.ng</field>
+        <field name="arch" type="xml">
+            <search string="Non-Conformities">
+                <field name="workorder_id"/>
+                <field name="defect_id"/>
+                <field name="date"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_defect" string="Defect" context="{'group_by': 'defect_id'}"/>
+                    <filter name="group_workorder" string="Work Order" context="{'group_by': 'workorder_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_defect_search" model="ir.ui.view">
+        <field name="name">htplus.defect.search</field>
+        <field name="model">htplus.defect</field>
+        <field name="arch" type="xml">
+            <search string="Defects">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="category"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_downtime_reason_search" model="ir.ui.view">
+        <field name="name">htplus.downtime.reason.search</field>
+        <field name="model">htplus.downtime.reason</field>
+        <field name="arch" type="xml">
+            <search string="Downtime Reasons">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="category"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_category" string="Category" context="{'group_by': 'category'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

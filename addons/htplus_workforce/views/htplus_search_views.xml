@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Search views for workforce models that only had list views. -->
+
+    <record id="view_htplus_shift_completion_search" model="ir.ui.view">
+        <field name="name">htplus.shift.completion.search</field>
+        <field name="model">htplus.shift.completion</field>
+        <field name="arch" type="xml">
+            <search string="Shift Completions">
+                <field name="shift_id"/>
+                <field name="workorder_id"/>
+                <field name="factory_id"/>
+                <field name="date"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                    <filter name="group_shift" string="Shift" context="{'group_by': 'shift_id'}"/>
+                    <filter name="group_date" string="Date" context="{'group_by': 'date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_shift_template_search" model="ir.ui.view">
+        <field name="name">htplus.shift.template.search</field>
+        <field name="model">htplus.shift.template</field>
+        <field name="arch" type="xml">
+            <search string="Shift Templates">
+                <field name="name"/>
+                <field name="code"/>
+                <field name="factory_id"/>
+                <field name="line_id"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                    <filter name="group_shift_type" string="Shift Type" context="{'group_by': 'shift_type'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_workforce_assignment_search" model="ir.ui.view">
+        <field name="name">htplus.workforce.assignment.search</field>
+        <field name="model">htplus.workforce.assignment</field>
+        <field name="arch" type="xml">
+            <search string="Workforce Assignments">
+                <field name="employee_id"/>
+                <field name="shift_id"/>
+                <field name="workorder_id"/>
+                <field name="date_start"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="confirmed" string="Confirmed" domain="[('state', '=', 'confirmed')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <filter name="conflict" string="Shift Conflict" domain="[('conflict', '=', True)]"/>
+                <filter name="skill_ng" string="Skill Not OK" domain="[('skill_ok', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_shift" string="Shift" context="{'group_by': 'shift_id'}"/>
+                    <filter name="group_workorder" string="Work Order" context="{'group_by': 'workorder_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>
