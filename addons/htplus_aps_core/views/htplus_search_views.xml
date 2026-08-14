@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Search views for APS core models that only had list views. -->
+
+    <record id="view_htplus_job_search" model="ir.ui.view">
+        <field name="name">htplus.job.search</field>
+        <field name="model">htplus.job</field>
+        <field name="arch" type="xml">
+            <search string="Background Jobs">
+                <field name="name"/>
+                <field name="model"/>
+                <field name="method"/>
+                <field name="user_id"/>
+                <filter name="pending" string="Pending" domain="[('state', '=', 'pending')]"/>
+                <filter name="running" string="Running" domain="[('state', '=', 'running')]"/>
+                <filter name="failed" string="Failed" domain="[('state', '=', 'failed')]"/>
+                <filter name="done" string="Done" domain="[('state', '=', 'done')]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_model" string="Model" context="{'group_by': 'model'}"/>
+                    <filter name="group_user" string="User" context="{'group_by': 'user_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <record id="view_htplus_simulation_scenario_search" model="ir.ui.view">
+        <field name="name">htplus.simulation.scenario.search</field>
+        <field name="model">htplus.simulation.scenario</field>
+        <field name="arch" type="xml">
+            <search string="Simulation Scenarios">
+                <field name="name"/>
+                <field name="base_schedule_run_id"/>
+                <field name="factory_id"/>
+                <field name="scenario_date"/>
+                <filter name="draft" string="Draft" domain="[('state', '=', 'draft')]"/>
+                <filter name="computed" string="Computed" domain="[('state', '=', 'computed')]"/>
+                <filter name="applied" string="Applied" domain="[('state', '=', 'applied')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('state', '=', 'cancelled')]"/>
+                <filter name="archived" string="Archived" domain="[('active', '=', False)]"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="Status" context="{'group_by': 'state'}"/>
+                    <filter name="group_factory" string="Factory" context="{'group_by': 'factory_id'}"/>
+                    <filter name="group_date" string="Scenario Date" context="{'group_by': 'scenario_date'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+</odoo>

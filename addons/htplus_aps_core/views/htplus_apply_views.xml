@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Visibility into how a confirmed schedule reached the shop floor. -->
+
+    <record id="action_htplus_apply_batch" model="ir.actions.act_window">
+        <field name="name">Apply Batches</field>
+        <field name="res_model">htplus.apply.batch</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_htplus_apply_batch_tree" model="ir.ui.view">
+        <field name="name">htplus.apply.batch.tree</field>
+        <field name="model">htplus.apply.batch</field>
+        <field name="arch" type="xml">
+            <list string="Apply Batches">
+                <field name="schedule_run_id"/>
+                <field name="version"/>
+                <field name="sequence"/>
+                <field name="line_count" string="Lines"/>
+                <field name="state"/>
+                <field name="started_at"/>
+                <field name="finished_at"/>
+                <field name="error" optional="hide"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_htplus_apply_batch_form" model="ir.ui.view">
+        <field name="name">htplus.apply.batch.form</field>
+        <field name="model">htplus.apply.batch</field>
+        <field name="arch" type="xml">
+            <form string="Apply Batch">
+                <group>
+                    <group>
+                        <field name="schedule_run_id" readonly="1"/>
+                        <field name="version" readonly="1"/>
+                        <field name="sequence" readonly="1"/>
+                        <field name="line_count" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="state" readonly="1"/>
+                        <field name="started_at" readonly="1"/>
+                        <field name="finished_at" readonly="1"/>
+                    </group>
+                </group>
+                <group string="Proposal Lines">
+                    <field name="line_ids" readonly="1">
+                        <list string="Proposal Lines">
+                            <field name="workorder_id"/>
+                            <field name="date_start"/>
+                            <field name="date_finished"/>
+                            <field name="machine_id"/>
+                            <field name="applied"/>
+                        </list>
+                    </field>
+                </group>
+                <group string="Error" invisible="not error">
+                    <field name="error" readonly="1"/>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_htplus_apply_batch_search" model="ir.ui.view">
+        <field name="name">htplus.apply.batch.search</field>
+        <field name="model">htplus.apply.batch</field>
+        <field name="arch" type="xml">
+            <search string="Apply Batches">
+                <field name="schedule_run_id"/>
+                <field name="state"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_state" string="State" context="{'group_by': 'state'}"/>
+                    <filter name="group_run" string="Schedule Run" context="{'group_by': 'schedule_run_id'}"/>
+                    <filter name="group_version" string="Version" context="{'group_by': 'version'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_apply_batch"
+        parent="htplus_aps_menu_scheduling"
+        action="action_htplus_apply_batch"
+        sequence="30"/>
+
+    <record id="action_htplus_schedule_change" model="ir.actions.act_window">
+        <field name="name">Schedule Change Log</field>
+        <field name="res_model">htplus.schedule.change</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <record id="view_htplus_schedule_change_tree" model="ir.ui.view">
+        <field name="name">htplus.schedule.change.tree</field>
+        <field name="model">htplus.schedule.change</field>
+        <field name="arch" type="xml">
+            <list string="Schedule Changes">
+                <field name="date_change"/>
+                <field name="schedule_run_id"/>
+                <field name="workorder_id"/>
+                <field name="field"/>
+                <field name="old_value"/>
+                <field name="new_value"/>
+                <field name="user_id"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_htplus_schedule_change_form" model="ir.ui.view">
+        <field name="name">htplus.schedule.change.form</field>
+        <field name="model">htplus.schedule.change</field>
+        <field name="arch" type="xml">
+            <form string="Schedule Change">
+                <group>
+                    <group>
+                        <field name="date_change" readonly="1"/>
+                        <field name="schedule_run_id" readonly="1"/>
+                        <field name="user_id" readonly="1"/>
+                    </group>
+                    <group>
+                        <field name="workorder_id" readonly="1"/>
+                        <field name="field" readonly="1"/>
+                    </group>
+                </group>
+                <group>
+                    <group string="Old Value">
+                        <field name="old_value" readonly="1"/>
+                    </group>
+                    <group string="New Value">
+                        <field name="new_value" readonly="1"/>
+                    </group>
+                </group>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_htplus_schedule_change_search" model="ir.ui.view">
+        <field name="name">htplus.schedule.change.search</field>
+        <field name="model">htplus.schedule.change</field>
+        <field name="arch" type="xml">
+            <search string="Schedule Changes">
+                <field name="workorder_id"/>
+                <field name="schedule_run_id"/>
+                <field name="field"/>
+                <group expand="0" string="Group By">
+                    <filter name="group_field" string="Field" context="{'group_by': 'field'}"/>
+                    <filter name="group_user" string="User" context="{'group_by': 'user_id'}"/>
+                    <filter name="group_workorder" string="Work Order" context="{'group_by': 'workorder_id'}"/>
+                </group>
+            </search>
+        </field>
+    </record>
+
+    <menuitem id="menu_htplus_schedule_change"
+        parent="htplus_aps_menu_scheduling"
+        action="action_htplus_schedule_change"
+        sequence="40"/>
+</odoo>

@@ -50,9 +50,17 @@
                     <button name="action_lock" string="Lock" type="object"
                         invisible="state not in ['calculated', 'confirmed']"
                         groups="htplus_factory.group_aps_manager"/>
+                    <button name="action_apply" string="Apply to Shop Floor" type="object"
+                        invisible="state not in ['confirmed', 'locked'] or apply_state in ['applying', 'applied']"
+                        class="btn-primary"
+                        groups="htplus_factory.group_aps_manager"/>
+                    <button name="action_retry_apply" string="Retry Apply" type="object"
+                        invisible="apply_state != 'failed'"
+                        groups="htplus_factory.group_aps_manager"/>
                     <button name="action_undo_change" string="Undo Last Change" type="object"
                         groups="htplus_factory.group_aps_planner"/>
                     <field name="state" widget="statusbar"/>
+                    <field name="apply_state" widget="statusbar" invisible="apply_state == 'none'"/>
                 </header>
                 <sheet>
                     <div class="oe_button_box" name="button_box">
@@ -87,6 +95,7 @@
                             <field name="user_id"/>
                         </group>
                     </group>
+                    <field name="apply_progress" string="Applied" invisible="not apply_progress"/>
                     <notebook>
                         <page string="Work Orders">
                             <field name="workorder_ids">
@@ -103,6 +112,35 @@
                                     <field name="locked"/>
                                 </list>
                             </field>
+                        </page>
+                        <page string="Proposals">
+                            <field name="line_ids">
+                                <list string="Proposals">
+                                    <field name="version"/>
+                                    <field name="workorder_id"/>
+                                    <field name="date_start"/>
+                                    <field name="date_finished"/>
+                                    <field name="machine_id"/>
+                                    <field name="line_id"/>
+                                    <field name="applied"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Apply Batches">
+                            <field name="apply_batch_ids">
+                                <list string="Apply Batches">
+                                    <field name="version"/>
+                                    <field name="sequence"/>
+                                    <field name="line_count"/>
+                                    <field name="state"/>
+                                    <field name="started_at"/>
+                                    <field name="finished_at"/>
+                                    <field name="error"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Scheduler Explanation">
+                            <field name="last_explanation" readonly="1" placeholder="Run the solver to get an explanation of why this schedule looks the way it does."/>
                         </page>
                     </notebook>
                 </sheet>
