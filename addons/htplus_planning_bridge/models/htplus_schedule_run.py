@@ -28,6 +28,10 @@ class HtplusScheduleRun(models.Model):
         self.ensure_one()
         if self.algorithm == 'manual':
             raise UserError(_('The manual algorithm cannot run in the background.'))
+        if self.state not in ('draft', 'calculated'):
+            raise UserError(_(
+                'Only draft/calculated schedule runs can run the solver. %s is "%s".'
+            ) % (self.display_name, self.state))
         if not self.workorder_ids:
             raise UserError(_('Add work orders to the schedule run before running the solver.'))
         job = self.env['htplus.job']._enqueue(
@@ -50,6 +54,10 @@ class HtplusScheduleRun(models.Model):
     def _htplus_execute_solver(self):
         """Run the engine solver synchronously and write the simulation scenario."""
         self.ensure_one()
+        if self.state not in ('draft', 'calculated'):
+            raise UserError(_(
+                'Only draft/calculated schedule runs can run the solver. %s is "%s".'
+            ) % (self.display_name, self.state))
         if not self.workorder_ids:
             raise UserError(_('Add work orders to the schedule run before running the solver.'))
 
@@ -96,7 +104,7 @@ class HtplusScheduleRun(models.Model):
                 'cost': entry.get('delay_hours') or 0.0,
             }))
         scenario.write({'line_ids': line_vals, 'state': 'computed'})
-        self.state = 'calculated'
+        self._htplus_apply_transition('calculate')
         return {
             'type': 'ir.actions.act_window',
             'name': _('Simulation Scenario'),

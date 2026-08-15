@@ -54,7 +54,7 @@ class HtplusIssue(models.Model):
     _order = 'date desc'
 
     name = fields.Char(required=True)
-    workorder_id = fields.Many2one('mrp.workorder', string='Work Order')
+    workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True)
     type = fields.Selection([
         ('material', 'Material'),
         ('machine', 'Machine'),
@@ -83,7 +83,7 @@ class HtplusIssue(models.Model):
         """Scope an issue by the work order it was raised against."""
         return super()._compute_htplus_factory_id()
 
-    employee_id = fields.Many2one('hr.employee', string='Employee')
+    employee_id = fields.Many2one('hr.employee', string='Employee', index=True)
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
 
     def action_open(self):

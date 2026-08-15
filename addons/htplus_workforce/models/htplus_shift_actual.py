@@ -17,9 +17,9 @@ class HtplusShiftActual(models.Model):
     _rec_name = 'name'
 
     name = fields.Char(required=True, default=lambda self: _('New'))
-    shift_id = fields.Many2one('htplus.production.shift', string='Shift')
-    date = fields.Date(required=True, string='Work Date')
-    factory_id = fields.Many2one('htplus.factory', string='Factory')
+    shift_id = fields.Many2one('htplus.production.shift', string='Shift', index=True)
+    date = fields.Date(required=True, string='Work Date', index=True)
+    factory_id = fields.Many2one('htplus.factory', string='Factory', index=True)
     plant_id = fields.Many2one('htplus.plant', string='Plant')
     line_id = fields.Many2one('htplus.line', string='Line')
     workcenter_id = fields.Many2one('mrp.workcenter', string='Work Center')
@@ -29,7 +29,7 @@ class HtplusShiftActual(models.Model):
         ('in_progress', 'In Progress'),
         ('done', 'Done'),
         ('cancelled', 'Cancelled'),
-    ], default='draft', string='Status')
+    ], default='draft', string='Status', index=True)
 
     line_ids = fields.One2many('htplus.shift.actual.line', 'actual_id',
                                string='Actual Lines')

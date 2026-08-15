@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Workforce / Skills Bridge",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "summary": "Match employees to work by skill when hr_skills is installed.",
     "description": """
 Cross-capability behaviour that only makes sense when both Workforce and Odoo's

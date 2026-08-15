@@ -18,9 +18,9 @@ class HtplusWorkorderNg(models.Model):
     _description = 'Work Order NG'
     _order = 'date desc'
 
-    workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order')
-    defect_id = fields.Many2one('htplus.defect', required=True, string='Defect')
-    date = fields.Datetime(default=fields.Datetime.now, required=True)
+    workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
+    defect_id = fields.Many2one('htplus.defect', required=True, string='Defect', index=True)
+    date = fields.Datetime(default=fields.Datetime.now, required=True, index=True)
     qty = fields.Float(required=True)
     root_cause = fields.Text(string='Root Cause')
     countermeasure = fields.Text()

@@ -131,13 +131,12 @@ class HtplusApplyBatch(models.Model):
             return True
         self.write({'state': 'pending', 'started_at': fields.Datetime.now(), 'error': False})
         try:
-            for line in self.line_ids:
+            lines = self.line_ids.filtered(lambda line: line.workorder_id.state != 'cancel')
+            for line in lines:
                 workorder = line.workorder_id
-                if workorder.state == 'cancel':
-                    continue
                 workorder.with_context(htplus_force_locked_write=True).write(
                     line._htplus_workorder_vals())
-                line.applied = True
+            lines.write({'applied': True})
             self.write({'state': 'done', 'finished_at': fields.Datetime.now()})
         except Exception as error:  # noqa: BLE001 - recorded, not swallowed
             self.write({
@@ -186,6 +185,7 @@ class HtplusScheduleRun(models.Model):
             existing = {line.workorder_id.id: line for line in run.line_ids
                         if line.version == run.version}
             sequence = 0
+            create_vals = []
             for workorder in run.workorder_ids.sorted(lambda w: (w.date_start or fields.Datetime.now(), w.id)):
                 if not workorder.date_start:
                     continue
@@ -201,12 +201,14 @@ class HtplusScheduleRun(models.Model):
                 if line:
                     line.write(vals)
                 else:
-                    Line.create(dict(
+                    create_vals.append(dict(
                         vals,
                         schedule_run_id=run.id,
                         version=run.version,
                         workorder_id=workorder.id,
                     ))
+            if create_vals:
+                Line.create(create_vals)
         return True
 
     def _htplus_build_apply_batches(self):
@@ -248,6 +250,11 @@ class HtplusScheduleRun(models.Model):
                 raise UserError(_(
                     'Only a confirmed schedule can be applied. %s is "%s".'
                 ) % (run.display_name, run.state))
+            if run.apply_state == 'applying':
+                raise UserError(_(
+                    'An Apply is already running on %s. Wait for it to finish or '
+                    'reset the run first.'
+                ) % run.display_name)
             run._htplus_build_apply_batches()
             run.apply_state = 'applying'
             self.env['htplus.job']._enqueue(
@@ -270,28 +277,40 @@ class HtplusScheduleRun(models.Model):
             Dict summarising how many batches were applied and how many failed.
         """
         run = self.browse(run_id)
-        batches = run.apply_batch_ids.filtered(
-            lambda b: b.version == run.version and b.state != 'done'
-        ).sorted('sequence')
+        if not run or run.apply_state != 'applying':
+            return {'run_id': run_id, 'applied': 0, 'failed': 0, 'remaining': 0}
         applied = failed = 0
-        for batch in batches:
-            try:
-                batch._htplus_run()
-                self.env.cr.commit()
-                applied += 1
-            except Exception:  # noqa: BLE001 - the batch recorded its own error
-                self.env.cr.rollback()
-                # Re-read after rollback: the failure state was rolled back too.
-                self.browse(run_id).apply_batch_ids.filtered(
-                    lambda b: b.id == batch.id
-                ).write({'state': 'failed', 'finished_at': fields.Datetime.now()})
-                self.env.cr.commit()
-                failed += 1
-                break
+        try:
+            for batch in run.apply_batch_ids.filtered(
+                    lambda b: b.version == run.version and b.state != 'done'
+            ).sorted('sequence'):
+                if self.browse(run_id).state not in ('confirmed', 'locked'):
+                    break
+                try:
+                    batch._htplus_run()
+                    self.env.cr.commit()
+                    applied += 1
+                except Exception:  # noqa: BLE001 - the batch recorded its own error
+                    self.env.cr.rollback()
+                    # Re-read after rollback: the failure state was rolled back too.
+                    self.browse(run_id).apply_batch_ids.filtered(
+                        lambda b: b.id == batch.id
+                    ).write({'state': 'failed', 'finished_at': fields.Datetime.now()})
+                    self.env.cr.commit()
+                    failed += 1
+                    break
+        except Exception:  # noqa: BLE001 - never leave the run 'applying' forever
+            self.env.cr.rollback()
+            self.browse(run_id).write({'apply_state': 'failed'})
+            self.env.cr.commit()
+            raise
         run = self.browse(run_id)
-        remaining = run.apply_batch_ids.filtered(
-            lambda b: b.version == run.version and b.state != 'done')
-        run.apply_state = 'failed' if (failed or remaining) else 'applied'
+        if run.state not in ('confirmed', 'locked'):
+            run.write({'apply_state': 'none'})
+        else:
+            remaining = run.apply_batch_ids.filtered(
+                lambda b: b.version == run.version and b.state != 'done')
+            run.apply_state = 'failed' if (failed or remaining) else 'applied'
         self.env.cr.commit()
         return {'run_id': run_id, 'applied': applied, 'failed': failed,
                 'remaining': len(remaining)}

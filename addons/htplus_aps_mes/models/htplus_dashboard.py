@@ -27,15 +27,18 @@ class HtplusDashboardKpi(models.Model):
             Stop = self.env['htplus.machine.stop']
             Issue = self.env['htplus.issue']
 
-            actuals = Actual.search(window)
-            qty_good = sum(actuals.mapped('qty_good'))
-            qty_ng = sum(actuals.mapped('qty_ng'))
+            actual_rows = Actual.read_group(
+                window, ['qty_good:sum', 'qty_ng:sum'], [])
+            qty_good = actual_rows[0].get('qty_good') or 0.0 if actual_rows else 0.0
+            qty_ng = actual_rows[0].get('qty_ng') or 0.0 if actual_rows else 0.0
             rec.qty_good = qty_good
             rec.qty_ng = qty_ng
             rec.yield_pct = qty_good * 100.0 / (qty_good + qty_ng) if (qty_good + qty_ng) else 0.0
 
-            # duration_minutes may be computed; sum in Python avoids read_group key issues
-            rec.downtime_minutes = sum(Downtime.search(window).mapped('duration_minutes'))
+            downtime_rows = Downtime.read_group(
+                window, ['duration_minutes:sum'], [])
+            rec.downtime_minutes = (
+                downtime_rows[0].get('duration_minutes') or 0.0 if downtime_rows else 0.0)
             rec.machine_stop_count = Stop.search_count(window)
             rec.open_issues = Issue.search_count([('state', 'in', ('open', 'in_progress'))])
             availability = 1.0 if not rec.downtime_minutes else max(0.0, 1.0 - rec.downtime_minutes / 480.0)
@@ -101,7 +104,7 @@ class HtplusDashboardKpi(models.Model):
     def _dashboard_shortcuts(self):
         shortcuts = super()._dashboard_shortcuts()
         shortcuts.extend([
-            {'key': 'actuals', 'label': _('Execution')},
+            {'key': 'actuals', 'label': _('Actuals')},
             {'key': 'downtime', 'label': _('Downtime')},
             {'key': 'issues', 'label': _('Issues')},
         ])
@@ -124,12 +127,12 @@ class HtplusDashboardKpi(models.Model):
         )
 
     def action_open_actuals(self):
-        """Open the work order execution records."""
+        """Open the shop floor actual records."""
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'htplus.workorder.actual',
             'view_mode': 'list,form',
-            'name': _('Work Order Execution'),
+            'name': _('Shop Floor Actuals'),
         }
 
     def action_open_downtime(self):

@@ -371,5 +371,6 @@
     <menuitem id="menu_htplus_planning_request_log"
         parent="htplus_planning_menu"
         action="action_htplus_planning_request_log"
+        groups="htplus_factory.group_aps_manager"
         sequence="50"/>
 </odoo>

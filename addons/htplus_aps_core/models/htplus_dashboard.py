@@ -76,10 +76,12 @@ class HtplusDashboardKpi(models.Model):
         Workorder = self.env['mrp.workorder']
         for rec in self:
             base = rec._plan_workorder_domain()
-            rec.workorder_count = Workorder.search_count(base)
-            rec.scheduled_wo = Workorder.search_count(base + [
-                ('schedule_state', 'in', ('scheduled', 'confirmed', 'locked')),
-            ])
+            rows = Workorder.read_group(
+                base, ['id:count'], ['schedule_state'], lazy=False)
+            rec.workorder_count = sum(row['id_count'] for row in rows)
+            rec.scheduled_wo = sum(
+                row['id_count'] for row in rows
+                if row['schedule_state'] in ('scheduled', 'confirmed', 'locked'))
             rec.locked_wo = Workorder.search_count(base + [('locked', '=', True)])
             rec.conflict_count = Workorder.search_count(base + [('schedule_conflict', '=', True)])
             rec.late_wo = Workorder.search_count(base + [

@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!--
+        Planning assistant sessions are private: a user only sees their own
+        chats (and their lines). Managers supervise everyone, the All Factories
+        role is the deliberate escape hatch, and recommendations follow the
+        factory of their source work order / production plan.
+    -->
+    <record id="rule_htplus_planning_chat_own" model="ir.rule">
+        <field name="name">htplus.planning.chat: own only</field>
+        <field name="model_id" ref="model_htplus_planning_chat"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user'))]"/>
+        <field name="domain_force">[('user_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_htplus_planning_chat_all" model="ir.rule">
+        <field name="name">htplus.planning.chat: all sessions</field>
+        <field name="model_id" ref="model_htplus_planning_chat"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_planning_chat_line_own" model="ir.rule">
+        <field name="name">htplus.planning.chat.line: own only</field>
+        <field name="model_id" ref="model_htplus_planning_chat_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user'))]"/>
+        <field name="domain_force">[('chat_id.user_id', '=', user.id)]</field>
+    </record>
+
+    <record id="rule_htplus_planning_chat_line_all" model="ir.rule">
+        <field name="name">htplus.planning.chat.line: all sessions</field>
+        <field name="model_id" ref="model_htplus_planning_chat_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_manager'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_planning_recommendation_factory" model="ir.rule">
+        <field name="name">htplus.planning.recommendation: own factories only</field>
+        <field name="model_id" ref="model_htplus_planning_recommendation"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_planning_recommendation_all_factories" model="ir.rule">
+        <field name="name">htplus.planning.recommendation: all factories</field>
+        <field name="model_id" ref="model_htplus_planning_recommendation"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+</odoo>

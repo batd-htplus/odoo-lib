@@ -31,7 +31,7 @@ class HtplusWorkforceAssignment(models.Model):
             existing = Actual.search([
                 ('workorder_id', '=', assignment.workorder_id.id),
                 ('employee_id', '=', assignment.employee_id.id),
-                ('state', 'in', ('running', 'paused')),
+                ('state', 'in', ('draft', 'running', 'paused')),
             ], limit=1)
             if existing:
                 assignment.actual_id = existing.id

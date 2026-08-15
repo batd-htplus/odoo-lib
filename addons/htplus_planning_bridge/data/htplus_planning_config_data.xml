@@ -4,6 +4,7 @@
         <field name="name">Local Planning Engine</field>
         <field name="url">http://planning:8000</field>
         <field name="timeout_sec">60</field>
+        <field name="api_key">htplus-demo-webhook-key</field>
         <field name="active" eval="True"/>
     </record>
 </odoo>

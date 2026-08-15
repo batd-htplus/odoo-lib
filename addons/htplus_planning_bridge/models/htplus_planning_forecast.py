@@ -1,4 +1,5 @@
 from odoo import fields, models, api, _
+from odoo.exceptions import UserError
 
 
 class HtplusPlanningForecast(models.Model):
@@ -75,11 +76,18 @@ class HtplusPlanningForecast(models.Model):
 
     def action_apply(self):
         """Materialise the forecast lines into a demand plan and mark the forecast applied."""
+        allowed = self.env.user.htplus_factory_ids
+        if len(allowed) != 1:
+            raise UserError(_(
+                'Set exactly one factory on your profile before applying a forecast: '
+                'the demand plan must be attributed to a site it can be scheduled against.'
+            ))
         for forecast in self:
             plan = self.env['htplus.demand.plan'].create({
                 'date_start': self.date_start,
                 'date_end': self.date_end,
                 'source': 'ai',
+                'factory_id': allowed.id,
                 'planning_forecast_id': forecast.id,
             })
             for line in forecast.line_ids:

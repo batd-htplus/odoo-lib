@@ -38,7 +38,7 @@ class HtplusPlanningRequestLog(models.Model):
             return self.env['htplus.planning.request.log']
         vals = {key: value for key, value in kwargs.items() if value is not None}
         try:
-            return self.create(vals)
+            return self.sudo().create(vals)
         except Exception:
             _logger = __import__('logging').getLogger(__name__)
             _logger.exception('Failed to write planning request log')

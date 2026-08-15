@@ -1,6 +1,6 @@
 {
     "name": "HTPlus APS / MES Bridge",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "summary": "Feed shop-floor actuals into the APS dashboard KPIs.",
     "description": """
 Cross-capability behaviour that only makes sense when both APS and MES are

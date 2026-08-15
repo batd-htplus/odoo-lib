@@ -326,11 +326,32 @@ class HtplusScheduleRun(models.Model):
         self.workorder_ids.schedule_state = 'locked'
 
     def _htplus_after_reset(self):
-        """Release the work orders so the run can be recalculated."""
+        """Release the work orders so the run can be recalculated.
+
+        An applied run is also wound back: any queued Apply job is cancelled,
+        the apply status is cleared and the current version's batches are reset
+        to pending so a future Apply re-runs the fresh proposals instead of
+        silently skipping work it has already marked done.
+        """
         self.workorder_ids.with_context(htplus_force_locked_write=True).write({
             'locked': False,
             'schedule_state': 'scheduled',
         })
+        Job = self.env['htplus.job']
+        Job.search([
+            ('origin_model', '=', 'htplus.schedule.run'),
+            ('origin_id', 'in', self.ids),
+            ('state', 'in', ('pending', 'running')),
+        ]).action_cancel()
+        for run in self:
+            run.write({'apply_state': 'none'})
+            run.apply_batch_ids.filtered(
+                lambda b: b.version == run.version
+            ).write({'state': 'pending', 'error': False,
+                     'started_at': False, 'finished_at': False})
+            run.line_ids.filtered(
+                lambda l: l.version == run.version
+            ).write({'applied': False})
 
     def action_undo_change(self):
         """Revert the most recent schedule change recorded on this run."""
@@ -648,15 +669,16 @@ class MrpWorkorder(models.Model):
     def _htplus_refresh_conflicts(self, workorders):
         """Recompute schedule_conflict for the moved WOs and their neighbours."""
         workorders.write({'schedule_conflict': False, 'capacity_ok': True})
-        candidates = self.env['mrp.workorder']
-        for workorder in workorders.filtered(lambda w: w.date_start and w.state != 'cancel'):
-            candidates |= workorder
-            candidates |= self.env['mrp.workorder'].search([
-                ('workcenter_id', '=', workorder.workcenter_id.id),
-                ('date_start', '!=', False),
-                ('state', '!=', 'cancel'),
-            ])
-        candidates = candidates.filtered(lambda w: w.date_start and w.state != 'cancel')
+        moved = workorders.filtered(lambda w: w.date_start and w.state != 'cancel')
+        if not moved:
+            return self.env['mrp.workorder']
+        neighbours = self.env['mrp.workorder'].search([
+            ('workcenter_id', 'in', moved.mapped('workcenter_id').ids),
+            ('date_start', '!=', False),
+            ('state', '!=', 'cancel'),
+        ])
+        candidates = (moved | neighbours).filtered(
+            lambda w: w.date_start and w.state != 'cancel')
         by_wc = {}
         for workorder in candidates:
             by_wc.setdefault(workorder.workcenter_id.id, self.env['mrp.workorder'])

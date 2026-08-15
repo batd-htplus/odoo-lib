@@ -30,8 +30,8 @@ class HtplusWorkorderActual(models.Model):
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
     date_start = fields.Datetime(required=True, string='Start', index=True)
     date_finished = fields.Datetime(string='Finished')
-    employee_id = fields.Many2one('hr.employee', string='Employee')
-    machine_id = fields.Many2one('htplus.machine', string='Machine')
+    employee_id = fields.Many2one('hr.employee', string='Employee', index=True)
+    machine_id = fields.Many2one('htplus.machine', string='Machine', index=True)
     qty_done = fields.Float(string='Qty Done')
     qty_good = fields.Float(string='Qty Good')
     qty_ng = fields.Float(string='Qty NG')
@@ -163,6 +163,12 @@ class HtplusWorkorderActual(models.Model):
         for rec in self:
             if rec.state != 'running':
                 raise ValidationError(_('Only a running actual can be finished.'))
+            ng = self.env['htplus.workorder.ng'].search([
+                ('workorder_id', '=', rec.workorder_id.id),
+                ('date', '>=', rec.date_start),
+            ])
+            if ng and not rec.qty_ng:
+                rec.qty_ng = sum(ng.mapped('qty'))
             rec.write({
                 'date_finished': fields.Datetime.now(),
                 'state': 'finished',

@@ -55,8 +55,8 @@ class HtplusDowntime(models.Model):
         ('unplanned', 'Unplanned'),
     ], default='unplanned')
     date_start = fields.Datetime(required=True, string='Start', index=True)
-    date_end = fields.Datetime(string='End')
-    employee_id = fields.Many2one('hr.employee', string='Employee')
+    date_end = fields.Datetime(string='End', index=True)
+    employee_id = fields.Many2one('hr.employee', string='Employee', index=True)
     cost = fields.Float()
     @api.depends('machine_id', 'machine_id.factory_id')
     def _compute_htplus_factory_id(self):
