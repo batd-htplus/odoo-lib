@@ -53,30 +53,50 @@ plus `_check_company_auto`, and the relational links are marked
 companies. No company record rules are needed — this is a defensive guard, not
 an isolation mechanism.
 
-```
-res.company ─────────────────────────────── tenant (1 DB per customer)
-│
-└── htplus.factory ──────────────────────── scope unit · drives record rules
-    │   │
-    │   ├── resource.calendar ── syncs with ── htplus.factory.holiday
-    │   │
-    │   └── htplus.plant
-    │       └── htplus.line
-    │           ├── htplus.machine
-    │           └── mrp.workcenter
-    │
-    └── htplus.shift.template ── generates ── htplus.production.shift
+```mermaid
+graph TD
+    Company["res.company<br/><i>tenant — 1 DB per customer</i>"]
+    Factory["htplus.factory<br/><i>scope unit · drives record rules</i>"]
+    Calendar["resource.calendar"]
+    Holiday["htplus.factory.holiday"]
+    Plant["htplus.plant"]
+    Line["htplus.line"]
+    Machine["htplus.machine"]
+    Workcenter["mrp.workcenter"]
+    ShiftTemplate["htplus.shift.template"]
+    ProductionShift["htplus.production.shift"]
+
+    Company --> Factory
+    Factory --> Calendar
+    Factory --> Holiday
+    Holiday -. syncs to .-> Calendar
+    Factory --> Plant
+    Plant --> Line
+    Line --> Machine
+    Line --> Workcenter
+    Factory --> ShiftTemplate
+    ShiftTemplate --> ProductionShift
 ```
 
 The APS/MES workflow hangs off that spine:
 
-```
-htplus.demand.plan (forecast)
-   └── htplus.production.plan
-        └── htplus.schedule.run ── solver ── htplus.schedule.line ──> mrp.workorder
-             │
-             └── htplus.apply.batch ── pushes ── mrp.workorder (schedule_state,
-                                               locked, dates) + htplus.workforce.assignment
+```mermaid
+graph LR
+    DP["htplus.demand.plan<br/><i>forecast</i>"]
+    PP["htplus.production.plan"]
+    SR["htplus.schedule.run"]
+    SL["htplus.schedule.line"]
+    WO["mrp.workorder"]
+    AB["htplus.apply.batch"]
+    WA["htplus.workforce.assignment"]
+
+    DP --> PP
+    PP --> SR
+    SR -- solver --> SL
+    SL --> WO
+    SR --> AB
+    AB -- pushes schedule_state / locked / dates --> WO
+    AB --> WA
 ```
 
 The shop floor writes back onto the same scope: `htplus.workorder.actual`,
