@@ -1,4 +1,5 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_htplus_job_aps,htplus.job,htplus_base.model_htplus_job,htplus_factory.group_aps_user,1,1,1,0
 access_htplus_demand_plan_user,htplus.demand.plan,model_htplus_demand_plan,htplus_factory.group_aps_user,1,0,0,0
 access_htplus_demand_plan_planner,htplus.demand.plan,model_htplus_demand_plan,htplus_factory.group_aps_planner,1,1,1,0
 access_htplus_demand_plan_manager,htplus.demand.plan,model_htplus_demand_plan,htplus_factory.group_aps_manager,1,1,1,1
