@@ -12,10 +12,11 @@ class HtplusWorkforceAssignment(models.Model):
         'reset': {'from': ('cancelled',), 'to': 'draft', 'role': 'manager'},
     }
     _description = 'Workforce Assignment'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
-    shift_id = fields.Many2one('htplus.production.shift', string='Shift', index=True)
-    workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True)
+    shift_id = fields.Many2one('htplus.production.shift', string='Shift', index=True, check_company=True)
+    workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True, check_company=True)
     employee_id = fields.Many2one('hr.employee', required=True, string='Employee', index=True)
     qty = fields.Float(string='Qty')
     date_start = fields.Datetime(string='Start', index=True)

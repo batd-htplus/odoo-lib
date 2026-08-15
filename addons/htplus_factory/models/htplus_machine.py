@@ -6,14 +6,15 @@ class HtplusMachine(models.Model):
     _inherit = ['htplus.factory.scope.mixin']
     _description = 'Machine'
     _order = 'code'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     code = fields.Char(required=True)
     model = fields.Char()
     serial_no = fields.Char()
-    workcenter_id = fields.Many2one('mrp.workcenter', string='Work Center')
-    line_id = fields.Many2one('htplus.line', string='Line')
-    plant_id = fields.Many2one('htplus.plant', string='Plant')
+    workcenter_id = fields.Many2one('mrp.workcenter', string='Work Center', check_company=True)
+    line_id = fields.Many2one('htplus.line', string='Line', check_company=True)
+    plant_id = fields.Many2one('htplus.plant', string='Plant', check_company=True)
     status = fields.Selection([
         ('operational', 'Operational'),
         ('standby', 'Standby'),

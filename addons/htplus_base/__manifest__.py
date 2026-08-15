@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Base",
-    "version": "18.0.1.1.1",
+    "version": "18.0.1.1.2",
     "summary": "Technical foundation for the HTPlus suite: declarative workflow, optimistic locking and background jobs.",
     "description": """
 HTPlus Base

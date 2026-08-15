@@ -5,10 +5,11 @@ class HtplusShiftReportWizard(models.TransientModel):
     _name = 'htplus.shift.report.wizard'
     _description = 'Shift Report'
 
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     date_from = fields.Date(required=True, default=fields.Date.context_today)
     date_to = fields.Date(required=True, default=fields.Date.context_today)
-    factory_id = fields.Many2one('htplus.factory', string='Factory')
-    line_id = fields.Many2one('htplus.line', string='Line')
+    factory_id = fields.Many2one('htplus.factory', string='Factory', check_company=True)
+    line_id = fields.Many2one('htplus.line', string='Line', check_company=True)
     include_completion = fields.Boolean(
         string='Include Shift Completion', default=True,
         help='Also aggregate the MES shift completion records.')

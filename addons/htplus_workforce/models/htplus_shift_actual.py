@@ -15,13 +15,14 @@ class HtplusShiftActual(models.Model):
     _description = 'Shift Actual'
     _order = 'date desc, shift_id'
     _rec_name = 'name'
+    _check_company_auto = True
 
     name = fields.Char(required=True, default=lambda self: _('New'))
-    shift_id = fields.Many2one('htplus.production.shift', string='Shift', index=True)
+    shift_id = fields.Many2one('htplus.production.shift', string='Shift', index=True, check_company=True)
     date = fields.Date(required=True, string='Work Date', index=True)
-    factory_id = fields.Many2one('htplus.factory', string='Factory', index=True)
-    plant_id = fields.Many2one('htplus.plant', string='Plant')
-    line_id = fields.Many2one('htplus.line', string='Line')
+    factory_id = fields.Many2one('htplus.factory', string='Factory', index=True, check_company=True)
+    plant_id = fields.Many2one('htplus.plant', string='Plant', check_company=True)
+    line_id = fields.Many2one('htplus.line', string='Line', check_company=True)
     workcenter_id = fields.Many2one('mrp.workcenter', string='Work Center')
     leader_id = fields.Many2one('hr.employee', string='Leader')
     state = fields.Selection([
@@ -140,12 +141,14 @@ class HtplusShiftActualLine(models.Model):
     _htplus_factory_path = 'actual_id.factory_id'
     _description = 'Shift Actual Line'
     _order = 'actual_id, workorder_id'
+    _check_company_auto = True
 
     actual_id = fields.Many2one('htplus.shift.actual', required=True, ondelete='cascade',
-                                string='Shift Actual')
+                                string='Shift Actual', check_company=True)
+    company_id = fields.Many2one('res.company', related='actual_id.company_id', store=True)
     date = fields.Date(related='actual_id.date', string='Work Date', store=True)
     shift_id = fields.Many2one(related='actual_id.shift_id', string='Shift', store=True)
-    assignment_id = fields.Many2one('htplus.workforce.assignment', string='Assignment')
+    assignment_id = fields.Many2one('htplus.workforce.assignment', string='Assignment', check_company=True)
     workorder_id = fields.Many2one('mrp.workorder', string='Work Order')
     employee_id = fields.Many2one('hr.employee', string='Employee')
     qty_target = fields.Float(string='Target Qty')

@@ -7,8 +7,10 @@ class HtplusDashboardKpi(models.Model):
     _name = 'htplus.dashboard.kpi'
     _description = 'APS Dashboard KPI'
     _table = 'htplus_dashboard_kpi'
+    _check_company_auto = True
 
     name = fields.Char(string='Dashboard', default=lambda self: _('Production Dashboard'))
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     date_from = fields.Date(
         default=lambda self: fields.Date.context_today(self) - timedelta(days=7),
         help='Start of the analysed window. Defaults to a week back: opening on a '
@@ -142,8 +144,8 @@ class HtplusDashboardKpi(models.Model):
 
     @api.model
     def action_open_dashboard(self):
-        """Open the singleton dashboard record (create it on first visit)."""
-        dash = self.search([], order='id', limit=1)
+        """Open the dashboard record for the current company (create it on first visit)."""
+        dash = self.search([('company_id', '=', self.env.company.id)], order='id', limit=1)
         if not dash:
             dash = self.create({'name': _('Production Dashboard')})
         return {

@@ -48,6 +48,7 @@ class HtplusFactoryScopeMixin(models.AbstractModel):
         index=True,
         store=True,
         readonly=False,
+        check_company=True,
         compute='_compute_htplus_factory_id',
         help='Factory this record belongs to. Drives record-rule access.',
     )

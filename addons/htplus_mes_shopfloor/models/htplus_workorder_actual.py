@@ -9,6 +9,7 @@ class HtplusWorkorderActual(models.Model):
     _description = 'Work Order Actual'
     _rec_name = 'name'
     _order = 'date_start desc'
+    _check_company_auto = True
 
     name = fields.Char(
         compute='_compute_name',
@@ -31,7 +32,7 @@ class HtplusWorkorderActual(models.Model):
     date_start = fields.Datetime(required=True, string='Start', index=True)
     date_finished = fields.Datetime(string='Finished')
     employee_id = fields.Many2one('hr.employee', string='Employee', index=True)
-    machine_id = fields.Many2one('htplus.machine', string='Machine', index=True)
+    machine_id = fields.Many2one('htplus.machine', string='Machine', index=True, check_company=True)
     qty_done = fields.Float(string='Qty Done')
     qty_good = fields.Float(string='Qty Good')
     qty_ng = fields.Float(string='Qty NG')

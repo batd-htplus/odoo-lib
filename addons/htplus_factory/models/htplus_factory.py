@@ -5,6 +5,7 @@ class HtplusFactory(models.Model):
     _name = 'htplus.factory'
     _description = 'Factory'
     _order = 'code'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     code = fields.Char(required=True)
@@ -59,6 +60,7 @@ class HtplusPlant(models.Model):
     _name = 'htplus.plant'
     _description = 'Plant'
     _order = 'code'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     code = fields.Char(required=True)
@@ -73,10 +75,12 @@ class HtplusLine(models.Model):
     _name = 'htplus.line'
     _description = 'Production Line'
     _order = 'code'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     code = fields.Char(required=True)
     plant_id = fields.Many2one('htplus.plant', required=True, ondelete='cascade')
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
     factory_id = fields.Many2one('htplus.factory', related='plant_id.factory_id', store=True, index=True)
     workcenter_ids = fields.One2many('mrp.workcenter', 'line_id', string='Work Centers')
     machine_ids = fields.One2many('htplus.machine', 'line_id', string='Machines')

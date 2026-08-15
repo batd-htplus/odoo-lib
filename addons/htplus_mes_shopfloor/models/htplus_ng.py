@@ -4,10 +4,12 @@ from odoo import api, fields, models
 class HtplusDefect(models.Model):
     _name = 'htplus.defect'
     _description = 'Defect'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     code = fields.Char(required=True)
     category = fields.Char()
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     active = fields.Boolean(default=True)
 
 
@@ -17,9 +19,10 @@ class HtplusWorkorderNg(models.Model):
     _htplus_factory_path = 'workorder_id.factory_id'
     _description = 'Work Order NG'
     _order = 'date desc'
+    _check_company_auto = True
 
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
-    defect_id = fields.Many2one('htplus.defect', required=True, string='Defect', index=True)
+    defect_id = fields.Many2one('htplus.defect', required=True, string='Defect', index=True, check_company=True)
     date = fields.Datetime(default=fields.Datetime.now, required=True, index=True)
     qty = fields.Float(required=True)
     root_cause = fields.Text(string='Root Cause')

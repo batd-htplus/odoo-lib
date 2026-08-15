@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Factory",
-    "version": "18.0.1.1.0",
+    "version": "18.0.1.1.1",
     "summary": "Manufacturing foundation: factory, plant, line, machine and access scoping.",
     "description": """
 HTPlus Factory

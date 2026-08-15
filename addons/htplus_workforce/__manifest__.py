@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Workforce",
-    "version": "18.0.1.0.2",
+    "version": "18.0.1.0.3",
     "summary": "Shifts, shift members and workforce assignment for manufacturing lines.",
     "description": """
 HTPlus Workforce

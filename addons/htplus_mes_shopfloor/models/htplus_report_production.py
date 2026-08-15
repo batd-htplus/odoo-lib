@@ -7,6 +7,7 @@ class HtplusReportProductionDaily(models.TransientModel):
     _name = 'htplus.report.production.daily'
     _description = 'Daily Production Report'
 
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     date_from = fields.Date(required=True, default=fields.Date.context_today)
     date_to = fields.Date(required=True, default=fields.Date.context_today)
 

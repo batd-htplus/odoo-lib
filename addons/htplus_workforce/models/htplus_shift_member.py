@@ -6,12 +6,13 @@ class HtplusShiftMember(models.Model):
     _description = 'Shift Member'
     _rec_name = 'employee_id'
     _order = 'line_id, employee_id'
+    _check_company_auto = True
 
     employee_id = fields.Many2one('hr.employee', required=True, string='Employee',
                                   domain="[('active', '=', True)]")
-    factory_id = fields.Many2one('htplus.factory', string='Factory')
-    plant_id = fields.Many2one('htplus.plant', string='Plant')
-    line_id = fields.Many2one('htplus.line', string='Production Line')
+    factory_id = fields.Many2one('htplus.factory', string='Factory', check_company=True)
+    plant_id = fields.Many2one('htplus.plant', string='Plant', check_company=True)
+    line_id = fields.Many2one('htplus.line', string='Production Line', check_company=True)
     is_leader = fields.Boolean(string='Line Leader')
     start_date = fields.Date(string='Join Date', default=fields.Date.context_today)
     notes = fields.Text()

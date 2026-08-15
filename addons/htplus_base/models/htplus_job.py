@@ -11,6 +11,7 @@ class HtplusJob(models.Model):
     _description = 'HTPlus Background Job'
     _table = 'htplus_job'
     _order = 'id desc'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     model = fields.Char(string='Model', required=True,

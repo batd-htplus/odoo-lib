@@ -8,11 +8,12 @@ class HtplusMachineStop(models.Model):
     _htplus_factory_path = 'machine_id.factory_id'
     _description = 'Machine Stop'
     _order = 'date_start desc, id desc'
+    _check_company_auto = True
 
-    machine_id = fields.Many2one('htplus.machine', required=True, string='Machine', index=True)
+    machine_id = fields.Many2one('htplus.machine', required=True, string='Machine', index=True, check_company=True)
     date_start = fields.Datetime(required=True, string='Start', index=True)
     date_end = fields.Datetime(string='End')
-    reason_id = fields.Many2one('htplus.downtime.reason', string='Reason')
+    reason_id = fields.Many2one('htplus.downtime.reason', string='Reason', check_company=True)
     type = fields.Selection([
         ('planned', 'Planned'),
         ('unplanned', 'Unplanned'),
@@ -52,6 +53,7 @@ class HtplusIssue(models.Model):
     _htplus_factory_path = 'workorder_id.factory_id'
     _description = 'Issue'
     _order = 'date desc'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True)

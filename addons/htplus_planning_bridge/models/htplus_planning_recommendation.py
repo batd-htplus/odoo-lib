@@ -6,6 +6,7 @@ class HtplusPlanningRecommendation(models.Model):
     _description = 'Recommendation'
     _inherit = 'htplus.factory.scope.mixin'
     _order = 'id desc'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     type = fields.Selection([
@@ -27,7 +28,7 @@ class HtplusPlanningRecommendation(models.Model):
         ('dismissed', 'Dismissed'),
     ], default='new', string='Status')
     source_workorder_id = fields.Many2one('mrp.workorder', string='Work Order')
-    source_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan')
+    source_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan', check_company=True)
     user_id = fields.Many2one('res.users', string='Reviewed By')
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
 

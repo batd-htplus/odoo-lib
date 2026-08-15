@@ -7,6 +7,7 @@ class HtplusProductionPlan(models.Model):
     _description = 'Production Plan'
     _inherit = ['mail.thread', 'htplus.workflow.mixin', 'htplus.factory.scope.mixin']
     _order = 'date_start desc'
+    _check_company_auto = True
 
     _htplus_transitions = {
         'confirm': {'from': ('draft',), 'to': 'confirmed', 'role': 'planner'},
@@ -25,7 +26,7 @@ class HtplusProductionPlan(models.Model):
         ('locked', 'Locked'),
         ('cancelled', 'Cancelled'),
     ], default='draft', string='Status', tracking=True)
-    demand_plan_id = fields.Many2one('htplus.demand.plan', string='Demand Plan')
+    demand_plan_id = fields.Many2one('htplus.demand.plan', string='Demand Plan', check_company=True)
     factory_id = fields.Many2one(
         'htplus.factory', string='Factory', index=True,
         default=lambda self: self._htplus_default_factory(),
@@ -264,8 +265,10 @@ class HtplusProductionPlanLine(models.Model):
     _htplus_factory_path = 'plan_id.factory_id'
     _description = 'Production Plan Line'
     _order = 'date_deadline, sequence'
+    _check_company_auto = True
 
-    plan_id = fields.Many2one('htplus.production.plan', required=True, ondelete='cascade')
+    plan_id = fields.Many2one('htplus.production.plan', required=True, ondelete='cascade', check_company=True)
+    company_id = fields.Many2one('res.company', related='plan_id.factory_id.company_id', store=True)
 
     @api.depends('plan_id', 'plan_id.factory_id')
     def _compute_htplus_factory_id(self):
@@ -273,7 +276,7 @@ class HtplusProductionPlanLine(models.Model):
         return super()._compute_htplus_factory_id()
 
     sequence = fields.Integer(default=10)
-    demand_line_id = fields.Many2one('htplus.demand.plan.line', string='Demand Line')
+    demand_line_id = fields.Many2one('htplus.demand.plan.line', string='Demand Line', check_company=True)
     product_id = fields.Many2one('product.product', required=True)
     qty = fields.Float(required=True)
     uom_id = fields.Many2one(

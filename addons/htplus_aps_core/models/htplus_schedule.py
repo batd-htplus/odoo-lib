@@ -9,6 +9,7 @@ class HtplusScheduleRun(models.Model):
     _name = 'htplus.schedule.run'
     _htplus_factory_path = 'production_plan_id.factory_id'
     _description = 'Schedule Run'
+    _check_company_auto = True
     _inherit = ['mail.thread', 'htplus.security.mixin', 'htplus.factory.scope.mixin',
                 'htplus.workflow.mixin']
 
@@ -28,8 +29,9 @@ class HtplusScheduleRun(models.Model):
         ('confirmed', 'Confirmed'),
         ('locked', 'Locked'),
     ], default='draft', string='Status', tracking=True)
-    production_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan')
-    scenario_id = fields.Many2one('htplus.simulation.scenario', string='Simulation Scenario')
+    production_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan', check_company=True)
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
+    scenario_id = fields.Many2one('htplus.simulation.scenario', string='Simulation Scenario', check_company=True)
     last_result = fields.Json(
         string='Last Scheduler Result', readonly=True, copy=False,
         help='The full ScheduleResult of the last scheduler run, kept so a plan '
@@ -497,8 +499,8 @@ class HtplusScheduleRun(models.Model):
 class MrpProduction(models.Model):
     _inherit = 'mrp.production'
 
-    htplus_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan')
-    htplus_plan_line_id = fields.Many2one('htplus.production.plan.line', string='Production Plan Line')
+    htplus_plan_id = fields.Many2one('htplus.production.plan', string='Production Plan', check_company=True)
+    htplus_plan_line_id = fields.Many2one('htplus.production.plan.line', string='Production Plan Line', check_company=True)
     schedule_run_ids = fields.Many2many('htplus.schedule.run', string='Schedule Runs')
 
 
@@ -509,9 +511,9 @@ class MrpWorkorder(models.Model):
     _htplus_concurrency_fields = ('date_start', 'date_finished', 'machine_id', 'line_id',
                                   'priority', 'schedule_state', 'locked')
 
-    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
-    line_id = fields.Many2one('htplus.line', string='Line')
-    machine_id = fields.Many2one('htplus.machine', string='Machine')
+    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True, check_company=True)
+    line_id = fields.Many2one('htplus.line', string='Line', check_company=True)
+    machine_id = fields.Many2one('htplus.machine', string='Machine', check_company=True)
     schedule_state = fields.Selection([
         ('unscheduled', 'Unscheduled'),
         ('scheduled', 'Scheduled'),
@@ -760,8 +762,10 @@ class HtplusScheduleChange(models.Model):
     _htplus_factory_path = 'schedule_run_id.factory_id'
     _description = 'Schedule Change'
     _order = 'id desc'
+    _check_company_auto = True
 
-    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True)
+    schedule_run_id = fields.Many2one('htplus.schedule.run', string='Schedule Run', index=True, check_company=True)
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order', index=True)
     user_id = fields.Many2one('res.users', string='User', default=lambda self: self.env.user)
     @api.depends('schedule_run_id', 'schedule_run_id.factory_id')

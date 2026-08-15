@@ -5,9 +5,10 @@ class HtplusPlanningRequestLog(models.Model):
     _name = 'htplus.planning.request.log'
     _description = 'Planning Engine Request Log'
     _order = 'create_date desc, id desc'
+    _check_company_auto = True
 
     config_id = fields.Many2one('htplus.planning.config', string='Engine Configuration',
-                                ondelete='set null')
+                                ondelete='set null', check_company=True)
     endpoint = fields.Char(string='Endpoint')
     method = fields.Selection([
         ('post', 'POST'),

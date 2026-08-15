@@ -20,6 +20,7 @@ class HtplusDemandPlanImportWizard(models.TransientModel):
     _name = 'htplus.demand.plan.import.wizard'
     _description = 'Import Demand Plan'
 
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     date_start = fields.Date(required=True, default=fields.Date.context_today)
     date_end = fields.Date(required=True)
     file = fields.Binary(string='File', required=True)

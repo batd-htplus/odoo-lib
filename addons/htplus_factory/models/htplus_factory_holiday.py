@@ -8,6 +8,7 @@ class HtplusFactoryHoliday(models.Model):
     _name = 'htplus.factory.holiday'
     _description = 'Factory Holiday'
     _order = 'date_from desc'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     factory_id = fields.Many2one('htplus.factory', required=True, ondelete='cascade', index=True)

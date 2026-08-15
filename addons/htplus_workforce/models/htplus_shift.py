@@ -7,6 +7,7 @@ class HtplusShiftTemplate(models.Model):
     _name = 'htplus.shift.template'
     _description = 'Shift Template'
     _order = 'factory_id, code'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     code = fields.Char(required=True)
@@ -33,6 +34,7 @@ class HtplusShiftTemplate(models.Model):
 
     default_manpower = fields.Integer(string='Default Manpower', default=1)
     factory_id = fields.Many2one('htplus.factory', string='Factory')
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
     plant_id = fields.Many2one('htplus.plant', string='Plant')
     line_id = fields.Many2one('htplus.line', string='Line')
     resource_calendar_id = fields.Many2one(
@@ -209,15 +211,16 @@ class HtplusProductionShift(models.Model):
     _description = 'Production Shift'
     _order = 'date desc, template_id'
     _rec_name = 'name'
+    _check_company_auto = True
 
     name = fields.Char(required=True, default=lambda self: _('New'))
     date = fields.Date(required=True, string='Work Date')
     template_id = fields.Many2one(
-        'htplus.shift.template', required=True, string='Shift')
-    factory_id = fields.Many2one('htplus.factory', string='Factory')
-    plant_id = fields.Many2one('htplus.plant', string='Plant')
-    line_id = fields.Many2one('htplus.line', string='Line')
-    workcenter_id = fields.Many2one('mrp.workcenter', string='Work Center')
+        'htplus.shift.template', required=True, string='Shift', check_company=True)
+    factory_id = fields.Many2one('htplus.factory', string='Factory', check_company=True)
+    plant_id = fields.Many2one('htplus.plant', string='Plant', check_company=True)
+    line_id = fields.Many2one('htplus.line', string='Line', check_company=True)
+    workcenter_id = fields.Many2one('mrp.workcenter', string='Work Center', check_company=True)
     leader_id = fields.Many2one('hr.employee', string='Leader')
     state = fields.Selection([
         ('draft', 'Draft'),

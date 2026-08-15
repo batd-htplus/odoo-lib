@@ -4,6 +4,7 @@ from odoo import fields, models
 class HtplusPlanningConfig(models.Model):
     _name = 'htplus.planning.config'
     _description = 'Planning Engine Configuration'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     url = fields.Char(string='Service URL', required=True, help='Base URL of the planning engine.')
@@ -36,8 +37,12 @@ class HtplusPlanningConfig(models.Model):
     ]
 
     def _get_active(self):
-        """Return the first active planning engine configuration."""
-        return self.search([('active', '=', True)], limit=1)
+        """Return the active planning engine configuration for the current company."""
+        company = self.env.company
+        return self.search([
+            ('active', '=', True),
+            '|', ('company_id', '=', False), ('company_id', '=', company.id),
+        ], limit=1)
 
     def _circuit_record_success(self):
         """Close the circuit and reset the failure counter after a successful call."""

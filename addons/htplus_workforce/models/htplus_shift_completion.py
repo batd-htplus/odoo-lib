@@ -5,10 +5,11 @@ class HtplusShiftCompletion(models.Model):
     _name = 'htplus.shift.completion'
     _description = 'Shift Completion'
     _order = 'date desc'
+    _check_company_auto = True
 
     shift_id = fields.Many2one('htplus.production.shift', required=True,
-                               string='Shift')
-    workorder_id = fields.Many2one('mrp.workorder', string='Work Order')
+                               string='Shift', check_company=True)
+    workorder_id = fields.Many2one('mrp.workorder', string='Work Order', check_company=True)
     factory_id = fields.Many2one('htplus.factory', related='shift_id.factory_id',
                                  store=True, index=True, string='Factory')
     date = fields.Date(required=True)

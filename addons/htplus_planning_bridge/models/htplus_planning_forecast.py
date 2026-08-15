@@ -5,6 +5,7 @@ from odoo.exceptions import UserError
 class HtplusPlanningForecast(models.Model):
     _name = 'htplus.planning.forecast'
     _description = 'Demand Forecast'
+    _check_company_auto = True
 
     name = fields.Char(required=True, default=lambda self: _('New'))
     state = fields.Selection([
@@ -12,7 +13,7 @@ class HtplusPlanningForecast(models.Model):
         ('computed', 'Computed'),
         ('applied', 'Applied'),
     ], default='draft', string='Status')
-    config_id = fields.Many2one('htplus.planning.config', string='Engine Configuration')
+    config_id = fields.Many2one('htplus.planning.config', string='Engine Configuration', check_company=True)
     model = fields.Char()
     horizon_days = fields.Integer(string='Horizon (days)', default=90)
     date_start = fields.Date(required=True)
@@ -104,8 +105,10 @@ class HtplusPlanningForecast(models.Model):
 class HtplusPlanningForecastLine(models.Model):
     _name = 'htplus.planning.forecast.line'
     _description = 'Forecast Line'
+    _check_company_auto = True
 
-    forecast_id = fields.Many2one('htplus.planning.forecast', required=True, ondelete='cascade')
+    forecast_id = fields.Many2one('htplus.planning.forecast', required=True, ondelete='cascade', check_company=True)
+    company_id = fields.Many2one('res.company', related='forecast_id.company_id', store=True)
     product_id = fields.Many2one('product.product', required=True)
     date = fields.Date(required=True)
     qty = fields.Float(required=True)

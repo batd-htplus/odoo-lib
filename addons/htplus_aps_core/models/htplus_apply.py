@@ -22,9 +22,11 @@ class HtplusScheduleLine(models.Model):
     _inherit = ['htplus.factory.scope.mixin']
     _htplus_factory_path = 'schedule_run_id.factory_id'
     _order = 'schedule_run_id, sequence, id'
+    _check_company_auto = True
 
     schedule_run_id = fields.Many2one(
         'htplus.schedule.run', required=True, ondelete='cascade', index=True)
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
     version = fields.Integer(
         string='Run Version', required=True, default=1,
         help='Version of the run this proposal belongs to. Older versions are kept '
@@ -34,8 +36,8 @@ class HtplusScheduleLine(models.Model):
         'mrp.workorder', required=True, ondelete='cascade', index=True)
     date_start = fields.Datetime(string='Proposed Start')
     date_finished = fields.Datetime(string='Proposed Finish')
-    machine_id = fields.Many2one('htplus.machine', string='Proposed Machine')
-    line_id = fields.Many2one('htplus.line', string='Proposed Line')
+    machine_id = fields.Many2one('htplus.machine', string='Proposed Machine', check_company=True)
+    line_id = fields.Many2one('htplus.line', string='Proposed Line', check_company=True)
     applied = fields.Boolean(
         default=False, index=True,
         help='Set once this proposal has been written onto the work order.')
@@ -80,9 +82,11 @@ class HtplusApplyBatch(models.Model):
     _htplus_factory_path = 'schedule_run_id.factory_id'
     _description = 'Schedule Apply Batch'
     _order = 'schedule_run_id, sequence'
+    _check_company_auto = True
 
     schedule_run_id = fields.Many2one(
         'htplus.schedule.run', required=True, ondelete='cascade', index=True)
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
     version = fields.Integer(string='Run Version', required=True)
     sequence = fields.Integer(required=True, help='Order this batch is applied in.')
     line_ids = fields.Many2many('htplus.schedule.line', string='Proposal Lines')

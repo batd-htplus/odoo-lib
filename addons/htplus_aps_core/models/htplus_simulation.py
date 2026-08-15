@@ -6,15 +6,17 @@ class HtplusSimulationScenario(models.Model):
     _inherit = ['htplus.factory.scope.mixin']
     _htplus_factory_path = 'base_schedule_run_id.factory_id'
     _description = 'Simulation Scenario'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('computed', 'Computed'),
         ('applied', 'Applied'),
         ('cancelled', 'Cancelled'),
     ], default='draft', string='Status')
-    base_schedule_run_id = fields.Many2one('htplus.schedule.run', string='Base Schedule Run')
+    base_schedule_run_id = fields.Many2one('htplus.schedule.run', string='Base Schedule Run', check_company=True)
 
     @api.depends('base_schedule_run_id', 'base_schedule_run_id.factory_id')
     def _compute_htplus_factory_id(self):
@@ -86,8 +88,10 @@ class HtplusSimulationLine(models.Model):
     _inherit = ['htplus.factory.scope.mixin']
     _htplus_factory_path = 'scenario_id.factory_id'
     _description = 'Simulation Line'
+    _check_company_auto = True
 
-    scenario_id = fields.Many2one('htplus.simulation.scenario', required=True, ondelete='cascade')
+    scenario_id = fields.Many2one('htplus.simulation.scenario', required=True, ondelete='cascade', check_company=True)
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
 
     @api.depends('scenario_id', 'scenario_id.factory_id')
     def _compute_htplus_factory_id(self):
@@ -95,7 +99,7 @@ class HtplusSimulationLine(models.Model):
         return super()._compute_htplus_factory_id()
 
     workorder_id = fields.Many2one('mrp.workorder', required=True, string='Work Order')
-    machine_id = fields.Many2one('htplus.machine', string='Machine')
+    machine_id = fields.Many2one('htplus.machine', string='Machine', check_company=True)
     original_start = fields.Datetime(string='Original Start')
     original_end = fields.Datetime(string='Original End')
     simulated_start = fields.Datetime(string='Simulated Start')

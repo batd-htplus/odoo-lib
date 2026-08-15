@@ -4,10 +4,12 @@ from odoo import fields, models, _
 class HtplusPlanningChat(models.Model):
     _name = 'htplus.planning.chat'
     _description = 'Planning Assistant'
+    _check_company_auto = True
 
     name = fields.Char(required=True, default=lambda self: _('New'))
     user_id = fields.Many2one('res.users', default=lambda self: self.env.user)
-    config_id = fields.Many2one('htplus.planning.config', string='Engine Configuration')
+    config_id = fields.Many2one('htplus.planning.config', string='Engine Configuration', check_company=True)
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     line_ids = fields.One2many('htplus.planning.chat.line', 'chat_id', string='Messages')
     session_id = fields.Char()
 
@@ -37,8 +39,10 @@ class HtplusPlanningChat(models.Model):
 class HtplusPlanningChatLine(models.Model):
     _name = 'htplus.planning.chat.line'
     _description = 'Assistant Message'
+    _check_company_auto = True
 
-    chat_id = fields.Many2one('htplus.planning.chat', required=True, ondelete='cascade')
+    chat_id = fields.Many2one('htplus.planning.chat', required=True, ondelete='cascade', check_company=True)
+    company_id = fields.Many2one('res.company', related='chat_id.company_id', store=True)
     role = fields.Selection([
         ('user', 'User'),
         ('assistant', 'Assistant'),

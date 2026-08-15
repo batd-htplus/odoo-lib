@@ -7,6 +7,7 @@ class HtplusDemandPlan(models.Model):
     _description = 'Demand Plan'
     _inherit = ['mail.thread', 'htplus.workflow.mixin', 'htplus.factory.scope.mixin']
     _order = 'date_start desc'
+    _check_company_auto = True
 
     _htplus_transitions = {
         'confirm': {'from': ('draft',), 'to': 'confirmed', 'role': 'planner'},
@@ -211,8 +212,10 @@ class HtplusDemandPlanLine(models.Model):
     _htplus_factory_path = 'plan_id.factory_id'
     _description = 'Demand Plan Line'
     _order = 'date, sequence'
+    _check_company_auto = True
 
-    plan_id = fields.Many2one('htplus.demand.plan', required=True, ondelete='cascade')
+    plan_id = fields.Many2one('htplus.demand.plan', required=True, ondelete='cascade', check_company=True)
+    company_id = fields.Many2one('res.company', related='factory_id.company_id', store=True)
 
     @api.depends('plan_id', 'plan_id.factory_id')
     def _compute_htplus_factory_id(self):

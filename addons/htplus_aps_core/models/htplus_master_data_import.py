@@ -31,6 +31,7 @@ class HtplusMasterDataImportWizard(models.TransientModel):
     _name = 'htplus.master.data.import.wizard'
     _description = 'Import Master Data'
 
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     entity = fields.Selection([
         ('factory', 'Factories'),
         ('plant', 'Plants'),

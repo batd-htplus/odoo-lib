@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Planning Bridge",
-    "version": "18.0.1.1.5",
+    "version": "18.0.1.1.6",
     "summary": "Client bridge to the HTPlus Planning Engine (forecast, scheduling, assignment, assistant).",
     "description": """
 HTPlus Planning Bridge

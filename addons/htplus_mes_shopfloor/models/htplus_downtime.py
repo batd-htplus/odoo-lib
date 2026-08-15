@@ -5,9 +5,11 @@ from odoo.exceptions import UserError
 class HtplusDowntimeReason(models.Model):
     _name = 'htplus.downtime.reason'
     _description = 'Downtime Reason'
+    _check_company_auto = True
 
     name = fields.Char(required=True)
     code = fields.Char(required=True)
+    company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
     category = fields.Selection([
         ('breakdown', 'Breakdown'),
         ('setup', 'Setup'),
@@ -46,9 +48,10 @@ class HtplusDowntime(models.Model):
     _htplus_factory_path = 'machine_id.factory_id'
     _description = 'Downtime'
     _order = 'date_start desc, id desc'
+    _check_company_auto = True
 
     workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True)
-    machine_id = fields.Many2one('htplus.machine', string='Machine', index=True)
+    machine_id = fields.Many2one('htplus.machine', string='Machine', index=True, check_company=True)
     reason_id = fields.Many2one('htplus.downtime.reason', required=True, string='Reason')
     type = fields.Selection([
         ('planned', 'Planned'),
