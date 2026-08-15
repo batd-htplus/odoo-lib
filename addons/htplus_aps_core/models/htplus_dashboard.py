@@ -78,9 +78,9 @@ class HtplusDashboardKpi(models.Model):
             base = rec._plan_workorder_domain()
             rows = Workorder.read_group(
                 base, ['id:count'], ['schedule_state'], lazy=False)
-            rec.workorder_count = sum(row['id_count'] for row in rows)
+            rec.workorder_count = sum(row['id'] for row in rows)
             rec.scheduled_wo = sum(
-                row['id_count'] for row in rows
+                row['id'] for row in rows
                 if row['schedule_state'] in ('scheduled', 'confirmed', 'locked'))
             rec.locked_wo = Workorder.search_count(base + [('locked', '=', True)])
             rec.conflict_count = Workorder.search_count(base + [('schedule_conflict', '=', True)])
