@@ -179,7 +179,8 @@ class HtplusProductionPlan(models.Model):
         self.ensure_one()
         Dashboard = self.env['htplus.dashboard.kpi']
         dash = Dashboard.search(
-            [('company_id', '=', self.env.company.id)], order='id', limit=1)
+            [('company_id', '=', self.env.company.id),
+             ('dashboard_type', '=', 'production')], order='id', limit=1)
         if not dash:
             dash = Dashboard.create({'name': _('Production Dashboard')})
         dash.production_plan_id = self.id

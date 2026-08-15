@@ -1,6 +1,6 @@
 {
     "name": "HTPlus APS / Workforce Bridge",
-    "version": "18.0.1.0.1",
+    "version": "18.0.1.0.2",
     "summary": "Propose workforce assignments from a schedule run and report manning KPIs.",
     "description": """
 Cross-capability behaviour that only makes sense when both APS and Workforce are

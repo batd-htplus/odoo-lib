@@ -1,15 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <record id="action_htplus_shift_dashboard" model="ir.actions.act_window">
+    <record id="action_htplus_shift_dashboard_open" model="ir.actions.server">
         <field name="name">Shift Management Dashboard</field>
-        <field name="res_model">htplus.dashboard.kpi</field>
-        <field name="view_mode">form</field>
-        <field name="target">inline</field>
+        <field name="model_id" ref="htplus_aps_core.model_htplus_dashboard_kpi"/>
+        <field name="state">code</field>
+        <field name="code">action = model.action_open_shift_dashboard()</field>
     </record>
+
+    <delete model="ir.actions.act_window"
+        search="[('name', '=', 'Shift Management Dashboard'), ('res_model', '=', 'htplus.dashboard.kpi')]"/>
 
     <record id="view_htplus_shift_dashboard_kpi_form" model="ir.ui.view">
         <field name="name">htplus.shift.dashboard.kpi.form</field>
         <field name="model">htplus.dashboard.kpi</field>
+        <field name="priority" eval="50"/>
         <field name="arch" type="xml">
             <form string="Shift Management Dashboard">
                 <header>
@@ -89,6 +93,6 @@
 
     <menuitem id="menu_htplus_shift_dashboard"
         parent="htplus_workforce.menu_htplus_shift_mgmt"
-        action="action_htplus_shift_dashboard"
+        action="action_htplus_shift_dashboard_open"
         sequence="50"/>
 </odoo>

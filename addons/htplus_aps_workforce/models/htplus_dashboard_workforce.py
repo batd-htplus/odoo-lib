@@ -53,6 +53,26 @@ class HtplusDashboardKpi(models.Model):
                 assign_domain.append(('workorder_id', 'in', wo_ids or [0]))
             rec.assignment_conflict_count = Assignment.search_count(assign_domain)
 
+    def action_open_shift_dashboard(self):
+        """Open the shift dashboard for the current company (create it on first visit)."""
+        dash = self.search(
+            [('company_id', '=', self.env.company.id),
+             ('dashboard_type', '=', 'shift')], order='id', limit=1)
+        if not dash:
+            dash = self.create({
+                'name': _('Shift Management Dashboard'),
+                'dashboard_type': 'shift',
+            })
+        return {
+            'type': 'ir.actions.act_window',
+            'name': _('Shift Management Dashboard'),
+            'res_model': 'htplus.dashboard.kpi',
+            'res_id': dash.id,
+            'view_mode': 'form',
+            'view_id': self.env.ref('htplus_aps_workforce.view_htplus_shift_dashboard_kpi_form').id,
+            'target': 'inline',
+        }
+
     def action_open_shifts(self):
         """Open the shifts within the selected window."""
         return {
