@@ -150,6 +150,7 @@ class HtplusDashboardKpi(models.Model):
             'res_model': 'htplus.dashboard.kpi',
             'res_id': dash.id,
             'view_mode': 'form',
+            'view_id': self.env.ref('htplus_aps_core.view_htplus_dashboard_kpi_form').id,
             'target': 'inline',
         }
 

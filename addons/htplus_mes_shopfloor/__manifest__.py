@@ -1,6 +1,6 @@
 {
     "name": "HTPlus MES Shop Floor",
-    "version": "18.0.1.2.6",
+    "version": "18.0.1.2.7",
     "summary": "Shop floor execution (MES lite): actuals, downtime, NG, issues, shift completion.",
     "description": """
 HTPlus MES Shop Floor
@@ -16,6 +16,7 @@ NG/scrap registration, issue management and shift completion reporting.
     "category": "HTPlus",
     "depends": [
         "htplus_factory",
+        "htplus_aps_core",
     ],
     "data": [
         "security/ir.model.access.csv",

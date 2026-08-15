@@ -82,4 +82,32 @@
         <field name="domain_force">[(1, '=', 1)]</field>
     </record>
 
+    <record id="rule_htplus_shift_actual_line_factory" model="ir.rule">
+        <field name="name">htplus.shift.actual.line: own factories only</field>
+        <field name="model_id" ref="model_htplus_shift_actual_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_shift_actual_line_all_factories" model="ir.rule">
+        <field name="name">htplus.shift.actual.line: all factories</field>
+        <field name="model_id" ref="model_htplus_shift_actual_line"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
+    <record id="rule_htplus_workforce_assignment_factory" model="ir.rule">
+        <field name="name">htplus.workforce.assignment: own factories only</field>
+        <field name="model_id" ref="model_htplus_workforce_assignment"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_aps_user')), (4, ref('htplus_factory.group_mes_operator'))]"/>
+        <field name="domain_force">[('factory_id', 'in', user.htplus_factory_ids.ids)]</field>
+    </record>
+
+    <record id="rule_htplus_workforce_assignment_all_factories" model="ir.rule">
+        <field name="name">htplus.workforce.assignment: all factories</field>
+        <field name="model_id" ref="model_htplus_workforce_assignment"/>
+        <field name="groups" eval="[(4, ref('htplus_factory.group_htplus_all_factories'))]"/>
+        <field name="domain_force">[(1, '=', 1)]</field>
+    </record>
+
 </odoo>

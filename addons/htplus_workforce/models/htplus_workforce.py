@@ -4,7 +4,7 @@ from odoo.exceptions import ValidationError
 
 class HtplusWorkforceAssignment(models.Model):
     _name = 'htplus.workforce.assignment'
-    _inherit = ['htplus.workflow.mixin']
+    _inherit = ['htplus.workflow.mixin', 'htplus.factory.scope.mixin']
 
     _htplus_transitions = {
         'confirm': {'from': ('draft',), 'to': 'confirmed', 'role': 'planner'},
@@ -14,21 +14,37 @@ class HtplusWorkforceAssignment(models.Model):
     _description = 'Workforce Assignment'
 
     name = fields.Char(required=True)
-    shift_id = fields.Many2one('htplus.production.shift', string='Shift')
-    workorder_id = fields.Many2one('mrp.workorder', string='Work Order')
-    employee_id = fields.Many2one('hr.employee', required=True, string='Employee')
+    shift_id = fields.Many2one('htplus.production.shift', string='Shift', index=True)
+    workorder_id = fields.Many2one('mrp.workorder', string='Work Order', index=True)
+    employee_id = fields.Many2one('hr.employee', required=True, string='Employee', index=True)
     qty = fields.Float(string='Qty')
-    date_start = fields.Datetime(string='Start')
-    date_end = fields.Datetime(string='End')
+    date_start = fields.Datetime(string='Start', index=True)
+    date_end = fields.Datetime(string='End', index=True)
     state = fields.Selection([
         ('draft', 'Draft'),
         ('confirmed', 'Confirmed'),
         ('cancelled', 'Cancelled'),
-    ], default='draft', string='Status')
-    skill_ok = fields.Boolean(string='Skill OK')
+    ], default='draft', string='Status', index=True)
+    skill_ok = fields.Boolean(string='Skill OK', index=True)
     ot_ok = fields.Boolean(string='OT OK')
-    conflict = fields.Boolean(string='Shift Conflict')
+    conflict = fields.Boolean(string='Shift Conflict', index=True)
     company_id = fields.Many2one('res.company', default=lambda self: self.env.company)
+
+    @api.depends('workorder_id', 'workorder_id.factory_id',
+                 'shift_id', 'shift_id.factory_id',
+                 'employee_id', 'employee_id.htplus_factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope an assignment by its work order, else its shift, else the employee's home factory.
+
+        Assignments may be created before a work order is attached, so the
+        factory is resolved through the best link that is present.
+        """
+        for rec in self:
+            rec.factory_id = (
+                rec.workorder_id.factory_id
+                or rec.shift_id.factory_id
+                or rec.employee_id.htplus_factory_id
+            )
 
     @api.model_create_multi
     def create(self, vals_list):

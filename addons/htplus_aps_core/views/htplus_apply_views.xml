@@ -80,7 +80,7 @@
     <menuitem id="menu_htplus_apply_batch"
         parent="htplus_aps_menu_scheduling"
         action="action_htplus_apply_batch"
-        sequence="30"/>
+        sequence="31"/>
 
     <record id="action_htplus_schedule_change" model="ir.actions.act_window">
         <field name="name">Schedule Change Log</field>
@@ -152,5 +152,5 @@
     <menuitem id="menu_htplus_schedule_change"
         parent="htplus_aps_menu_scheduling"
         action="action_htplus_schedule_change"
-        sequence="40"/>
+        sequence="41"/>
 </odoo>

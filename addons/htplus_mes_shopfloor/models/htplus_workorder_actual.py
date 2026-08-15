@@ -125,6 +125,9 @@ class HtplusWorkorderActual(models.Model):
     def action_start(self):
         """Start shop-floor execution for a draft actual, or resume a paused one.
 
+        A resume opens a *new* productivity row: the paused interval was already
+        closed by ``action_pause`` and must not be folded into productive time.
+
         Returns:
             True once the actual is running.
         """
@@ -140,24 +143,36 @@ class HtplusWorkorderActual(models.Model):
                 raise ValidationError(_(
                     'Work order already has a running actual (%s).'
                 ) % running.display_name)
+            if rec.state == 'paused':
+                if rec.productivity_id:
+                    rec.with_context(htplus_skip_productivity_sync=True).write({
+                        'productivity_id': False,
+                    })
+                start = fields.Datetime.now()
+            else:
+                start = rec.date_start or fields.Datetime.now()
             rec.write({
                 'state': 'running',
-                'date_start': rec.date_start or fields.Datetime.now(),
+                'date_start': start,
                 'date_finished': False,
             })
-            rec._sync_productivity()
         return True
 
     def action_finish(self):
         """Finish the actual and post the good quantity to the work order."""
         for rec in self:
-            rec.date_finished = fields.Datetime.now()
-            rec.state = 'finished'
-            rec.workorder_id.qty_producing = rec.qty_good or rec.qty_done
-            rec._sync_productivity()
+            if rec.state != 'running':
+                raise ValidationError(_('Only a running actual can be finished.'))
+            rec.write({
+                'date_finished': fields.Datetime.now(),
+                'state': 'finished',
+            })
+            rec.workorder_id.qty_producing = rec.qty_good
 
     def action_pause(self):
         """Pause the actual and record the pause time."""
+        if any(rec.state != 'running' for rec in self):
+            raise ValidationError(_('Only a running actual can be paused.'))
         self.write({
             'state': 'paused',
             'date_finished': fields.Datetime.now(),

@@ -1,6 +1,6 @@
 {
     "name": "HTPlus Workforce / Time Off Bridge",
-    "version": "18.0.1.0.0",
+    "version": "18.0.1.0.1",
     "summary": "Surface employee time off alongside the shift calendar.",
     "description": """
 Cross-capability behaviour that only makes sense when both Workforce and Odoo's

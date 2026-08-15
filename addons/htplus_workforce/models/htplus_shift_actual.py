@@ -136,6 +136,8 @@ class HtplusShiftActual(models.Model):
 
 class HtplusShiftActualLine(models.Model):
     _name = 'htplus.shift.actual.line'
+    _inherit = ['htplus.factory.scope.mixin']
+    _htplus_factory_path = 'actual_id.factory_id'
     _description = 'Shift Actual Line'
     _order = 'actual_id, workorder_id'
 
@@ -152,6 +154,11 @@ class HtplusShiftActualLine(models.Model):
     qty_ng = fields.Float(string='NG Qty')
     downtime_minutes = fields.Float(string='Downtime (min)')
     overtime_minutes = fields.Float(string='Overtime (min)')
+
+    @api.depends('actual_id', 'actual_id.factory_id')
+    def _compute_htplus_factory_id(self):
+        """Scope a line by the shift actual it belongs to."""
+        return super()._compute_htplus_factory_id()
 
     @api.depends('qty_done', 'qty_target')
     def _compute_achievement_rate(self):
