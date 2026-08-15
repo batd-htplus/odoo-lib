@@ -1,3 +1,5 @@
+import secrets
+
 from odoo import fields, models
 
 
@@ -8,7 +10,8 @@ class HtplusPlanningConfig(models.Model):
 
     name = fields.Char(required=True)
     url = fields.Char(string='Service URL', required=True, help='Base URL of the planning engine.')
-    api_key = fields.Char(string='API Key', groups='base.group_system')
+    api_key = fields.Char(string='API Key', groups='base.group_system',
+                          default=lambda self: secrets.token_urlsafe(32))
     model = fields.Char(default='default')
     timeout_sec = fields.Integer(string='Timeout (seconds)', default=30)
     retry_max = fields.Integer(string='Max Retries', default=3,

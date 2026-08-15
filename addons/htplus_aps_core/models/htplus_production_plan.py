@@ -178,7 +178,8 @@ class HtplusProductionPlan(models.Model):
         """Set this plan as the working plan on the APS dashboard."""
         self.ensure_one()
         Dashboard = self.env['htplus.dashboard.kpi']
-        dash = Dashboard.search([], limit=1)
+        dash = Dashboard.search(
+            [('company_id', '=', self.env.company.id)], order='id', limit=1)
         if not dash:
             dash = Dashboard.create({'name': _('Production Dashboard')})
         dash.production_plan_id = self.id

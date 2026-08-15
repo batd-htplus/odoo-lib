@@ -43,7 +43,10 @@ class HtplusScheduleRun(models.Model):
                     ('factory_id', '=', factory.id),
                 ], limit=1)
         if not template:
-            template = Template.search([('active', '=', True)], limit=1)
+            template = Template.search([
+                ('active', '=', True),
+                '|', ('company_id', '=', False), ('company_id', '=', workorder.company_id.id),
+            ], limit=1)
         if not template:
             return Shift.browse()
 

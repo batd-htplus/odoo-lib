@@ -24,7 +24,10 @@ class HtplusPlanningWebhook(http.Controller):
         """Store the forecast payload sent by the planning engine on the given forecast."""
         Config = request.env['htplus.planning.config']
         forecast = request.env['htplus.planning.forecast'].sudo().browse(forecast_id)
-        config = (forecast.config_id or Config._get_active()).sudo()
+        config = forecast.config_id
+        if not config:
+            ConfigEnv = Config.with_company(forecast.company_id) if forecast.company_id else Config
+            config = ConfigEnv.sudo()._get_active()
         self._htplus_authorize_webhook(config)
         if not forecast:
             return {'success': False, 'error': 'forecast not found'}
