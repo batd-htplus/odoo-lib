@@ -53,56 +53,191 @@ plus `_check_company_auto`, and the relational links are marked
 companies. No company record rules are needed — this is a defensive guard, not
 an isolation mechanism.
 
+Edges below are the actual relational fields. A solid edge is a direct
+`Many2one`/`One2many`, a dashed edge crosses into Odoo base models.
+
+### 1. Factory structure — the access spine
+
 ```mermaid
 graph TD
-    Company["res.company<br/><i>tenant — 1 DB per customer</i>"]
-    Factory["htplus.factory<br/><i>scope unit · drives record rules</i>"]
-    Calendar["resource.calendar"]
+    Company["res.company<br/><i>tenant · 1 DB per customer</i>"]:::tenant
+    Factory["htplus.factory<br/><i>scope unit</i>"]:::scope
+    Calendar["resource.calendar<br/><i>working hours</i>"]:::odoo
     Holiday["htplus.factory.holiday"]
-    Plant["htplus.plant"]
-    Line["htplus.line"]
-    Machine["htplus.machine"]
-    Workcenter["mrp.workcenter"]
+    Plant["htplus.plant"]:::scope
+    Line["htplus.line"]:::scope
+    Machine["htplus.machine"]:::scope
+    Workcenter["mrp.workcenter"]:::odoo
     ShiftTemplate["htplus.shift.template"]
     ProductionShift["htplus.production.shift"]
 
-    Company --> Factory
-    Factory --> Calendar
-    Factory --> Holiday
-    Holiday -. syncs to .-> Calendar
-    Factory --> Plant
-    Plant --> Line
-    Line --> Machine
-    Line --> Workcenter
-    Factory --> ShiftTemplate
-    ShiftTemplate --> ProductionShift
+    Company -- company_id --> Factory
+    Factory -- resource_calendar_id --> Calendar
+    Factory -- holiday_ids --> Holiday
+    Holiday -. syncs .-> Calendar
+    Factory -- plant_ids --> Plant
+    Plant -- line_ids --> Line
+    Plant -- workcenter_ids --> Workcenter
+    Line -- machine_ids --> Machine
+    Line -- workcenter_ids --> Workcenter
+    Machine -- workcenter_id --> Workcenter
+    Factory -- workcenter_ids --> Workcenter
+    Factory -- shift templates --> ShiftTemplate
+    ShiftTemplate -. generates .-> ProductionShift
+
+    classDef tenant fill:#f0f9ff,stroke:#0284c7
+    classDef scope fill:#fef3c7,stroke:#d97706
+    classDef odoo fill:#f3f4f6,stroke:#6b7280
 ```
 
-The APS/MES workflow hangs off that spine:
+### 2. APS planning flow — from forecast to a schedulable order
 
 ```mermaid
 graph LR
-    DP["htplus.demand.plan<br/><i>forecast</i>"]
-    PP["htplus.production.plan"]
-    SR["htplus.schedule.run"]
-    SL["htplus.schedule.line"]
-    WO["mrp.workorder"]
-    AB["htplus.apply.batch"]
-    WA["htplus.workforce.assignment"]
+    DP["htplus.demand.plan<br/><i>forecast horizon</i>"]:::scope
+    DPL["htplus.demand.plan.line"]:::scope
+    PP["htplus.production.plan<br/><i>working plan</i>"]:::scope
+    PPL["htplus.production.plan.line"]:::scope
+    SR["htplus.schedule.run"]:::scope
+    SC["htplus.schedule.change"]:::scope
+    SIM["htplus.simulation.scenario"]:::scope
+    SIML["htplus.simulation.line"]:::scope
+    WO["mrp.workorder<br/><i>schedulable</i>"]:::odoo
+    AB["htplus.apply.batch"]:::scope
+    Job["htplus.job"]:::odoo
 
-    DP --> PP
-    PP --> SR
-    SR -- solver --> SL
-    SL --> WO
-    SR --> AB
-    AB -- pushes schedule_state / locked / dates --> WO
-    AB --> WA
+    DP -- line_ids --> DPL
+    DPL -- product_id --> Product["product.product"]:::odoo
+    PP -- demand_plan_id --> DP
+    PP -- line_ids --> PPL
+    PPL -- demand_line_id --> DPL
+    PPL -- bom_id --> Bom["mrp.bom"]:::odoo
+    PPL -- workcenter_ids --> Workcenter2["mrp.workcenter"]:::odoo
+    PPL -- production_id --> MO["mrp.production"]:::odoo
+    PP -- schedule_run_ids --> SR
+    SR -- workorder_ids --> WO
+    SR -- scenario_id --> SIM
+    SR -- job_id --> Job
+    SIM -- base_schedule_run_id --> SR
+    SIM -- line_ids --> SIML
+    SIML -- workorder_id --> WO
+    SC -- schedule_run_id --> SR
+    SC -- workorder_id --> WO
+    WO -- schedule_run_id --> SR
+    WO -- production_id --> MO
+    SR -- solver result --> SL["htplus.schedule.line"]:::scope
+    SL -- workorder_id --> WO
+    AB -- line_ids (m2m) --> SL
+    AB -. apply .-> WO
+
+    classDef scope fill:#fef3c7,stroke:#d97706
+    classDef odoo fill:#f3f4f6,stroke:#6b7280
 ```
 
-The shop floor writes back onto the same scope: `htplus.workorder.actual`,
-`htplus.workorder.ng`, `htplus.downtime`, `htplus.issue` and the shift actuals
-all inherit `factory_id` and are filtered by it, so a dashboard, a planner and
-a production plan never see data outside the factory they are scoped to.
+### 3. MES shop floor — actuals written back
+
+```mermaid
+graph TD
+    WO["mrp.workorder"]:::odoo
+    Actual["htplus.workorder.actual<br/><i>start / stop / qty</i>"]:::scope
+    NG["htplus.workorder.ng<br/><i>defects</i>"]:::scope
+    Defect["htplus.defect"]
+    Dt["htplus.downtime"]:::scope
+    DtReason["htplus.downtime.reason"]
+    Stop["htplus.machine.stop"]:::scope
+    Issue["htplus.issue"]:::scope
+    Machine["htplus.machine"]:::scope
+    Emp["hr.employee"]:::odoo
+
+    WO -- actuals --> Actual
+    WO -- qty done --> Actual
+    WO -- ng --> NG
+    NG -- defect_id --> Defect
+    NG -- employee_id --> Emp
+    WO -- downtime --> Dt
+    Machine -- stops --> Stop
+    Dt -- machine_id --> Machine
+    Dt -- reason_id --> DtReason
+    Stop -- reason_id --> DtReason
+    WO -- issue --> Issue
+    Actual -- machine_id --> Machine
+    Actual -- employee_id --> Emp
+
+    classDef scope fill:#fef3c7,stroke:#d97706
+    classDef odoo fill:#f3f4f6,stroke:#6b7280
+```
+
+### 4. Workforce — shifts, members and assignment
+
+```mermaid
+graph TD
+    Tmpl["htplus.shift.template<br/><i>Day/Evening/Night</i>"]
+    PShift["htplus.production.shift"]:::scope
+    SActual["htplus.shift.actual"]:::scope
+    SAL["htplus.shift.actual.line"]:::scope
+    SComp["htplus.shift.completion"]:::scope
+    SMember["htplus.shift.member"]
+    Assign["htplus.workforce.assignment"]:::scope
+    WO["mrp.workorder"]:::odoo
+    Emp["hr.employee"]:::odoo
+
+    PShift -- template_id --> Tmpl
+    SActual -- shift_id --> PShift
+    SActual -- line_ids --> SAL
+    SAL -- actual_id --> SActual
+    SAL -- workorder_id --> WO
+    SAL -- assignment_id --> Assign
+    SComp -- shift_id --> PShift
+    SComp -- workorder_id --> WO
+    SMember -- employee_id --> Emp
+    Assign -- shift_id --> PShift
+    Assign -- workorder_id --> WO
+    Assign -- employee_id --> Emp
+
+    classDef scope fill:#fef3c7,stroke:#d97706
+    classDef odoo fill:#f3f4f6,stroke:#6b7280
+```
+
+### 5. Planning bridge — engine integrations
+
+The planning engine runs as a sidecar service and is reached through
+`htplus.planning.service`. Everything it produces is stored inside the same
+company/factory scope:
+
+```mermaid
+graph LR
+    Config["htplus.planning.config<br/><i>per-company engine settings</i>"]
+    Forecast["htplus.planning.forecast"]:::scope
+    FL["htplus.planning.forecast.line"]:::scope
+    Rec["htplus.planning.recommendation"]:::scope
+    Log["htplus.planning.request.log"]
+    Chat["htplus.planning.chat"]
+    ChatL["htplus.planning.chat.line"]
+    WO["mrp.workorder"]:::odoo
+    PP["htplus.production.plan"]:::scope
+
+    Forecast -- config_id --> Config
+    Forecast -- line_ids --> FL
+    Chat -- config_id --> Config
+    Chat -- line_ids --> ChatL
+    Log -- config_id --> Config
+    Rec -- source_workorder_id --> WO
+    Rec -- source_plan_id --> PP
+    Forecast -- action_apply --> PP
+    Service["htplus.planning.service<br/><i>HTTP → FastAPI sidecar</i>"]:::odoo
+    Forecast -. engine call .-> Service
+    Chat -. engine call .-> Service
+    SR["htplus.schedule.run"]:::scope
+    SR -. engine call .-> Service
+
+    classDef scope fill:#fef3c7,stroke:#d97706
+    classDef odoo fill:#f3f4f6,stroke:#6b7280
+```
+
+The shop floor and the workforce write back onto the same scope
+(`factory_id` inherited and filtered by record rules), so a dashboard, a
+planner and a production plan never see data outside the factory they are
+scoped to.
 
 ## Deployment — production
 
