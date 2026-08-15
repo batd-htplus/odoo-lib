@@ -39,6 +39,51 @@ your network.
 Dev runs with `dev_mode = reload,qweb,xml,assets`, so Python and XML changes are
 picked up without a rebuild. Addons are mounted read-write.
 
+## Domain model — one company, many factories
+
+The product is sold **one database per customer**. Inside that database the
+`res.company` is the tenant, and the **factory is the unit of access control**:
+all record rules scope by `htplus.factory` (via a denormalised, indexed
+`factory_id`), and a user sees exactly the factories granted on their
+`htplus_factory_ids`.
+
+Every scoped model carries a stored `company_id` (derived from its factory)
+plus `_check_company_auto`, and the relational links are marked
+`check_company=True`, so the ORM refuses to build a record that crosses
+companies. No company record rules are needed — this is a defensive guard, not
+an isolation mechanism.
+
+```
+res.company ─────────────────────────────── tenant (1 DB per customer)
+│
+└── htplus.factory ──────────────────────── scope unit · drives record rules
+    │   │
+    │   ├── resource.calendar ── syncs with ── htplus.factory.holiday
+    │   │
+    │   └── htplus.plant
+    │       └── htplus.line
+    │           ├── htplus.machine
+    │           └── mrp.workcenter
+    │
+    └── htplus.shift.template ── generates ── htplus.production.shift
+```
+
+The APS/MES workflow hangs off that spine:
+
+```
+htplus.demand.plan (forecast)
+   └── htplus.production.plan
+        └── htplus.schedule.run ── solver ── htplus.schedule.line ──> mrp.workorder
+             │
+             └── htplus.apply.batch ── pushes ── mrp.workorder (schedule_state,
+                                               locked, dates) + htplus.workforce.assignment
+```
+
+The shop floor writes back onto the same scope: `htplus.workorder.actual`,
+`htplus.workorder.ng`, `htplus.downtime`, `htplus.issue` and the shift actuals
+all inherit `factory_id` and are filtered by it, so a dashboard, a planner and
+a production plan never see data outside the factory they are scoped to.
+
 ## Deployment — production
 
 ```bash
